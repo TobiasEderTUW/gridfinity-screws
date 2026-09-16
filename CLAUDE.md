@@ -79,7 +79,7 @@ generator/generate_gridfinity_chappel_bins.py   the pipeline: inventory, sizing,
 generator/assemble_final_drawer_v9.py           drawer assembly + layout algorithm + preview manifest
 api/app.py                                      FastAPI wrapper around the pipeline (docker profile "cad")
 web/public/index.html                           the browser editor (single file, no build step)
-docker-compose.yml                              web always; api behind `--profile cad`
+docker-compose.yml                              web + api, both default; web shares api's netns
 ```
 
 ### generate_gridfinity_chappel_bins.py
@@ -113,12 +113,34 @@ changing a box size does not invalidate the cache.
 ### The editor (web/public/index.html)
 
 Self-contained: no framework, no CDN. Contains an embedded copy of the 116 bins
-(`BINS`), a Gridfinity mesh builder, a ZIP reader/writer built on `CompressionStream`,
-a 3MF writer, and the drag-and-drop UI. Published as a claude.ai artifact as well.
+(`BINS`), a ZIP reader, an STL/3MF WebGL viewer, and the drag-and-drop UI.
 
 Capabilities: drag/resize bins, per-bin modal, global height slider, auto-arrange
-(same dealing algorithm), CSV export, local-storage persistence, STL body export,
-3MF export, and — when the build service is up — routing 3MF builds to the real pipeline.
+(same dealing algorithm), CSV export, local-storage persistence, 3MF export and viewing.
+
+**Every 3MF comes from the build service — no exceptions.** The browser mesh builder,
+browser 3MF writer, STL body export and the "Load labels" STL picker were removed
+(2026-09-16) because they could only produce label-less boxes. If the service is down the
+editor errors out instead of downloading. Labels are fetched on demand by `/api/generate`
+for exactly the positions requested (one box → one scrape; "All as 3MF" → all missing).
+There is no manual fetch button and no drawer zone lines or header verdict chips.
+
+Since 2026-09-16 the page title is **"Fami Screw Drawer"** and the embedded `BINS` default
+layout is the user's hand-arranged layout (308 of 350 cells). It deliberately differs from
+the generator's sizing in 7 bins: P005 and P006 are **1×3** (breaking rule 1 at the user's
+choice), P049/P109/P110 are 2×2, P112/P114 are 2×3. The generator's `SPECS` and
+`validate_specs()` still describe the old 300-cell set. Local storage key is
+`schublade1077.v2` (bumped so the new default shows).
+
+Layout persistence is local storage plus **CSV export/import** (same columns both ways;
+import validates bounds, overlaps, a single height, and rejects the whole file on any
+error). The claude.ai `db` "saved layouts" list was removed.
+
+**3MF caching, two layers:** the browser keeps built files in memory keyed by
+`{height, [pos, w, d]…}` (256 MB cap, oldest evicted), so repeating a download or view is
+instant; the api keeps `cache/built_3mf/<stem>.3mf`, reused while it is newer than the
+generator script, `app.py` and that position's label STL. The stem encodes footprint and
+height, so any size change rebuilds.
 
 ---
 
@@ -141,6 +163,11 @@ Capabilities: drag/resize bins, per-bin modal, global height slider, auto-arrang
   and let a sibling `div` swallow every click. That is what "the download button does
   nothing" turned out to be. Check `document.elementFromPoint` on a control before
   theorising about handlers.
+- **Codespaces drops forwarded traffic on compose networks** (legacy iptables `FORWARD`
+  policy DROP, only `docker0` allowed). Symptom: nginx 504 on `/api/health`, the editor
+  thinks there is no service, and the api cannot resolve `label.alch.shop`. Fix in place:
+  `api` uses `network_mode: bridge`, `web` uses `network_mode: service:api` and proxies to
+  `127.0.0.1:8000`. Don't move them back onto a project network.
 - **OCP/CadQuery is not thread safe** — the service serialises builds behind a lock.
 - **The label ramp eats cavity volume**: usable volume is
   `ix*iy*(rampBottom - FLOOR_Z) + ix*(12*iy - 72)`, not `ix*iy*h`.
@@ -163,11 +190,11 @@ Capabilities: drag/resize bins, per-bin modal, global height slider, auto-arrang
 
 **Not verified — do this first**
 
-1. **CadQuery has never actually run here.** No cadquery/trimesh/Playwright in this sandbox.
-   The first `docker compose --profile cad up --build` on the user's machine is the real
-   test. Try P006 (M6×80, the only 2×3) first — widest label, longest screw.
-2. **The label scrape** against label.alch.shop has not been exercised; the site's option
-   names may have drifted (`CHAPPEL_OPTION_HINTS` carries fallbacks).
+1. **CadQuery and the scrape ran for P006 and P001 only** (2026-09-16, Codespace): label
+   scraped, 3MF has BODY + LABEL_INLAY on extruder 2, inlay top at z = 56, centred on the
+   shelf. The other 114 positions' option matching on label.alch.shop is unexercised.
+2. **Full batch** ("All as 3MF", 114 scrapes + 116 builds in one synchronous request)
+   has not been run.
 3. **Print validation.** No bin from the current 8U set has been printed. Check a 2×1 and
    the 2×3, especially the 45° ramp printing without supports and the label colour split.
 4. **Downloads inside the claude.ai artifact still fail for the user** and I could not
@@ -179,9 +206,13 @@ Capabilities: drag/resize bins, per-bin modal, global height slider, auto-arrang
 
 ## 7. Open questions / possible next steps
 
-- **Background batch builds.** `/api/generate` is synchronous; 116 boxes through CadQuery
-  single-threaded is a long blocking request. Offered a job + progress endpoint writing into
-  `./out/`; the user has not answered.
+- **Background batch builds — done 2026-09-16.** The editor uses `POST /api/jobs` + polling
+  (`api/app.py`, one worker thread, identical requests deduplicated, results in
+  `cache/jobs/`). Reason: GitHub's port forwarding kills requests after about a minute, so the
+  synchronous "All as 3MF" failed with nginx `499` while the scrape continued.
+  `/api/generate` remains for scripts only. Jobs live in memory: an api restart loses them
+  (the poller then gets a 404 and says to start again), but labels and built boxes stay
+  cached on disk.
 - **6kt M10×80 sits at 81 % fill.** Options: allow a `2x4` for that one position, or store 20
   of the 25 pieces. Needs a decision.
 - **SK and LK blocks have 0 and 2 free cells.** Adding a screw size later forces a re-size,

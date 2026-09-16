@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Schraubenschublade 1077</title>
+<title>Fami Screw Drawer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -46,12 +46,6 @@ h1{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0}
 header.top{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;justify-content:space-between;
   padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:18px}
 .statusbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.verdict{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 11px;border-radius:999px;
-  font-weight:600;font-size:13.5px;border:1px solid transparent}
-.verdict .dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 18%,transparent)}
-.verdict.ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
-.verdict.bad{background:var(--alert-soft);color:var(--alert);border-color:color-mix(in srgb,var(--alert) 35%,transparent)}
-.verdict .dot{background:currentColor}
 .chip{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--ink-2);
   background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-variant-numeric:tabular-nums}
 .chip b{color:var(--ink);font-weight:600}
@@ -70,7 +64,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:18px;align-items
 .ctrl output{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .btnrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
-.savelist .btnrow,.mfoot .btnrow{display:flex;gap:6px}
+.mfoot .btnrow{display:flex;gap:6px}
 button{font:inherit;font-size:12.5px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);
   border-radius:7px;padding:6px 11px;cursor:pointer}
 button:hover{border-color:var(--line-strong)}
@@ -90,10 +84,6 @@ button[disabled]{opacity:.45;cursor:not-allowed}
    repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px var(--cell)),
    repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px var(--cell));
   border:1px solid var(--line-strong);outline:0}
-.zone{position:absolute;top:0;bottom:0;border-left:1px dashed var(--line-strong);pointer-events:none}
-.zone:first-of-type{border-left:0}
-.zone span{position:absolute;top:-19px;left:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--muted);font-family:"IBM Plex Mono",ui-monospace,monospace;white-space:nowrap}
 .frontline{position:absolute;left:10px;right:10px;bottom:22px;height:3px;background:var(--accent);border-radius:2px}
 .frontlabel{position:absolute;left:10px;bottom:6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--accent);font-family:"IBM Plex Mono",ui-monospace,monospace}
@@ -133,20 +123,12 @@ dialog::backdrop{background:rgba(10,14,16,.5)}
 .facts .v{color:var(--ink-2)}
 .facts .v.bad{color:var(--alert);font-weight:600}
 .facts .v.muted{color:var(--muted)}
-.labelbox{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--surface-2)}
-.labelbox .row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
 .mfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
 .note{font-size:11.5px;color:var(--muted)}
-.savelist{display:grid;gap:6px;max-height:150px;overflow:auto}
-.savelist .item{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;
-  border:1px solid var(--line);border-radius:6px;padding:5px 8px}
-.savelist .item b{font-weight:500}
 .hide{display:none!important}
 .toast{position:sticky;top:8px;z-index:30;margin:0 0 12px;padding:9px 13px;border-radius:9px;
   background:var(--accent-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
   font-size:12.5px;font-family:"IBM Plex Mono",ui-monospace,monospace;box-shadow:var(--shadow)}
-.check{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink-2);line-height:1.35}
-.check input{margin:2px 0 0;accent-color:var(--accent)}
 textarea{font:inherit;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;resize:vertical;
   color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%}
 textarea:disabled{opacity:.5}
@@ -203,15 +185,12 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Schraubenschublade 1077</h1>
+      <h1>Fami Screw Drawer</h1>
       <div class="sub">1077 &times; 602 &times; 75 mm &middot; 25 &times; 14 Gridfinity cells &middot; 116 positions</div>
     </div>
     <div class="statusbar" id="statusbar">
-      <span class="verdict ok" id="verdict"><span class="dot"></span><span id="verdictText">Layout works</span></span>
       <span class="chip">cells <b id="cellsUsed">300</b>/350</span>
       <span class="chip">free <b id="cellsFree">50</b></span>
-      <span class="chip" id="chipLen">too short <b id="nLen">0</b></span>
-      <span class="chip" id="chipUnp">unplaced <b id="nUnp">0</b></span>
       <span class="chip" id="chipSel">selected <b id="nSel">0</b></span>
     </div>
   </header>
@@ -250,49 +229,17 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
       </div>
 
       <div class="panel card">
-        <h2>Reading the drawer</h2>
-        <div class="legend">
-          <div><span class="sw" style="background:var(--sk)"></span> SK &middot; Senkkopf</div>
-          <div><span class="sw" style="background:var(--lk)"></span> LK &middot; Linsenkopf PH</div>
-          <div><span class="sw" style="background:var(--zk)"></span> ZK &middot; Zylinderkopf</div>
-          <div><span class="sw" style="background:var(--kt)"></span> 6kt &middot; Sechskant</div>
-          <div><span class="sw len"></span> screw too long for the box</div>
-        </div>
-      </div>
-
-      <div class="panel card">
         <h2>Generate boxes</h2>
         <div class="ctrl">
           <div class="row"><label for="uSlider">Box height</label><output id="uOut">8U &middot; 56 mm</output></div>
           <input type="range" id="uSlider" min="3" max="10" step="1" value="8">
         </div>
-        <div class="labelbox">
-          <div class="row"><span id="labelState">No label files loaded</span></div>
-          <div class="btnrow" style="margin-top:7px">
-            <button id="btnLabels">Load labels&hellip;</button>
-            <button class="ghost" id="btnClearLabels">Clear</button>
-          </div>
-          <input type="file" id="labelInput" multiple accept=".stl,.zip" class="hide">
-          <div class="note" style="margin-top:7px">Labels come from <b>generate_gridfinity_chappel_bins.py</b> in the build service. This picker is the offline shortcut: load <b>labels_inlay_stl</b> files the script already produced and they are re-seated on the shelf of whatever box you export.</div>
-        </div>
-        <div class="btnrow" style="margin-top:12px">
+        <div class="note" id="serverState">build service: checking &hellip;</div>
+        <div class="btnrow" style="margin-top:9px">
           <button class="primary" id="btnGen3mfAll">All as 3MF</button>
           <button id="btnGen3mfSel">Selected 3MF</button>
         </div>
-        <div class="btnrow" style="margin-top:7px">
-          <button class="ghost" id="btnGenAll">All bodies (STL)</button>
-          <button class="ghost" id="btnGenSel">Selected STL</button>
-        </div>
-        <div class="note" id="genNote" style="margin-top:9px">3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2. The label geometry is built by the original generator script in the build service.</div>
-      </div>
-
-      <div class="panel card hide" id="serverCard">
-        <h2>Local build service</h2>
-        <div class="note" id="serverState">not detected</div>
-        <label class="check" style="margin-top:9px"><input type="checkbox" id="useServer" disabled checked> Build 3MF with generate_gridfinity_chappel_bins.py (Chappel label, pocket cut, flush)</label>
-        <div class="btnrow" style="margin-top:9px">
-          <button id="btnFetchLabels" disabled>Fetch &amp; cache labels</button>
-        </div>
+        <div class="note" id="genNote" style="margin-top:9px">Every 3MF is built by generate_gridfinity_chappel_bins.py: BODY with the label pocket cut + Chappel LABEL_INLAY on filament 2. Label artwork that is not cached yet is fetched for exactly the boxes being built.</div>
       </div>
 
       <div class="panel card">
@@ -306,13 +253,24 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
       </div>
 
       <div class="panel card" id="saveCard">
-        <h2>Saved layouts</h2>
+        <h2>Layout file</h2>
         <div class="btnrow">
-          <button id="btnSave">Save current</button>
           <button id="btnExport">Export CSV</button>
+          <button id="btnImport">Import CSV&hellip;</button>
         </div>
-        <div class="savelist" id="saveList" style="margin-top:10px"></div>
-        <div class="note" id="saveNote">Layouts are stored with this page.</div>
+        <input type="file" id="csvInput" accept=".csv,text/csv" class="hide">
+        <div class="note" id="saveNote" style="margin-top:9px">The working layout is kept in this browser. Export it as CSV to keep a copy; import restores positions, box sizes, quantities and height.</div>
+      </div>
+
+      <div class="panel card">
+        <h2>Reading the drawer</h2>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--sk)"></span> SK &middot; Senkkopf</div>
+          <div><span class="sw" style="background:var(--lk)"></span> LK &middot; Linsenkopf PH</div>
+          <div><span class="sw" style="background:var(--zk)"></span> ZK &middot; Zylinderkopf</div>
+          <div><span class="sw" style="background:var(--kt)"></span> 6kt &middot; Sechskant</div>
+          <div><span class="sw len"></span> screw too long for the box</div>
+        </div>
       </div>
     </aside>
   </main>
@@ -352,7 +310,6 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
   <div class="mfoot">
     <span class="btnrow" style="display:flex;gap:7px">
       <button id="mRotate">Rotate</button>
-      <button id="mStl">STL</button>
       <button id="m3mf">3MF</button>
     </span>
     <button class="primary" id="mDone">Done</button>
@@ -406,23 +363,8 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
 </dialog>
 
 <script>
-const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":10},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"qty":50,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"qty":50,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":11},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"qty":50,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":12},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"qty":30,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":2,"d":1,"x":2,"y":13},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"qty":5,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":2,"d":3,"x":0,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":2,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":0},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":1},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":2,"y":2},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":2},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":3},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":0,"y":3},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":4},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":5},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"qty":50,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":0,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"qty":50,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":6},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":2,"y":7},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":7},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":8},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"qty":50,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":2,"y":9},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":9},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":14,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":12,"y":0},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":10,"y":0},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":0},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":14,"y":1},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":12,"y":1},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"qty":100,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":10,"y":1},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"qty":100,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":1},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":14,"y":2},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":12,"y":2},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":8,"y":2},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":14,"y":3},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":12,"y":3},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"qty":100,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":3},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"qty":50,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":8,"y":3},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":14,"y":4},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":4},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":8,"y":4},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":10,"y":4},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":14,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":5},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":1,"x":10,"y":6},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"qty":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":8,"y":5},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":8,"y":7},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":7},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":12,"y":7},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":10,"y":7},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":8,"y":8},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":12,"y":9},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"qty":50,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":9},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"qty":50,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":14,"y":11},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"qty":25,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":12,"y":11},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"qty":25,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":10,"y":11},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"qty":25,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":10},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":6,"y":0},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":1},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":6,"y":1},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":2},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":6,"y":2},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":4,"y":3},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":3},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":4,"y":4},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":4},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":4,"y":5},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"qty":100,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":6,"y":6},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":7},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":6,"y":7},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":8},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":6,"y":8},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":10},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":4,"y":10},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":11},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":4,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":20,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":18,"y":0},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":0},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":22,"y":0},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"qty":10,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":20,"y":1},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":1},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":16,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"qty":50,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":22,"y":1},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"qty":50,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":20,"y":2},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"qty":50,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":2},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"qty":50,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":16,"y":2},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":22,"y":2},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"qty":50,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":3},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"qty":50,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":18,"y":3},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"qty":50,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":16,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"qty":50,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":22,"y":3},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":4},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"qty":30,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":18,"y":4},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":16,"y":4},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"qty":50,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":4},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"qty":50,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":16,"y":5},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"qty":50,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":5},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":20,"y":5},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":18,"y":5},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":1,"x":22,"y":6},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"qty":30,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":1,"x":18,"y":7},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"qty":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":16,"y":6},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"qty":30,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":2,"x":20,"y":7},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"qty":30,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":22,"y":7},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"qty":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":2,"x":20,"y":9},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"qty":30,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":18,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"qty":25,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":8}];
-/* ---------- bin geometry -> binary STL (body only, no label inlay) ---------- */
-const GEO = {R:3.75, WALL:1.2, FOOT_H:4.75, FLOOR:7.2, SHELF_D:12, SHELF_T:1.2, CLR:0.5, SEG:6};
-
-function roundedRect(w, d, r, seg = GEO.SEG){
-  r = Math.min(r, w/2 - 0.01, d/2 - 0.01);
-  const cx = [w/2-r, -(w/2-r), -(w/2-r), w/2-r];
-  const cy = [d/2-r, d/2-r, -(d/2-r), -(d/2-r)];
-  const pts = [];
-  for (let c = 0; c < 4; c++){
-    for (let j = 0; j <= seg; j++){
-      const a = (c*90 + j*90/seg) * Math.PI/180;
-      pts.push([cx[c] + r*Math.cos(a), cy[c] + r*Math.sin(a)]);
-    }
-  }
-  return pts;
-}
+const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":7},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"qty":50,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"qty":50,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":9},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"qty":50,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":10},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"qty":30,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":1,"d":3,"x":2,"y":11},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"qty":5,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":1,"d":3,"x":3,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":0,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":1},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":0,"y":2},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":3},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":5},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":0},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":2},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":2,"y":3},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":4},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"qty":50,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":2,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"qty":50,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":7},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":0,"y":8},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":9},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":11},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"qty":50,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":0,"y":12},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":13},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":8,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":8,"y":1},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":8,"y":2},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":3},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":8,"y":4},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":8,"y":5},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"qty":100,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":8,"y":6},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"qty":100,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":7},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":10,"y":0},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":10,"y":1},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":10,"y":3},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":10,"y":4},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":10,"y":5},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"qty":100,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":6},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"qty":50,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":10,"y":7},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":12,"y":0},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":1},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":12,"y":2},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":12,"y":3},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":12,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":7},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":2,"x":12,"y":9},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"qty":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":12,"y":11},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":14,"y":0},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":1},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":14,"y":3},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":14,"y":5},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":14,"y":7},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":14,"y":11},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"qty":50,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":8},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"qty":50,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":10,"y":10},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"qty":25,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":10,"y":12},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"qty":25,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":8,"y":9},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"qty":25,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":11},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":4,"y":1},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":2},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":4,"y":3},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":4},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":4,"y":5},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":6,"y":0},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":1},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":6,"y":2},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":3},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":6,"y":4},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"qty":100,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":4,"y":7},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":8},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":4,"y":9},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":10},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":4,"y":12},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":7},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":6,"y":8},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":10},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":6,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":16,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":16,"y":1},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":2},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":16,"y":3},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"qty":10,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":16,"y":4},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":0},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":18,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"qty":50,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":18,"y":2},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"qty":50,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":18,"y":3},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"qty":50,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":4},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"qty":50,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":18,"y":5},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":20,"y":0},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"qty":50,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":1},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"qty":50,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":20,"y":2},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"qty":50,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":20,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"qty":50,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":20,"y":4},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":5},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"qty":30,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":20,"y":6},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":22,"y":0},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"qty":50,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":1},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"qty":50,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":22,"y":2},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"qty":50,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":3},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":22,"y":4},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":22,"y":6},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":2,"x":22,"y":8},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"qty":30,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":2,"x":20,"y":10},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"qty":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":20,"y":12},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"qty":30,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":3,"x":18,"y":8},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"qty":30,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":18,"y":11},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"qty":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":3,"x":16,"y":5},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"qty":30,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":16,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"qty":25,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":11}];
+/* ---------- mesh container (parseSTL output, viewer input) ---------- */
 function Mesh(){ return {tri: [], group: 0}; }
 function tri(m, a, b, c){
   const ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2];
@@ -431,176 +373,12 @@ function tri(m, a, b, c){
   const L = Math.hypot(nx, ny, nz) || 1;
   m.tri.push([nx/L, ny/L, nz/L, a, b, c, m.group ?? 0]);
 }
-function quad(m, a, b, c, d){ tri(m, a, b, c); tri(m, a, c, d); }
-function capLoop(m, loop, z, up, ox = 0, oy = 0){
-  const p = i => [loop[i][0]+ox, loop[i][1]+oy, z];
-  for (let i = 1; i < loop.length - 1; i++){
-    if (up) tri(m, p(0), p(i), p(i+1)); else tri(m, p(0), p(i+1), p(i));
-  }
-}
-function sideBand(m, lo, hi, z0, z1, ox = 0, oy = 0){
-  const n = lo.length;
-  for (let i = 0; i < n; i++){
-    const j = (i+1) % n;
-    quad(m,
-      [lo[i][0]+ox, lo[i][1]+oy, z0], [lo[j][0]+ox, lo[j][1]+oy, z0],
-      [hi[j][0]+ox, hi[j][1]+oy, z1], [hi[i][0]+ox, hi[i][1]+oy, z1]);
-  }
-}
-function solidPrism(m, loop, z0, z1, ox = 0, oy = 0){
-  m.group = (m.group ?? 0) + 1;
-  sideBand(m, loop, loop, z0, z1, ox, oy);
-  capLoop(m, loop, z1, true, ox, oy);
-  capLoop(m, loop, z0, false, ox, oy);
-}
-function solidLoft(m, rings, ox = 0, oy = 0){
-  m.group = (m.group ?? 0) + 1;     // rings: [{loop, z}] bottom -> top
-  for (let k = 0; k < rings.length - 1; k++)
-    sideBand(m, rings[k].loop, rings[k+1].loop, rings[k].z, rings[k+1].z, ox, oy);
-  capLoop(m, rings[rings.length-1].loop, rings[rings.length-1].z, true, ox, oy);
-  capLoop(m, rings[0].loop, rings[0].z, false, ox, oy);
-}
-function solidRing(m, outer, inner, z0, z1){
-  m.group = (m.group ?? 0) + 1;      // walls: prism with a prismatic hole
-  sideBand(m, outer, outer, z0, z1);
-  const n = inner.length;
-  for (let i = 0; i < n; i++){                    // inner skin, normals pointing inward
-    const j = (i+1) % n;
-    quad(m, [inner[j][0], inner[j][1], z0], [inner[i][0], inner[i][1], z0],
-            [inner[i][0], inner[i][1], z1], [inner[j][0], inner[j][1], z1]);
-  }
-  for (let i = 0; i < n; i++){                    // top and bottom annulus
-    const j = (i+1) % n;
-    quad(m, [outer[i][0], outer[i][1], z1], [outer[j][0], outer[j][1], z1],
-            [inner[j][0], inner[j][1], z1], [inner[i][0], inner[i][1], z1]);
-    quad(m, [inner[i][0], inner[i][1], z0], [inner[j][0], inner[j][1], z0],
-            [outer[j][0], outer[j][1], z0], [outer[i][0], outer[i][1], z0]);
-  }
-}
-function solidBox(m, x0, x1, y0, y1, z0, z1){
-  solidPrism(m, [[x0,y0],[x1,y0],[x1,y1],[x0,y1]], z0, z1);
-}
-function solidPrismX(m, profile, x0, x1){
-  m.group = (m.group ?? 0) + 1;         // profile: [[y,z],...] CCW seen from +X
-  const n = profile.length;
-  for (let i = 0; i < n; i++){
-    const j = (i+1) % n;
-    quad(m, [x0, profile[i][0], profile[i][1]], [x0, profile[j][0], profile[j][1]],
-            [x1, profile[j][0], profile[j][1]], [x1, profile[i][0], profile[i][1]]);
-  }
-  for (let i = 1; i < n-1; i++){
-    tri(m, [x1, profile[0][0], profile[0][1]], [x1, profile[i][0], profile[i][1]], [x1, profile[i+1][0], profile[i+1][1]]);
-    tri(m, [x0, profile[0][0], profile[0][1]], [x0, profile[i+1][0], profile[i+1][1]], [x0, profile[i][0], profile[i][1]]);
-  }
-}
-/* one Gridfinity foot: 0.8 chamfer, 1.8 straight, 2.15 chamfer up to 41.5 */
-function footRings(){
-  return [
-    {loop: roundedRect(35.62, 35.62, 0.81), z: 0},
-    {loop: roundedRect(37.20, 37.20, 1.60), z: 0.8},
-    {loop: roundedRect(37.20, 37.20, 1.60), z: 2.6},
-    {loop: roundedRect(41.50, 41.50, 3.75), z: GEO.FOOT_H},
-  ];
-}
-/* the whole bin, as overlapping closed volumes in one mesh - slicers union them */
-function buildBin(w, d, u){
-  const m = Mesh();
-  const ox = PITCH*w - GEO.CLR, oy = PITCH*d - GEO.CLR, top = u*U_MM;
-  const outer = roundedRect(ox, oy, GEO.R);
-  const inner = roundedRect(ox - 2*GEO.WALL, oy - 2*GEO.WALL, Math.max(0.8, GEO.R - GEO.WALL));
-  solidPrism(m, outer, GEO.FOOT_H, GEO.FLOOR);            // floor slab
-  solidRing(m, outer, inner, GEO.FLOOR, top);             // walls
-  const rings = footRings();
-  for (let i = 0; i < w; i++)
-    for (let j = 0; j < d; j++)
-      solidLoft(m, rings, (i - (w-1)/2) * PITCH, (j - (d-1)/2) * PITCH);
-  const halfW = ox/2 - 1.0;                               // stays inside the rounded envelope
-  const frontY = -oy/2 + GEO.WALL;
-  solidBox(m, -halfW, halfW, frontY, frontY + GEO.SHELF_D, top - GEO.SHELF_T, top);
-  const under = top - GEO.SHELF_T;                        // 45 deg support ramp
-  solidPrismX(m, [[frontY, under - GEO.SHELF_D], [frontY + GEO.SHELF_D, under], [frontY, under]], -halfW, halfW);
-  return m;
-}
-function meshToSTL(m, name){
-  const n = m.tri.length;
-  const buf = new ArrayBuffer(84 + n*50);
-  const dv = new DataView(buf);
-  const header = new TextEncoder().encode(name.slice(0, 79));
-  new Uint8Array(buf, 0, 80).set(header);
-  dv.setUint32(80, n, true);
-  let o = 84;
-  for (const t of m.tri){
-    dv.setFloat32(o, t[0], true); dv.setFloat32(o+4, t[1], true); dv.setFloat32(o+8, t[2], true); o += 12;
-    for (let k = 3; k < 6; k++){
-      dv.setFloat32(o, t[k][0], true); dv.setFloat32(o+4, t[k][1], true); dv.setFloat32(o+8, t[k][2], true); o += 12;
-    }
-    dv.setUint16(o, 0, true); o += 2;
-  }
-  return new Blob([buf], {type: "application/octet-stream"});
-}
 
-/* ---------- minimal ZIP reader/writer (no external library) ---------- */
-const CRC_TABLE = (() => {
-  const t = new Uint32Array(256);
-  for (let i = 0; i < 256; i++){
-    let c = i;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
-    t[i] = c >>> 0;
-  }
-  return t;
-})();
-function crc32(bytes){
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-async function deflateRaw(bytes){
-  if (typeof CompressionStream !== "function") return null;
-  try {
-    const cs = new CompressionStream("deflate-raw");
-    const stream = new Blob([bytes]).stream().pipeThrough(cs);
-    return new Uint8Array(await new Response(stream).arrayBuffer());
-  } catch { return null; }
-}
+/* ---------- minimal ZIP reader (no external library) ---------- */
 async function inflateRaw(bytes){
   const ds = new DecompressionStream("deflate-raw");
   const stream = new Blob([bytes]).stream().pipeThrough(ds);
   return new Uint8Array(await new Response(stream).arrayBuffer());
-}
-const enc = new TextEncoder();
-async function zipCreate(files, {compress = true} = {}){
-  const chunks = [], central = [];
-  let offset = 0;
-  for (const f of files){
-    const name = enc.encode(f.name);
-    const raw = typeof f.data === "string" ? enc.encode(f.data)
-      : f.data instanceof Uint8Array ? f.data : new Uint8Array(f.data);
-    const crc = crc32(raw);
-    let method = 0, body = raw;
-    if (compress && raw.length > 256){
-      const packed = await deflateRaw(raw);
-      if (packed && packed.length < raw.length){ method = 8; body = packed; }
-    }
-    const lh = new DataView(new ArrayBuffer(30));
-    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
-    lh.setUint16(8, method, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
-    lh.setUint32(14, crc, true); lh.setUint32(18, body.length, true); lh.setUint32(22, raw.length, true);
-    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
-    chunks.push(new Uint8Array(lh.buffer), name, body);
-    const cd = new DataView(new ArrayBuffer(46));
-    cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true);
-    cd.setUint16(8, 0, true); cd.setUint16(10, method, true); cd.setUint16(12, 0, true); cd.setUint16(14, 0x21, true);
-    cd.setUint32(16, crc, true); cd.setUint32(20, body.length, true); cd.setUint32(24, raw.length, true);
-    cd.setUint16(28, name.length, true); cd.setUint32(42, offset, true);
-    central.push(new Uint8Array(cd.buffer), name);
-    offset += 30 + name.length + body.length;
-  }
-  const cdSize = central.reduce((s, c) => s + c.length, 0);
-  const end = new DataView(new ArrayBuffer(22));
-  end.setUint32(0, 0x06054b50, true);
-  end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
-  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
-  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], {type: "application/zip"});
 }
 async function zipRead(buffer){
   const dv = new DataView(buffer), bytes = new Uint8Array(buffer);
@@ -634,7 +412,7 @@ async function zipRead(buffer){
   }));
 }
 
-/* ---------- STL reading, mesh utilities, 3MF writing ---------- */
+/* ---------- STL reading ---------- */
 function parseSTL(buf){
   const dv = new DataView(buf);
   const n = buf.byteLength >= 84 ? dv.getUint32(80, true) : 0;
@@ -662,99 +440,6 @@ function parseSTL(buf){
   for (let i = 0; i + 2 < pts.length; i += 3) tri(m, pts[i], pts[i+1], pts[i+2]);
   return m;
 }
-function meshBounds(m){
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const t of m.tri) for (let k = 3; k < 6; k++) for (let a = 0; a < 3; a++){
-    lo[a] = Math.min(lo[a], t[k][a]); hi[a] = Math.max(hi[a], t[k][a]);
-  }
-  return {lo, hi};
-}
-function meshTranslate(m, dx, dy, dz){
-  const out = Mesh();
-  for (const t of m.tri)
-    out.tri.push([t[0], t[1], t[2],
-      [t[3][0]+dx, t[3][1]+dy, t[3][2]+dz],
-      [t[4][0]+dx, t[4][1]+dy, t[4][2]+dz],
-      [t[5][0]+dx, t[5][1]+dy, t[5][2]+dz], t[6] ?? 0]);
-  return out;
-}
-/* seat a label mesh on the shelf of a w x d x u bin: centred in x, on the shelf
-   centre line in y, top face flush with the bin's top face */
-function seatLabel(label, w, d, u){
-  const {lo, hi} = meshBounds(label);
-  const oy = PITCH*d - GEO.CLR, top = u*U_MM;
-  const shelfY = -oy/2 + GEO.WALL + GEO.SHELF_D/2;
-  return meshTranslate(label,
-    -(lo[0] + hi[0])/2,
-    shelfY - (lo[1] + hi[1])/2,
-    top - hi[2]);
-}
-function indexed(m){
-  const map = new Map(), verts = [], tris = [];
-  const key = (v, g) => g + "|" + v.map(c => c.toFixed(4)).join(",");
-  for (const t of m.tri){
-    const idx = [];
-    for (let k = 3; k < 6; k++){
-      const kk = key(t[k], t[6] ?? 0);
-      let i = map.get(kk);
-      if (i === undefined){ i = verts.length; verts.push(t[k]); map.set(kk, i); }
-      idx.push(i);
-    }
-    if (idx[0] !== idx[1] && idx[1] !== idx[2] && idx[0] !== idx[2]) tris.push(idx);
-  }
-  return {verts, tris};
-}
-function xmlEscape(s){
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function objectXML(id, name, mesh){
-  const {verts, tris} = indexed(mesh);
-  const v = verts.map(p => `<vertex x="${p[0].toFixed(4)}" y="${p[1].toFixed(4)}" z="${p[2].toFixed(4)}"/>`).join("");
-  const t = tris.map(f => `<triangle v1="${f[0]}" v2="${f[1]}" v3="${f[2]}"/>`).join("");
-  return {xml: `<object id="${id}" name="${xmlEscape(name)}" type="model"><mesh><vertices>${v}</vertices><triangles>${t}</triangles></mesh></object>`,
-          faces: tris.length};
-}
-/* one 3MF: BODY (+ LABEL) as two parts of one assembly, label on filament 2 */
-async function build3MF(name, bodyMesh, labelMesh){
-  const parts = [{id: 1, name: "BODY", mesh: bodyMesh, extruder: 1}];
-  if (labelMesh) parts.push({id: 2, name: "LABEL_INLAY", mesh: labelMesh, extruder: 2});
-  const built = parts.map(p => ({...p, ...objectXML(p.id, p.name, p.mesh)}));
-  const parentId = 3;
-  const model =
-    `<?xml version="1.0" encoding="UTF-8"?>` +
-    `<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">` +
-      `<resources>${built.map(b => b.xml).join("")}` +
-      `<object id="${parentId}" name="${xmlEscape(name)}" type="model"><components>` +
-        built.map(b => `<component objectid="${b.id}"/>`).join("") +
-      `</components></object></resources>` +
-      `<build><item objectid="${parentId}" partnumber="${xmlEscape(name)}"/></build>` +
-    `</model>`;
-  const settings =
-    `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  <object id="${parentId}">\n` +
-    `    <metadata key="name" value="${xmlEscape(name)}"/>\n    <metadata key="extruder" value="1"/>\n` +
-    built.map(b =>
-      `    <part id="${b.id}" subtype="normal_part">\n` +
-      `      <metadata key="name" value="${b.name}"/>\n` +
-      `      <metadata key="extruder" value="${b.extruder}"/>\n` +
-      `      <mesh_stat face_count="${b.faces}" edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reserved="0" backwards_edges="0"/>\n` +
-      `    </part>\n`).join("") +
-    `  </object>\n</config>\n`;
-  return zipCreate([
-    {name: "[Content_Types].xml", data:
-      `<?xml version="1.0" encoding="UTF-8"?>` +
-      `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
-      `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
-      `<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>`},
-    {name: "_rels/.rels", data:
-      `<?xml version="1.0" encoding="UTF-8"?>` +
-      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-      `<Relationship Target="/3D/3dmodel.model" Id="rel0" ` +
-      `Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>`},
-    {name: "3D/3dmodel.model", data: model},
-    {name: "Metadata/model_settings.config", data: settings},
-  ]);
-}
-
 /* ---------- constants: Gridfinity + bin geometry (mm) ---------- */
 const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2,
       FLOOR_Z = 7.2, SHELF_T = 1.2, SHELF_D = 12, U_MM = 7,
@@ -795,17 +480,6 @@ function layoutGrid(){
   document.documentElement.style.setProperty("--cell", state.cell + "px");
   grid.style.width  = GW * state.cell + "px";
   grid.style.height = GD * state.cell + "px";
-  grid.querySelectorAll(".zone").forEach(z => z.remove());
-  let x = 0;
-  for (const [kind, cols] of [["SK",4],["LK",4],["ZK",8],["6kt",8],["Reserve",1]]){
-    const z = document.createElement("div");
-    z.className = "zone";
-    z.style.left  = x * state.cell + "px";
-    z.style.width = cols * state.cell + "px";
-    z.innerHTML = `<span>${kind}</span>`;
-    grid.appendChild(z);
-    x += cols;
-  }
 }
 function binNode(b){
   let el = nodes.get(b.pos);
@@ -854,21 +528,9 @@ function render(){
 }
 function updateStatus(){
   const used = state.bins.filter(placed).reduce((s,b) => s + b.w*b.d, 0);
-  const lenBad = state.bins.filter(b => !lengthOk(b)).length;
-  const unp = state.bins.filter(b => !placed(b)).length;
   $("cellsUsed").textContent = used;
   $("cellsFree").textContent = MAX_CELLS - used;
-  $("nLen").textContent = lenBad;
-  $("nUnp").textContent = unp;
-  $("chipLen").classList.toggle("warn", lenBad > 0);
-  $("chipUnp").classList.toggle("warn", unp > 0);
   $("nSel").textContent = state.sel.size;
-  const ok = lenBad === 0 && unp === 0;
-  const v = $("verdict");
-  v.className = "verdict " + (ok ? "ok" : "bad");
-  $("verdictText").textContent = ok
-    ? "Layout works — all 116 positions fit"
-    : `Does not fit — ${[lenBad && lenBad+" too short for the screw", unp && unp+" unplaced"].filter(Boolean).join(", ")}`;
   saveLocal();
 }
 
@@ -1032,10 +694,8 @@ function syncModal(){
   $("fLen").textContent = `${b.outer.toFixed(1)} mm` + (lok ? "" : " — does not fit");
   $("fLen").className = "v" + (lok ? "" : " bad");
   $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
-  const lab = labels.get(b.pos);
-  $("fLabel").textContent = lab ? lab.file : labelKind(b);
-  $("fLabel").className = "v" + (lab || server?.cad ? "" : " muted");
-
+  $("fLabel").textContent = labelKind(b);
+  $("fLabel").className = "v" + (server?.cad ? "" : " bad");
 }
 $("mClose").onclick = $("mDone").onclick = () => modal.close();
 $("mRotate").onclick = () => rotate(modalBin);
@@ -1101,7 +761,8 @@ $("btnReset").onclick = () => {
 };
 
 /* ---------- persistence ---------- */
-const LS_KEY = "schublade1077.v1";
+// v2: the default layout changed (2026-09-16); a v1 layout in local storage would hide it.
+const LS_KEY = "schublade1077.v2";
 function snapshot(){
   return {u: state.u,
     bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, qty:b.qty}))};
@@ -1129,84 +790,76 @@ function toCSV(){
   return rows.map(r => r.join(",")).join("\n");
 }
 
-/* ---------- optional platform capabilities ---------- */
-let dbNs = null, dlNs = null;
+function fromCSV(text){
+  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) throw new Error("the file has no data rows");
+  const head = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const col = name => head.indexOf(name);
+  for (const need of ["position","box_w","box_d","grid_x","row_from_front"])
+    if (col(need) < 0) throw new Error(`missing column “${need}”`);
+  const known = new Map(state.bins.map(b => [b.pos, b]));
+  const rows = new Map();
+  let u = null;
+  lines.slice(1).forEach((line, n) => {
+    const c = line.split(",").map(v => v.trim());
+    const at = `row ${n + 2}`;
+    const int = (name, lo, hi, optional) => {
+      const raw = col(name) < 0 ? "" : c[col(name)] ?? "";
+      if (raw === "" && optional) return null;
+      const v = Number(raw);
+      if (!Number.isInteger(v) || v < lo || v > hi) throw new Error(`${at}: ${name} “${raw}” is not a whole number in ${lo}–${hi}`);
+      return v;
+    };
+    const pos = int("position", 1, 9999);
+    if (!known.has(pos)) throw new Error(`${at}: position ${pos} is not in the inventory`);
+    if (rows.has(pos)) throw new Error(`${at}: position ${pos} appears twice`);
+    const w = int("box_w", 1, 6), d = int("box_d", 1, 6);
+    const x = int("grid_x", 0, GW - 1, true), front = int("row_from_front", 1, GD, true);
+    if ((x === null) !== (front === null)) throw new Error(`${at}: grid_x and row_from_front must both be set or both be empty`);
+    const y = front === null ? null : front - 1;
+    if (x !== null && (x + w > GW || y + d > GD)) throw new Error(`${at}: P${pos} (${w}×${d}) sticks out of the drawer`);
+    const qty = int("qty", 1, 100000, true);
+    const hu = int("height_u", 3, 10, true);
+    if (hu !== null){
+      if (u !== null && hu !== u) throw new Error(`${at}: height_u ${hu} differs from ${u} — all boxes share one height`);
+      u = hu;
+    }
+    rows.set(pos, {pos, w, d, x, y, qty});
+  });
+  const cells = new Map();
+  for (const r of rows.values()){
+    if (r.x === null) continue;
+    for (let i = 0; i < r.w; i++) for (let j = 0; j < r.d; j++){
+      const k = `${r.x + i},${r.y + j}`;
+      if (cells.has(k)) throw new Error(`P${r.pos} overlaps P${cells.get(k)}`);
+      cells.set(k, r.pos);
+    }
+  }
+  // positions the file does not mention are taken out of the drawer rather than left
+  // where they were, where they could collide with the imported ones
+  const bins = state.bins.map(b => rows.get(b.pos) ?? {pos: b.pos, w: b.w, d: b.d, x: null, y: null});
+  return {snap: {u: u ?? state.u, bins}, missing: state.bins.length - rows.size};
+}
+
+/* ---------- layout file ---------- */
+let dlNs = null;
 $("btnExport").onclick = async () => {
-  if (!dlNs) return;
-  try { await dlNs.save({filename: `schublade_layout_${state.u}U.csv`, data: toCSV()}); }
-  catch (err) { if (err?.code !== "declined") $("saveNote").textContent = "Export unavailable in this view."; }
+  const ok = await offer(`fami_screw_drawer_layout_${state.u}U.csv`, new Blob([toCSV()], {type: "text/csv"}));
+  if (!ok) $("saveNote").textContent = "Export failed — see the message above.";
 };
-$("btnSave").onclick = async () => {
-  if (!dbNs) return;
-  const name = prompt("Name for this layout", `${state.u}U · ${new Date().toLocaleDateString()}`);
-  if (!name) return;
+$("btnImport").onclick = () => $("csvInput").click();
+$("csvInput").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
   try {
-    await dbNs.collection("layouts").add({name, ts: Date.now(), ...snapshot()});
-    refreshSaves();
-  } catch { $("saveNote").textContent = "Could not save — storage unavailable."; }
+    const {snap, missing} = fromCSV(await f.text());
+    state.sel.clear(); state.anchor = null;
+    restore(snap);
+    setGenNote(`Imported ${f.name}` + (missing ? ` — ${missing} position${missing === 1 ? "" : "s"} not in the file, moved out of the drawer.` : "."));
+  } catch (err){
+    setGenNote(`Import failed, layout unchanged: ${err.message}`);
+  }
 };
-async function refreshSaves(){
-  if (!dbNs) return;
-  try {
-    const snap = await dbNs.collection("layouts").orderBy("ts","desc").limit(12).get();
-    const list = $("saveList"); list.innerHTML = "";
-    if (snap.empty){ $("saveNote").textContent = "No saved layouts yet."; return; }
-    $("saveNote").textContent = "Layouts are stored with this page.";
-    for (const doc of snap.docs){
-      const d = doc.data() || {};
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `<b></b><span class="btnrow"><button data-a="load">Load</button><button data-a="del" class="ghost">&times;</button></span>`;
-      row.querySelector("b").textContent = d.name || doc.id;
-      row.querySelector('[data-a="load"]').onclick = () => restore(d);
-      row.querySelector('[data-a="del"]').onclick = async () => { await dbNs.doc("layouts/" + doc.id).delete(); refreshSaves(); };
-      list.appendChild(row);
-    }
-  } catch { $("saveNote").textContent = "Saved layouts unavailable."; }
-}
-
-
-/* ---------- label files (read locally, never uploaded) ---------- */
-const labels = new Map();                     // position -> {file, mesh}
-function labelState(){
-  const n = labels.size;
-  $("labelState").textContent = n ? `${n} label file${n === 1 ? "" : "s"} loaded` : "No label files loaded";
-  $("labelState").style.color = n ? "var(--ok)" : "var(--muted)";
-  if (modal.open) syncModal();
-}
-function posFromName(name){
-  const m = /P0*(\d{1,3})[_\.]/i.exec(name.replace(/^.*\//, ""));
-  return m ? +m[1] : null;
-}
-async function ingestFiles(fileList){
-  const files = [...fileList];
-  let added = 0, zips = files.filter(f => /\.zip$/i.test(f.name));
-  setGenNote("Reading label files …");
-  try {
-    for (const z of zips){
-      const entries = (await zipRead(await z.arrayBuffer()))
-        .filter(e => /\.stl$/i.test(e.name) && /label/i.test(e.name));
-      for (const e of entries){
-        const pos = posFromName(e.name);
-        if (!pos) continue;
-        labels.set(pos, {file: e.name.replace(/^.*\//, ""), mesh: parseSTL(await e.data())});
-        added++;
-      }
-    }
-    for (const f of files.filter(f => /\.stl$/i.test(f.name))){
-      const pos = posFromName(f.name);
-      if (!pos) continue;
-      labels.set(pos, {file: f.name, mesh: parseSTL(await f.arrayBuffer())});
-      added++;
-    }
-  } catch (err){ setGenNote("Could not read those files: " + err.message); return; }
-  labelState();
-  setGenNote(added ? `${added} label mesh${added === 1 ? "" : "es"} ready.`
-                   : "No label STLs found in that selection — expected names like P006_…_LABEL_INLAY.stl.");
-}
-$("btnLabels").onclick = () => $("labelInput").click();
-$("labelInput").onchange = e => { ingestFiles(e.target.files); e.target.value = ""; };
-$("btnClearLabels").onclick = () => { labels.clear(); labelState(); setGenNote("Label files cleared."); };
 
 /* ---------- file generation ---------- */
 function baseName(b){
@@ -1256,94 +909,9 @@ async function offer(filename, blob){
   setGenNote(`Built ${filename} (${size} MB) but this view refuses to hand files over. Run the local docker package for reliable downloads.`);
   return false;
 }
-function labelFor(b){
-  const lab = labels.get(b.pos);
-  return lab ? seatLabel(lab.mesh, b.w, b.d, state.u) : null;
-}
 function labelKind(b){
-  if (labels.get(b.pos)) return "Chappel STL (loaded)";
-  return server?.cad ? "built by the generator script" : "none — needs the build service";
-}
-async function generateOne(b){
-  if (!b){ setGenNote("Select a bin first — click one in the drawer."); return; }
-  setGenNote(`Building ${b.w}×${b.d} · ${state.u}U …`);
-  await new Promise(r => setTimeout(r));
-  const mesh = buildBin(b.w, b.d, state.u);
-  const file = baseName(b) + "_BODY.stl";
-  const ok = await offer(file, meshToSTL(mesh, file));
-  setGenNote(ok ? `${file} — ${mesh.tri.length.toLocaleString()} triangles.` : "Nothing was saved.");
-}
-async function generate3MF(b){
-  if (!b){ setGenNote("Select a bin first — click one in the drawer."); return; }
-  const warn = labelWarning();
-  if (warn){ setGenNote(warn); await new Promise(r => setTimeout(r, 1200)); }
-  setGenNote(`Building ${baseName(b)} …`);
-  await new Promise(r => setTimeout(r));
-  const body = buildBin(b.w, b.d, state.u), label = labelFor(b);
-  const file = baseName(b) + ".3mf";
-  const ok = await offer(file, await build3MF(baseName(b), body, label));
-  setGenNote(ok ? `${file} — ${label ? "BODY + LABEL_INLAY (Chappel STL)" : "BODY only — no label available in the browser"}.`
-                : "Nothing was saved.");
-}
-async function generateAllSTL(){
-  const sizes = new Map();
-  for (const b of state.bins){
-    const key = `${b.w}x${b.d}`;
-    if (!sizes.has(key)) sizes.set(key, {w: b.w, d: b.d, members: []});
-    sizes.get(key).members.push(b);
-  }
-  const rows = [["position","type","thread","length_mm","qty","box","height_u","stl_file"]];
-  const entries = [];
-  let tris = 0;
-  progress.start("Building bodies (STL)", {total: sizes.size, detail: "one body per distinct box size"});
-  let i = 0;
-  for (const [key, s] of sizes){
-    progress.step(i++, `BODY_${key}_${state.u}U.stl`);
-    await new Promise(r => setTimeout(r));
-    const file = `BODY_${key}_${state.u}U.stl`;
-    const mesh = buildBin(s.w, s.d, state.u);
-    tris += mesh.tri.length;
-    entries.push({name: file, data: await meshToSTL(mesh, file).arrayBuffer()});
-    for (const b of s.members) rows.push([b.pos, b.kind, b.thread, b.len, b.qty, key, state.u, file]);
-  }
-  entries.push({name: "bin_mapping.csv", data: rows.map(r => r.join(",")).join("\n")});
-  progress.step(sizes.size, "packing the zip …");
-  await new Promise(r => setTimeout(r));
-  const ok = await offer(`schublade_bodies_${state.u}U.zip`, await zipCreate(entries));
-  progress.close();
-  setGenNote(ok ? `${sizes.size} distinct bodies · ${tris.toLocaleString()} triangles.` : "Nothing was saved.");
-}
-async function generateAll3MF(){
-  // With no labels every position of the same size is the same file - emit one per size.
-  const perPosition = labels.size > 0;
-  const list = perPosition
-    ? [...state.bins].sort((a, z) => a.pos - z.pos)
-    : [...new Map(state.bins.map(b => [`${b.w}x${b.d}`, b])).values()];
-  const entries = [];
-  const bodies = new Map();
-  let withLabel = 0;
-  progress.start("Building all 3MF files", {total: list.length, detail: "in this browser"});
-  for (let i = 0; i < list.length; i++){
-    const b = list[i];
-    progress.step(i, `${b.w}×${b.d} · ${state.u}U — P${String(b.pos).padStart(3,"0")}`);
-    setGenNote(`Building ${i+1} of ${list.length} — ${b.w}×${b.d} · ${state.u}U …`);
-    await new Promise(r => setTimeout(r));
-    const key = `${b.w}x${b.d}`;
-    if (!bodies.has(key)) bodies.set(key, buildBin(b.w, b.d, state.u));
-    const label = perPosition ? labelFor(b) : null;
-    if (label) withLabel++;
-    const name = perPosition ? baseName(b) : `BOX_${key}_${state.u}U`;
-    entries.push({name: name + ".3mf", data: await (await build3MF(name, bodies.get(key), label)).arrayBuffer()});
-  }
-  progress.step(list.length, `packing ${list.length} files …`);
-  setGenNote(`Packing ${list.length} files …`);
-  await new Promise(r => setTimeout(r));
-  const ok = await offer(`schublade_3mf_${state.u}U.zip`, await zipCreate(entries, {compress: false}));
-  progress.close();
-  if (ok) setGenNote(perPosition
-    ? `Saved ${list.length} 3MF files, ${withLabel} with a label part.`
-    : `Saved ${list.length} bare bodies, one per box size. Labels come from the build service ` +
-      `(docker compose up -d --build) or from loaded Chappel STLs.`);
+  if (!server?.cad) return "build service unreachable";
+  return cachedLabels.has(b.pos) ? "Chappel · cached" : "Chappel · fetched on build";
 }
 function guard(fn){
   return async (...args) => {
@@ -1358,135 +926,129 @@ function selected(){
   if (!list.length) setGenNote("No bins selected — click a box in the drawer, or use “Select bins”.");
   return list;
 }
-async function generateSelectedSTL(list){
-  const sizes = new Map();
-  for (const b of list) sizes.set(`${b.w}x${b.d}`, [b.w, b.d]);
-  const entries = [];
-  progress.start("Building selected bodies (STL)", {total: sizes.size, detail: "one body per distinct box size"});
-  let i = 0;
-  for (const [key, [w, d]] of sizes){
-    progress.step(i++, `BODY_${key}_${state.u}U.stl`);
-    await new Promise(r => setTimeout(r));
-    const file = `BODY_${key}_${state.u}U.stl`;
-    entries.push({name: file, data: await meshToSTL(buildBin(w, d, state.u), file).arrayBuffer()});
-  }
-  progress.step(sizes.size, "packing the zip …");
-  const rows = [["position","type","thread","length_mm","qty","box","height_u","stl_file"]];
-  for (const b of list)
-    rows.push([b.pos, b.kind, b.thread, b.len, b.qty, `${b.w}x${b.d}`, state.u,
-               `BODY_${b.w}x${b.d}_${state.u}U.stl`]);
-  entries.push({name: "bin_mapping.csv", data: rows.map(r => r.join(",")).join("\n")});
-  const ok = await offer(`schublade_selected_bodies_${state.u}U.zip`, await zipCreate(entries));
-  setGenNote(ok ? `${sizes.size} distinct bodies for ${list.length} selected positions.` : "Nothing was saved.");
-}
-async function generate3MFSet(list, zipName){
-  const entries = [], bodies = new Map();
-  let withLabel = 0;
-  progress.start("Building 3MF files", {total: list.length, detail: "in this browser"});
-  for (let i = 0; i < list.length; i++){
-    const b = list[i];
-    progress.step(i, `${baseName(b)} — ${b.w}×${b.d} · ${state.u}U`);
-    setGenNote(`Building ${i+1} of ${list.length} — ${b.w}×${b.d} · ${state.u}U …`);
-    await new Promise(r => setTimeout(r));
-    const key = `${b.w}x${b.d}`;
-    if (!bodies.has(key)) bodies.set(key, buildBin(b.w, b.d, state.u));
-    const label = labelFor(b);
-    if (label) withLabel++;
-    entries.push({name: baseName(b) + ".3mf",
-      data: await (await build3MF(baseName(b), bodies.get(key), label)).arrayBuffer()});
-  }
-  progress.step(list.length, `packing ${list.length} files …`);
-  setGenNote(`Packing ${list.length} files …`);
-  await new Promise(r => setTimeout(r));
-  const ok = await offer(zipName, await zipCreate(entries, {compress: false}));
-  progress.close();
-  setGenNote(ok ? `Saved ${list.length} 3MF files, ${withLabel} with a label part.` : "Nothing was saved.");
-}
-// One bin, built the best way available: through the pipeline when the service is up, so
-// the Chappel label is embedded as a second part, and the browser body only as a fallback.
-// Both the sidebar button and the per-bin modal go through here — they drifted apart once,
-// and the modal quietly handed out label-less files while claiming otherwise.
-function buildOne3MF(b){
-  return serverMode()
-    ? serverGenerate([{pos: b.pos, w: b.w, d: b.d}], baseName(b) + ".3mf")
-    : generate3MF(b);
-}
-$("btnGenAll").onclick = guard(generateAllSTL);
-$("btnGenSel").onclick = guard(async () => {
-  const list = selected(); if (!list.length) return;
-  return list.length === 1 ? generateOne(list[0]) : generateSelectedSTL(list);
-});
-$("btnGen3mfAll").onclick = guard(() => serverMode()
-  ? serverGenerate(state.bins.map(b => ({pos: b.pos, w: b.w, d: b.d})), `schublade_3mf_${state.u}U.zip`)
-  : generateAll3MF());
+const itemsOf = list => list.map(b => ({pos: b.pos, w: b.w, d: b.d}));
+$("btnGen3mfAll").onclick = guard(() =>
+  serverGenerate(itemsOf(state.bins), `schublade_3mf_${state.u}U.zip`));
 $("btnGen3mfSel").onclick = guard(async () => {
   const list = selected(); if (!list.length) return;
-  if (list.length === 1) return buildOne3MF(list[0]);
-  const zipName = `schublade_3mf_selected_${list.length}_${state.u}U.zip`;
-  return serverMode()
-    ? serverGenerate(list.map(b => ({pos: b.pos, w: b.w, d: b.d})), zipName)
-    : generate3MFSet(list, zipName);
+  return serverGenerate(itemsOf(list), list.length === 1
+    ? baseName(list[0]) + ".3mf"
+    : `schublade_3mf_selected_${list.length}_${state.u}U.zip`);
 });
-$("mStl").onclick = guard(() => { modal.close(); return generateOne(modalBin); });
-$("m3mf").onclick = guard(() => { const b = modalBin; modal.close(); return buildOne3MF(b); });
+$("m3mf").onclick = guard(() => {
+  const b = modalBin; modal.close();
+  return serverGenerate(itemsOf([b]), baseName(b) + ".3mf");
+});
 
-/* ---------- local build service (part of the default docker compose set) ---------- */
+/* ---------- build service ----------
+   Every 3MF comes from generate_gridfinity_chappel_bins.py: body with the label pocket
+   cut plus the Chappel inlay. There is deliberately no browser-built fallback — it could
+   only ever produce a bare body, and a box without its label is never a valid download. */
 let server = null;
+let cachedLabels = new Set();
 async function probeServer(){
+  let health = null;
   try {
     const r = await fetch("api/health", {cache: "no-store"});
-    if (!r.ok) return;
-    server = await r.json();
-  } catch { return; }
-  if (!server) return;
-  $("serverCard").classList.remove("hide");
-  $("serverState").textContent = server.cad
-    ? `CadQuery service ready · ${server.labels} labels cached`
-    : "Service reachable, but CadQuery is not installed in it";
-  $("useServer").disabled = !server.cad;
-  $("useServer").checked = !!server.cad;
-  $("btnFetchLabels").disabled = !server.cad;
+    if (r.ok) health = await r.json();
+  } catch {}
+  server = health;
+  if (server?.cad){
+    try {
+      const r = await fetch("api/labels", {cache: "no-store"});
+      if (r.ok) cachedLabels = new Set((await r.json()).cached);
+    } catch {}
+  }
+  const el = $("serverState");
+  el.textContent = !server ? "build service unreachable — 3MF export needs it (docker compose up -d --build)"
+    : !server.cad ? `build service up, but the generator did not load: ${server.detail || "unknown"}`
+    : `build service ready · ${cachedLabels.size} of ${server.positions} labels cached`;
+  el.style.color = server?.cad ? "" : "var(--alert)";
+  if (modal.open) syncModal();
+  return !!server?.cad;
 }
-function serverMode(){ return !!server?.cad && $("useServer").checked; }
-function labelWarning(){
-  if (serverMode() || labels.size) return null;
-  return "Labels are built by generate_gridfinity_chappel_bins.py in the build service, "
-       + "which runs by default. If it is not up, start it with: docker compose up -d --build "
-       + "— or load your Chappel label STLs. Without either, the 3MF holds the bare body.";
+// Built files, keyed by exactly what the service is asked for: positions, footprints and
+// height. Asking for the same boxes again is instant; any size or height change is a new
+// key and a real build. The service keeps its own disk cache as well (cache/built_3mf).
+const buildCache = new Map();          // key -> Uint8Array, oldest first
+const BUILD_CACHE_MAX = 256 * 1048576;
+function cacheKey(items){ return JSON.stringify({u: state.u, items}); }
+function cachePut(key, bytes){
+  buildCache.delete(key);
+  buildCache.set(key, bytes);
+  let total = 0;
+  for (const v of buildCache.values()) total += v.byteLength;
+  for (const [k, v] of buildCache){
+    if (total <= BUILD_CACHE_MAX || k === key) break;
+    buildCache.delete(k); total -= v.byteLength;
+  }
+}
+async function buildBuffer(items, filename, title){
+  const key = cacheKey(items);
+  const hit = buildCache.get(key);
+  if (hit) return hit.slice().buffer;          // a copy: consumers may detach their buffer
+  // Re-probe on demand: the page may have loaded before the api container was up.
+  if (!server?.cad && !(await probeServer()))
+    throw new Error("the build service is not available, so no 3MF was produced. "
+      + "A box without its label is never handed out. Start it with: docker compose up -d --build");
+  const n = items.length;
+  progress.start(title, {
+    detail: "handing the job to the build service …",
+    note: "Runs as a background job in the build service, so a long batch is not cut off by a "
+        + "proxy timeout. Labels not cached yet are fetched from label.alch.shop first; boxes "
+        + "built before come straight from the service's cache."
+  });
+  try {
+    let job = await jsonRequest("api/jobs", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({items, height_u: state.u})
+    });
+    let failures = 0, phase = "";
+    while (job.phase !== "done"){
+      if (job.phase === "error") throw new Error(job.error);
+      if (job.phase !== phase){
+        phase = job.phase;
+        const t = {queued: `Waiting for an earlier job`, labels: `Fetching ${job.total} label${job.total === 1 ? "" : "s"}`,
+                   build: `Building ${n} box${n === 1 ? "" : "es"}`}[phase] ?? title;
+        progress.phase(t, phase === "queued" ? 0 : job.total);
+        setGenNote(`${t} …`);
+      }
+      if (phase === "labels") progress.step(job.done, `${job.done} of ${job.total} labels from label.alch.shop`);
+      if (phase === "build") progress.step(job.done, `${job.done} of ${job.total}` + (job.current ? ` — ${job.current}` : ""));
+      if (phase === "queued") progress.note("the build service works one job at a time");
+      await new Promise(r => setTimeout(r, 1000));
+      try { job = await jsonRequest(`api/jobs/${job.id}`); failures = 0; }
+      catch (err){
+        // a dropped poll is not a failed build — the job keeps running server-side
+        if (err.status === 404 || ++failures >= 10) throw err;
+      }
+    }
+    progress.phase("Downloading", 0);
+    const buf = await fetchBuffer(`api/jobs/${job.id}/file`, {}, filename);
+    cachePut(key, new Uint8Array(buf).slice());
+    return buf;
+  } finally {
+    progress.close();
+    probeServer();                       // the build may have cached new labels
+  }
+}
+async function jsonRequest(url, opts = {}){
+  const r = await fetch(url, {cache: "no-store", ...opts});
+  const text = await r.text();
+  let body = null;
+  try { body = JSON.parse(text); } catch {}
+  if (!r.ok){
+    const err = new Error(String(body?.detail ?? text ?? "").slice(0, 300) || `HTTP ${r.status}`);
+    err.status = r.status;
+    throw err;
+  }
+  return body;
 }
 async function serverGenerate(items, filename){
   const n = items.length;
-  progress.start(`Building ${n} box${n === 1 ? "" : "es"}`, {
-    detail: "generate_gridfinity_chappel_bins.py — body with the label pocket cut + Chappel inlay",
-    note: "The build service works synchronously and reports nothing until it is finished, so "
-        + "this cannot show per-box progress. Roughly 5 s per box once the label artwork is "
-        + "cached; positions that still need scraping take considerably longer."
-  });
-  setGenNote(`generate_gridfinity_chappel_bins.py is building ${n} box${n === 1 ? "" : "es"} `
-    + `(body with the label pocket cut + Chappel inlay). Missing label artwork is scraped first; this can take a while …`);
-  const buf = await fetchBuffer("api/generate", {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({items, height_u: state.u})
-  }, filename);
-  progress.close();
+  const buf = await buildBuffer(items, filename, `Building ${n} box${n === 1 ? "" : "es"}`);
   const type = filename.endsWith(".zip") ? "application/zip" : "model/3mf";
   await offer(filename, new Blob([buf], {type}));
-}
-async function fetchLabels(){
-  setGenNote("Asking the server to fetch missing labels from label.alch.shop — this drives a headless browser and takes a while …");
-  progress.start("Fetching label artwork", {
-    detail: "driving headless Chromium against label.alch.shop",
-    note: "One page load and download per uncached screw size, and the scrape reports nothing "
-        + "back until it finishes, so only the elapsed time is real here. Already-cached sizes "
-        + "are skipped. Safe to leave running."
-  });
-  try {
-    const r = await fetch("api/labels/fetch", {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"});
-    const out = await r.json();
-    setGenNote(r.ok ? `Label cache: ${out.cached} of ${out.total} positions.` : "Label fetch failed: " + (out.detail || "unknown"));
-    await probeServer();
-  } catch (err){ setGenNote("Label fetch failed: " + err.message); }
-  finally { progress.close(); }
 }
 
 /* ---------- progress popup ----------
@@ -1496,7 +1058,7 @@ async function fetchLabels(){
    elapsed clock rather than inventing a percentage. */
 const progress = (() => {
   const el = id => document.getElementById(id);
-  let t0 = 0, ticker = 0, total = 0, frac = -1, detail = "", live = false;
+  let t0 = 0, tPhase = 0, ticker = 0, total = 0, frac = -1, detail = "", live = false;
 
   function fmt(s){
     s = Math.max(0, Math.round(s));
@@ -1521,13 +1083,14 @@ const progress = (() => {
     track.classList.remove("prg-indet");
     el("prgFill").style.width = `${Math.round(frac * 100)}%`;
     el("prgPct").textContent = `${Math.round(frac * 100)}%`;
-    // Rate measured from this run only — no guessing before there is something to measure.
+    // Rate measured from this phase only — no guessing before there is something to measure.
+    const inPhase = (Date.now() - tPhase) / 1000;
     el("prgEta").textContent = frac > 0.02
-      ? `~${fmt(elapsed * (1 - frac) / frac)}`
+      ? `~${fmt(inPhase * (1 - frac) / frac)}`
       : "estimating …";
   }
   function start(title, {total: n = 0, detail: d = "", note = ""} = {}){
-    total = n; frac = n > 0 ? 0 : -1; detail = d; t0 = Date.now(); live = true;
+    total = n; frac = n > 0 ? 0 : -1; detail = d; t0 = tPhase = Date.now(); live = true;
     el("prgTitle").textContent = title;
     el("prgNote").textContent = note;
     el("prgFill").style.width = "0%";
@@ -1537,6 +1100,12 @@ const progress = (() => {
     ticker = setInterval(render, 250);
   }
   function setTotal(n){ total = n; if (n > 0 && frac < 0) frac = 0; render(); }
+  // a new stage of the same job: own title, own count, own ETA; elapsed keeps running
+  function phase(title, n, d = ""){
+    el("prgTitle").textContent = title;
+    total = n; frac = n > 0 ? 0 : -1; detail = d; tPhase = Date.now();
+    render();
+  }
   function step(done, d){
     if (d !== undefined) detail = d;
     frac = total > 0 ? Math.min(done / total, 1) : -1;
@@ -1553,14 +1122,19 @@ const progress = (() => {
     clearInterval(ticker); ticker = 0; live = false;
     if (el("prgModal").open) el("prgModal").close();
   }
-  return {start, setTotal, step, bytes, note, busy, close};
+  return {start, setTotal, phase, step, bytes, note, busy, close};
 })();
 
 /* One place for "POST and read the body with a real byte counter", so the download
    phase reports actual progress even though the build phase cannot. */
 async function fetchBuffer(url, opts, label){
   const r = await fetch(url, opts);
-  if (!r.ok) throw new Error((await r.text()).slice(0, 200) || `HTTP ${r.status}`);
+  if (!r.ok){
+    const text = await r.text();
+    let msg = text;
+    try { msg = JSON.parse(text).detail ?? text; } catch {}
+    throw new Error(String(msg).slice(0, 300) || `HTTP ${r.status}`);
+  }
   const len = +r.headers.get("content-length") || 0;
   if (!r.body || !len){
     progress.note(`${label} — receiving …`);
@@ -1982,50 +1556,16 @@ async function viewSelected(){
   const list = selected();
   if (!list.length) return;
   const many = list.length > 1;
-  // Any number of bins goes through the pipeline when the service is up, so the view
-  // always shows the real Chappel labels. Several come back as a zip of 3MFs, which
-  // the viewer unpacks and lays out at the bins' drawer positions.
-  if (serverMode()){
-    setGenNote(many
-      ? `Building ${list.length} boxes with generate_gridfinity_chappel_bins.py to view them. `
-        + "Label artwork that is not cached yet is scraped first, so this can take a while …"
-      : `Building ${baseName(list[0])} in the pipeline to view it …`);
-    progress.start(`Building ${list.length} box${many ? "es" : ""} to view`, {
-      detail: "generate_gridfinity_chappel_bins.py — body with the label pocket cut + Chappel inlay",
-      note: "The build service reports nothing until it is done, so the elapsed time is the only "
-          + "real figure during this phase. The bar becomes exact once the file starts arriving "
-          + "and while the viewer unpacks it."
-    });
-    const buf = await fetchBuffer("api/generate", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items: list.map(b => ({pos: b.pos, w: b.w, d: b.d})), height_u: state.u})
-    }, many ? `${list.length} boxes` : baseName(list[0]) + ".3mf");
-    await viewer.loadBuffer(buf,
-      many ? `${list.length} selected bins` : baseName(list[0]) + ".3mf");
-    setGenNote(many
-      ? `Viewing ${list.length} boxes the generator script produced, with their Chappel labels.`
-      : "Viewing the file the generator script produced.");
-    return;
-  }
-  const parts = [];
-  for (const b of list){
-    let body = buildBin(b.w, b.d, state.u);
-    let lab = labelFor(b);
-    if (many && placed(b)){
-      // lay the group out as it sits in the drawer — meshTranslate returns a new mesh
-      const dx = (b.x + b.w/2 - GW/2) * PITCH;
-      const dy = (b.y + b.d/2 - GD/2) * PITCH;
-      body = meshTranslate(body, dx, dy, 0);
-      if (lab) lab = meshTranslate(lab, dx, dy, 0);
-    }
-    const tag = `P${String(b.pos).padStart(3,"0")}`;
-    parts.push(viewer.fromMesh(body, many ? `${tag} BODY` : "BODY", 1, viewer.BODY_COLOR));
-    if (lab) parts.push(viewer.fromMesh(lab, many ? `${tag} LABEL` : "LABEL_INLAY", 2, viewer.PALETTE[1]));
-  }
-  viewer.show(parts, many ? `${list.length} selected bins` : baseName(list[0]),
-    many ? `built in this browser · ${parts.length} parts, positioned as in the drawer`
-         : (parts.length > 1 ? "built in this browser · BODY + LABEL_INLAY"
-                             : "built in this browser · body only, no label loaded"));
+  // Always through the pipeline, so the view shows exactly what a download would contain,
+  // label included. Several come back as a zip of 3MFs, which the viewer unpacks and lays
+  // out at the bins' drawer positions.
+  const name = many ? `${list.length} selected bins` : baseName(list[0]) + ".3mf";
+  const buf = await buildBuffer(itemsOf(list), name,
+    `Building ${list.length} box${many ? "es" : ""} to view`);
+  await viewer.loadBuffer(buf, name);
+  setGenNote(many
+    ? `Viewing ${list.length} boxes the generator script produced, with their Chappel labels.`
+    : "Viewing the file the generator script produced.");
 }
 viewer.wire();
 // so a batch of 3MFs — from the service, or a zip dropped onto the viewer — lands
@@ -2041,22 +1581,10 @@ $("btnViewSel").onclick = guard(viewSelected);
 /* ---------- boot ---------- */
 layoutGrid();
 render();
-labelState();
 loadLocal();
 (async () => {
-  try { dbNs = await window.claude?.use?.("db") ?? null; } catch { dbNs = null; }
   try { dlNs = await window.claude?.use?.("downloads") ?? null; } catch { dlNs = null; }
-  $("btnSave").disabled = !dbNs;
-  // Do not claim we cannot hand over files: offer() falls back to a blob URL + <a download>,
-  // which works in any normal browser and is the path the local docker package always takes.
-  // If that fallback ever fails, offer() says so itself, at the moment it actually happens.
-  setGenNote(dlNs
-    ? "Ready. 3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2."
-    : "Ready. Downloads go straight to your browser. 3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2.");
-  if (dbNs) refreshSaves();
-  else $("saveNote").textContent = "Saving is unavailable here; the working layout is kept in this browser.";
   probeServer();
-  $("btnFetchLabels").onclick = guard(fetchLabels);
 })();
 
 </script>
