@@ -11,16 +11,24 @@ services:
   web:
     build: ./web
     image: schublade-web
-    ports:
-      - "${WEB_PORT:-8080}:80"
+    # web runs inside api's network namespace and proxies to 127.0.0.1:8000, so the
+    # two never talk across a Docker network. Because of this, web's port is
+    # published on the api service below.
+    network_mode: "service:api"
+    depends_on:
+      - api
     restart: unless-stopped
 
   api:
     build: ./api
     image: schublade-api
-    expose:
-      - "8000"
+    # Docker's default bridge, not a compose project network. Some hosts only forward
+    # traffic for docker0 (GitHub Codespaces: legacy iptables FORWARD policy DROP); on a
+    # project network there, nginx got a 504 on /api/ and the label scrape could not
+    # resolve label.alch.shop. docker0 works on every normal Docker host as well.
+    network_mode: bridge
     ports:
+      - "${WEB_PORT:-8080}:80"          # the editor (nginx in the web container)
       - "${API_PORT:-8000}:8000"
     volumes:
       - ./generator:/app/generator:ro   # the two pipeline scripts, edit them on the host
