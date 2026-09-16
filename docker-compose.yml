@@ -1,0 +1,32 @@
+# Schraubenschublade planner
+#
+#   docker compose up -d --build   -> editor on http://localhost:8080
+#                                     + the CadQuery build service on :8000
+#
+# Both services are in the default set. Exact CadQuery geometry is the point of this
+# tool, not an add-on, so it is never behind a profile. The api image is large
+# (~2.5 GB: CadQuery, trimesh, Playwright/Chromium) and the first build takes several
+# minutes; after that it is layer-cached and `up -d` is immediate.
+services:
+  web:
+    build: ./web
+    image: schublade-web
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    image: schublade-api
+    expose:
+      - "8000"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./generator:/app/generator:ro   # the two pipeline scripts, edit them on the host
+      - ./cache:/data/cache             # scraped Chappel labels + generated bodies, reused
+      - ./out:/data/out                 # anything the service writes for you
+    environment:
+      CACHE_DIR: /data/cache
+      OUT_DIR: /data/out
+    restart: unless-stopped

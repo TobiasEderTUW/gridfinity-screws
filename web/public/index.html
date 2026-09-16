@@ -1,0 +1,2064 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Schraubenschublade 1077</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#eceeec; --surface:#ffffff; --surface-2:#f6f7f6; --ink:#16191c; --ink-2:#4a555c;
+  --muted:#6f7a80; --line:#d2d8d5; --line-strong:#b4bcb8;
+  --accent:#256c93; --accent-soft:#e2eef5;
+  --ok:#2e7d52; --ok-soft:#e0f0e6; --alert:#c1372b; --alert-soft:#fbe5e2;
+  --sk:#7fb6e0; --lk:#e6c878; --zk:#8dcf8c; --kt:#e59a8c;
+  --shadow:0 1px 2px rgba(20,30,35,.10),0 6px 18px rgba(20,30,35,.06);
+  --cell:36px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#13171a; --surface:#1b2024; --surface-2:#222a2f; --ink:#e7ecee; --ink-2:#b3bec4;
+    --muted:#8d989e; --line:#2c343a; --line-strong:#3d474e;
+    --accent:#6fb3d9; --accent-soft:#1d2c36;
+    --ok:#63c48d; --ok-soft:#172a21; --alert:#f0705f; --alert-soft:#32191a;
+    --sk:#4d7ea6; --lk:#a68a44; --zk:#4f9060; --kt:#a66253;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#13171a; --surface:#1b2024; --surface-2:#222a2f; --ink:#e7ecee; --ink-2:#b3bec4;
+  --muted:#8d989e; --line:#2c343a; --line-strong:#3d474e;
+  --accent:#6fb3d9; --accent-soft:#1d2c36;
+  --ok:#63c48d; --ok-soft:#172a21; --alert:#f0705f; --alert-soft:#32191a;
+  --sk:#4d7ea6; --lk:#a68a44; --zk:#4f9060; --kt:#a66253;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1560px;margin:0 auto;padding-inline:18px;padding-block:20px 40px}
+h1{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0}
+.sub{color:var(--muted);font-size:12.5px;font-family:"IBM Plex Mono",ui-monospace,monospace}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.statusbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.verdict{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 11px;border-radius:999px;
+  font-weight:600;font-size:13.5px;border:1px solid transparent}
+.verdict .dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 18%,transparent)}
+.verdict.ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+.verdict.bad{background:var(--alert-soft);color:var(--alert);border-color:color-mix(in srgb,var(--alert) 35%,transparent)}
+.verdict .dot{background:currentColor}
+.chip{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-variant-numeric:tabular-nums}
+.chip b{color:var(--ink);font-weight:600}
+.chip.warn{color:var(--alert);border-color:color-mix(in srgb,var(--alert) 40%,transparent);background:var(--alert-soft)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:18px;align-items:start}
+@media (max-width:1080px){main{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.stage{padding:14px;overflow-x:auto}
+.rail{display:flex;flex-direction:column;gap:14px}
+.card{padding:13px 14px}
+.card h2{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.ctrl{display:grid;gap:5px;margin-bottom:13px}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl label{font-size:12.5px;color:var(--ink-2)}
+.ctrl output{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.btnrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
+.savelist .btnrow,.mfoot .btnrow{display:flex;gap:6px}
+button{font:inherit;font-size:12.5px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);
+  border-radius:7px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--line-strong)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{filter:brightness(1.06)}
+button.ghost{background:transparent}
+button[disabled]{opacity:.45;cursor:not-allowed}
+.legend{display:grid;gap:6px;font-size:12px;color:var(--ink-2)}
+.legend div{display:flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--line-strong);flex:none}
+.sw.len{background:repeating-linear-gradient(45deg,var(--alert) 0 3px,transparent 3px 6px)}
+/* ---- drawer ---- */
+.drawer-shell{position:relative;padding:10px 10px 36px;background:var(--surface-2);
+  border:1px solid var(--line-strong);border-radius:8px;width:max-content}
+.grid{position:relative;background:
+   repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px var(--cell)),
+   repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px var(--cell));
+  border:1px solid var(--line-strong);outline:0}
+.zone{position:absolute;top:0;bottom:0;border-left:1px dashed var(--line-strong);pointer-events:none}
+.zone:first-of-type{border-left:0}
+.zone span{position:absolute;top:-19px;left:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);font-family:"IBM Plex Mono",ui-monospace,monospace;white-space:nowrap}
+.frontline{position:absolute;left:10px;right:10px;bottom:22px;height:3px;background:var(--accent);border-radius:2px}
+.frontlabel{position:absolute;left:10px;bottom:6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);font-family:"IBM Plex Mono",ui-monospace,monospace}
+.bin{position:absolute;border-radius:4px;border:1px solid rgba(0,0,0,.28);padding:3px 4px 6px;overflow:hidden;
+  cursor:grab;touch-action:none;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  transition:box-shadow .12s ease,border-color .12s ease}
+.bin:active{cursor:grabbing}
+.bin .t{font-size:11px;font-weight:600;line-height:1.1;color:#10161a;text-align:center;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;pointer-events:none}
+.bin .q{font-size:8.5px;color:#2a3338;opacity:.85;pointer-events:none;font-family:"IBM Plex Mono",ui-monospace,monospace}
+.bin.lenbad::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--alert) 55%,transparent) 0 4px,transparent 4px 9px)}
+.bin.sel{box-shadow:0 0 0 2px var(--accent),var(--shadow);z-index:6}
+.bin.dragging{opacity:.92;z-index:20;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.drop-ghost{position:absolute;border-radius:4px;border:2px dashed var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);
+  pointer-events:none;z-index:15}
+.drop-ghost.bad{border-color:var(--alert);background:color-mix(in srgb,var(--alert) 14%,transparent)}
+.tray{margin-top:14px;padding:10px;border:1px dashed var(--line-strong);border-radius:8px;background:var(--surface-2)}
+.tray h3{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--alert)}
+.tray .items{display:flex;flex-wrap:wrap;gap:7px}
+.tray .items .bin{position:static;width:auto;height:auto;padding:5px 8px}
+/* ---- modal ---- */
+dialog{border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);
+  box-shadow:0 18px 50px rgba(0,0,0,.28);max-width:min(420px,92vw);width:100%}
+dialog::backdrop{background:rgba(10,14,16,.5)}
+.mhead{padding:15px 16px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.mhead h3{margin:0;font-size:16px;font-weight:600}
+.mbody{padding:14px 16px;display:grid;gap:14px}
+.steppers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stepper{display:grid;gap:5px}
+.stepper span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stepper .g{display:flex;align-items:center;gap:6px}
+.stepper .g button{width:30px;padding:5px 0;text-align:center}
+.stepper .g b{flex:1;text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:15px}
+.facts{display:grid;gap:5px;font-size:12.5px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.facts div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--line);padding-bottom:3px}
+.facts .v{color:var(--ink-2)}
+.facts .v.bad{color:var(--alert);font-weight:600}
+.facts .v.muted{color:var(--muted)}
+.labelbox{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--surface-2)}
+.labelbox .row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
+.mfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.note{font-size:11.5px;color:var(--muted)}
+.savelist{display:grid;gap:6px;max-height:150px;overflow:auto}
+.savelist .item{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;
+  border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.savelist .item b{font-weight:500}
+.hide{display:none!important}
+.toast{position:sticky;top:8px;z-index:30;margin:0 0 12px;padding:9px 13px;border-radius:9px;
+  background:var(--accent-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
+  font-size:12.5px;font-family:"IBM Plex Mono",ui-monospace,monospace;box-shadow:var(--shadow)}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink-2);line-height:1.35}
+.check input{margin:2px 0 0;accent-color:var(--accent)}
+textarea{font:inherit;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;resize:vertical;
+  color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%}
+textarea:disabled{opacity:.5}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ---- 3MF viewer ----
+   Everything here is prefixed v3d- on purpose. A bare class here would collide with the
+   existing .ghost/.sw/.bin rules the same way .ghost once did, and that bug cost a day. */
+#v3dModal{max-width:min(1000px,96vw)}          /* the generic dialog rule caps width at 420px */
+.v3d-stage{position:relative;background:var(--surface-2);border-bottom:1px solid var(--line);
+  height:min(60vh,500px);touch-action:none;overflow:hidden}
+.v3d-stage canvas{display:block;width:100%;height:100%}
+.v3d-stage.v3d-over{outline:2px dashed var(--accent);outline-offset:-6px}
+.v3d-drop{position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;align-items:center;
+  justify-content:center;text-align:center;padding:24px;font-size:12.5px;color:var(--muted);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;pointer-events:none}
+.v3d-bar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid var(--line)}
+.v3d-stats{display:flex;flex-wrap:wrap;gap:6px}
+.v3d-parts{display:grid;gap:5px;padding:10px 14px;font-size:12px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;max-height:120px;overflow:auto}
+.v3d-parts:empty{display:none}
+.v3d-row{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.v3d-row label{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0}
+.v3d-row input{accent-color:var(--accent);margin:0;flex:none}
+.v3d-sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--line-strong);flex:none}
+.v3d-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v3d-ext{color:var(--muted);flex:none}
+/* ---- multi-select / selector mode ---- */
+.drawer-shell.selmode{outline:2px dashed var(--accent);outline-offset:3px}
+.grid.selmode .bin{cursor:copy}
+.grid.selmode .bin:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* .bin.lenbad already uses ::after, so the selection wash uses ::before */
+.bin.sel::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:color-mix(in srgb,var(--accent) 16%,transparent)}
+/* ---- progress popup ---- */
+#prgModal{max-width:min(520px,94vw)}
+.prg-body{padding:14px 16px;display:grid;gap:11px}
+.prg-track{position:relative;height:9px;border-radius:999px;background:var(--surface-2);
+  border:1px solid var(--line);overflow:hidden}
+.prg-fill{height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .18s linear}
+/* Indeterminate: the stripes stay visible even when the animation is disabled by
+   prefers-reduced-motion, so the bar still reads as "busy" rather than "stalled". */
+.prg-track.prg-indet .prg-fill{width:100%;
+  background:repeating-linear-gradient(90deg,var(--accent) 0 14px,
+    color-mix(in srgb,var(--accent) 30%,transparent) 14px 28px);
+  animation:prg-slide 1s linear infinite;transition:none}
+@keyframes prg-slide{from{background-position:0 0}to{background-position:28px 0}}
+.prg-stats{display:flex;flex-wrap:wrap;gap:6px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Schraubenschublade 1077</h1>
+      <div class="sub">1077 &times; 602 &times; 75 mm &middot; 25 &times; 14 Gridfinity cells &middot; 116 positions</div>
+    </div>
+    <div class="statusbar" id="statusbar">
+      <span class="verdict ok" id="verdict"><span class="dot"></span><span id="verdictText">Layout works</span></span>
+      <span class="chip">cells <b id="cellsUsed">300</b>/350</span>
+      <span class="chip">free <b id="cellsFree">50</b></span>
+      <span class="chip" id="chipLen">too short <b id="nLen">0</b></span>
+      <span class="chip" id="chipUnp">unplaced <b id="nUnp">0</b></span>
+      <span class="chip" id="chipSel">selected <b id="nSel">0</b></span>
+    </div>
+  </header>
+  <div class="toast hide" id="toast" role="status" aria-live="polite"></div>
+
+  <main>
+    <section class="panel stage">
+      <div class="drawer-shell" id="shell">
+        <div class="grid" id="grid" tabindex="0" aria-label="Drawer grid, 25 by 14 cells. Drag bins to move them, click a bin to edit it."></div>
+        <div class="frontline"></div>
+        <div class="frontlabel">Drawer front</div>
+      </div>
+      <div class="tray hide" id="tray">
+        <h3>Not placed &mdash; no free space in the drawer</h3>
+        <div class="items" id="trayItems"></div>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <div class="panel card">
+        <h2>Layout</h2>
+        <div class="btnrow">
+          <button class="primary" id="btnAuto">Auto-arrange</button>
+          <button class="ghost" id="btnReset">Reset</button>
+        </div>
+        <div class="btnrow" style="margin-top:7px">
+          <button id="btnSelectMode">Select bins</button>
+          <button class="ghost" id="btnSelClear">Clear selection</button>
+        </div>
+        <div class="ctrl" style="margin-top:12px">
+          <div class="row"><label for="zoom">Zoom</label><output id="zoomOut">36 px</output></div>
+          <input type="range" id="zoom" min="22" max="60" step="2" value="36">
+        </div>
+        <div class="note">Drag a bin to move it, click it to edit. Arrow keys nudge the selection, <b>R</b> rotates it.<br>
+          <b>Ctrl</b>/<b>⌘</b>-click adds a bin, <b>Shift</b>-click extends a range, <b>Esc</b> clears. <b>Select bins</b> keeps that mode on so a plain click toggles.</div>
+      </div>
+
+      <div class="panel card">
+        <h2>Reading the drawer</h2>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--sk)"></span> SK &middot; Senkkopf</div>
+          <div><span class="sw" style="background:var(--lk)"></span> LK &middot; Linsenkopf PH</div>
+          <div><span class="sw" style="background:var(--zk)"></span> ZK &middot; Zylinderkopf</div>
+          <div><span class="sw" style="background:var(--kt)"></span> 6kt &middot; Sechskant</div>
+          <div><span class="sw len"></span> screw too long for the box</div>
+        </div>
+      </div>
+
+      <div class="panel card">
+        <h2>Generate boxes</h2>
+        <div class="ctrl">
+          <div class="row"><label for="uSlider">Box height</label><output id="uOut">8U &middot; 56 mm</output></div>
+          <input type="range" id="uSlider" min="3" max="10" step="1" value="8">
+        </div>
+        <div class="labelbox">
+          <div class="row"><span id="labelState">No label files loaded</span></div>
+          <div class="btnrow" style="margin-top:7px">
+            <button id="btnLabels">Load labels&hellip;</button>
+            <button class="ghost" id="btnClearLabels">Clear</button>
+          </div>
+          <input type="file" id="labelInput" multiple accept=".stl,.zip" class="hide">
+          <div class="note" style="margin-top:7px">Labels come from <b>generate_gridfinity_chappel_bins.py</b> in the build service. This picker is the offline shortcut: load <b>labels_inlay_stl</b> files the script already produced and they are re-seated on the shelf of whatever box you export.</div>
+        </div>
+        <div class="btnrow" style="margin-top:12px">
+          <button class="primary" id="btnGen3mfAll">All as 3MF</button>
+          <button id="btnGen3mfSel">Selected 3MF</button>
+        </div>
+        <div class="btnrow" style="margin-top:7px">
+          <button class="ghost" id="btnGenAll">All bodies (STL)</button>
+          <button class="ghost" id="btnGenSel">Selected STL</button>
+        </div>
+        <div class="note" id="genNote" style="margin-top:9px">3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2. The label geometry is built by the original generator script in the build service.</div>
+      </div>
+
+      <div class="panel card hide" id="serverCard">
+        <h2>Local build service</h2>
+        <div class="note" id="serverState">not detected</div>
+        <label class="check" style="margin-top:9px"><input type="checkbox" id="useServer" disabled checked> Build 3MF with generate_gridfinity_chappel_bins.py (Chappel label, pocket cut, flush)</label>
+        <div class="btnrow" style="margin-top:9px">
+          <button id="btnFetchLabels" disabled>Fetch &amp; cache labels</button>
+        </div>
+      </div>
+
+      <div class="panel card">
+        <h2>3MF viewer</h2>
+        <div class="btnrow">
+          <button id="btnViewFile">Open 3MF&hellip;</button>
+          <button id="btnViewSel">View selected</button>
+        </div>
+        <input type="file" id="viewInput" accept=".3mf,.stl,.zip" class="hide">
+        <div class="note" style="margin-top:9px">Shows a .3mf in 3D with its parts and filament assignment. Point it at a file from <b>./out</b> to check what the generator built before opening Bambu Studio.</div>
+      </div>
+
+      <div class="panel card" id="saveCard">
+        <h2>Saved layouts</h2>
+        <div class="btnrow">
+          <button id="btnSave">Save current</button>
+          <button id="btnExport">Export CSV</button>
+        </div>
+        <div class="savelist" id="saveList" style="margin-top:10px"></div>
+        <div class="note" id="saveNote">Layouts are stored with this page.</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<dialog id="modal">
+  <div class="mhead">
+    <div>
+      <h3 id="mTitle">M6 &times; 16</h3>
+      <div class="sub" id="mSub">SK &middot; ISO 10642 &middot; 50 pcs</div>
+    </div>
+    <button class="ghost" id="mClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="mbody">
+    <div class="steppers">
+      <div class="stepper">
+        <span>Width (cells)</span>
+        <div class="g"><button id="wMinus" aria-label="Narrower">&minus;</button><b id="wVal">2</b><button id="wPlus" aria-label="Wider">+</button></div>
+      </div>
+      <div class="stepper">
+        <span>Depth (cells)</span>
+        <div class="g"><button id="dMinus" aria-label="Shallower">&minus;</button><b id="dVal">1</b><button id="dPlus" aria-label="Deeper">+</button></div>
+      </div>
+    </div>
+    <div class="stepper">
+      <span>Quantity stored</span>
+      <div class="g"><button id="qMinus" aria-label="Fewer">&minus;</button><b id="qVal">50</b><button id="qPlus" aria-label="More">+</button></div>
+    </div>
+    <div class="facts">
+      <div><span>Interior</span><span class="v" id="fInner">0 &times; 0 mm</span></div>
+      <div><span>Screw length</span><span class="v" id="fLen">0 mm</span></div>
+      <div><span>Box</span><span class="v" id="fBox">2&times;1 &middot; 8U</span></div>
+      <div><span>Label</span><span class="v" id="fLabel">generated text</span></div>
+    </div>
+
+  </div>
+  <div class="mfoot">
+    <span class="btnrow" style="display:flex;gap:7px">
+      <button id="mRotate">Rotate</button>
+      <button id="mStl">STL</button>
+      <button id="m3mf">3MF</button>
+    </span>
+    <button class="primary" id="mDone">Done</button>
+  </div>
+</dialog>
+
+<dialog id="v3dModal">
+  <div class="mhead">
+    <div>
+      <h3 id="v3dTitle">3MF viewer</h3>
+      <div class="sub" id="v3dSub">nothing loaded</div>
+    </div>
+    <button class="ghost" id="v3dClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="v3d-stage" id="v3dStage">
+    <div class="v3d-drop" id="v3dDrop">
+      <span>Drop a .3mf or .stl here, or use &ldquo;Open&hellip;&rdquo;.</span>
+      <span>Drag to orbit &middot; wheel to zoom</span>
+    </div>
+  </div>
+  <div class="v3d-bar">
+    <span class="v3d-stats">
+      <span class="chip">parts <b id="v3dParts">0</b></span>
+      <span class="chip">triangles <b id="v3dTris">0</b></span>
+      <span class="chip" id="v3dDims">&mdash;</span>
+    </span>
+    <span class="btnrow" style="display:flex;gap:7px">
+      <button id="v3dReset">Reset view</button>
+      <button id="v3dOpen2">Open&hellip;</button>
+    </span>
+  </div>
+  <div class="v3d-parts" id="v3dPartList"></div>
+</dialog>
+
+<dialog id="prgModal">
+  <div class="mhead">
+    <div>
+      <h3 id="prgTitle">Working&hellip;</h3>
+      <div class="sub" id="prgDetail">&hellip;</div>
+    </div>
+  </div>
+  <div class="prg-body">
+    <div class="prg-track" id="prgTrack"><div class="prg-fill" id="prgFill"></div></div>
+    <div class="prg-stats">
+      <span class="chip">done <b id="prgPct">&mdash;</b></span>
+      <span class="chip">elapsed <b id="prgElapsed">0s</b></span>
+      <span class="chip">remaining <b id="prgEta">unknown</b></span>
+    </div>
+    <div class="note" id="prgNote"></div>
+  </div>
+</dialog>
+
+<script>
+const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":10},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"qty":50,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"qty":50,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":11},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"qty":50,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":12},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"qty":30,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":2,"d":1,"x":2,"y":13},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"qty":5,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":2,"d":3,"x":0,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":2,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":0},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":1},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":2,"y":2},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":2},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":3},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":0,"y":3},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":4},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":5},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"qty":50,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":0,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"qty":50,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":6},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":2,"y":7},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":7},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":8},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"qty":50,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":2,"y":9},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":9},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":14,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":12,"y":0},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":10,"y":0},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":0},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":14,"y":1},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":12,"y":1},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"qty":100,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":10,"y":1},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"qty":100,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":1},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":14,"y":2},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":12,"y":2},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":8,"y":2},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":14,"y":3},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":12,"y":3},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"qty":100,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":3},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"qty":50,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":8,"y":3},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":14,"y":4},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":4},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":8,"y":4},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":10,"y":4},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":14,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":5},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":1,"x":10,"y":6},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"qty":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":8,"y":5},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":8,"y":7},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":7},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":12,"y":7},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":10,"y":7},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":8,"y":8},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":12,"y":9},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"qty":50,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":9},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"qty":50,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":14,"y":11},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"qty":25,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":12,"y":11},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"qty":25,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":10,"y":11},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"qty":25,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":10},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":6,"y":0},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":1},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":6,"y":1},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":2},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":6,"y":2},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":4,"y":3},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":3},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":4,"y":4},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":4},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":4,"y":5},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"qty":100,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":6,"y":6},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":7},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":6,"y":7},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":8},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":6,"y":8},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":10},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":4,"y":10},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":11},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":4,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":20,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":18,"y":0},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":0},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":22,"y":0},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"qty":10,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":20,"y":1},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":1},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":16,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"qty":50,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":22,"y":1},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"qty":50,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":20,"y":2},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"qty":50,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":2},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"qty":50,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":16,"y":2},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":22,"y":2},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"qty":50,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":3},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"qty":50,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":18,"y":3},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"qty":50,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":16,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"qty":50,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":22,"y":3},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":4},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"qty":30,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":18,"y":4},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":16,"y":4},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"qty":50,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":4},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"qty":50,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":16,"y":5},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"qty":50,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":5},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":20,"y":5},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":18,"y":5},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":1,"x":22,"y":6},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"qty":30,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":1,"x":18,"y":7},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"qty":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":16,"y":6},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"qty":30,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":2,"x":20,"y":7},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"qty":30,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":22,"y":7},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"qty":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":2,"x":20,"y":9},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"qty":30,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":18,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"qty":25,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":8}];
+/* ---------- bin geometry -> binary STL (body only, no label inlay) ---------- */
+const GEO = {R:3.75, WALL:1.2, FOOT_H:4.75, FLOOR:7.2, SHELF_D:12, SHELF_T:1.2, CLR:0.5, SEG:6};
+
+function roundedRect(w, d, r, seg = GEO.SEG){
+  r = Math.min(r, w/2 - 0.01, d/2 - 0.01);
+  const cx = [w/2-r, -(w/2-r), -(w/2-r), w/2-r];
+  const cy = [d/2-r, d/2-r, -(d/2-r), -(d/2-r)];
+  const pts = [];
+  for (let c = 0; c < 4; c++){
+    for (let j = 0; j <= seg; j++){
+      const a = (c*90 + j*90/seg) * Math.PI/180;
+      pts.push([cx[c] + r*Math.cos(a), cy[c] + r*Math.sin(a)]);
+    }
+  }
+  return pts;
+}
+function Mesh(){ return {tri: [], group: 0}; }
+function tri(m, a, b, c){
+  const ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2];
+  const vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
+  let nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+  const L = Math.hypot(nx, ny, nz) || 1;
+  m.tri.push([nx/L, ny/L, nz/L, a, b, c, m.group ?? 0]);
+}
+function quad(m, a, b, c, d){ tri(m, a, b, c); tri(m, a, c, d); }
+function capLoop(m, loop, z, up, ox = 0, oy = 0){
+  const p = i => [loop[i][0]+ox, loop[i][1]+oy, z];
+  for (let i = 1; i < loop.length - 1; i++){
+    if (up) tri(m, p(0), p(i), p(i+1)); else tri(m, p(0), p(i+1), p(i));
+  }
+}
+function sideBand(m, lo, hi, z0, z1, ox = 0, oy = 0){
+  const n = lo.length;
+  for (let i = 0; i < n; i++){
+    const j = (i+1) % n;
+    quad(m,
+      [lo[i][0]+ox, lo[i][1]+oy, z0], [lo[j][0]+ox, lo[j][1]+oy, z0],
+      [hi[j][0]+ox, hi[j][1]+oy, z1], [hi[i][0]+ox, hi[i][1]+oy, z1]);
+  }
+}
+function solidPrism(m, loop, z0, z1, ox = 0, oy = 0){
+  m.group = (m.group ?? 0) + 1;
+  sideBand(m, loop, loop, z0, z1, ox, oy);
+  capLoop(m, loop, z1, true, ox, oy);
+  capLoop(m, loop, z0, false, ox, oy);
+}
+function solidLoft(m, rings, ox = 0, oy = 0){
+  m.group = (m.group ?? 0) + 1;     // rings: [{loop, z}] bottom -> top
+  for (let k = 0; k < rings.length - 1; k++)
+    sideBand(m, rings[k].loop, rings[k+1].loop, rings[k].z, rings[k+1].z, ox, oy);
+  capLoop(m, rings[rings.length-1].loop, rings[rings.length-1].z, true, ox, oy);
+  capLoop(m, rings[0].loop, rings[0].z, false, ox, oy);
+}
+function solidRing(m, outer, inner, z0, z1){
+  m.group = (m.group ?? 0) + 1;      // walls: prism with a prismatic hole
+  sideBand(m, outer, outer, z0, z1);
+  const n = inner.length;
+  for (let i = 0; i < n; i++){                    // inner skin, normals pointing inward
+    const j = (i+1) % n;
+    quad(m, [inner[j][0], inner[j][1], z0], [inner[i][0], inner[i][1], z0],
+            [inner[i][0], inner[i][1], z1], [inner[j][0], inner[j][1], z1]);
+  }
+  for (let i = 0; i < n; i++){                    // top and bottom annulus
+    const j = (i+1) % n;
+    quad(m, [outer[i][0], outer[i][1], z1], [outer[j][0], outer[j][1], z1],
+            [inner[j][0], inner[j][1], z1], [inner[i][0], inner[i][1], z1]);
+    quad(m, [inner[i][0], inner[i][1], z0], [inner[j][0], inner[j][1], z0],
+            [outer[j][0], outer[j][1], z0], [outer[i][0], outer[i][1], z0]);
+  }
+}
+function solidBox(m, x0, x1, y0, y1, z0, z1){
+  solidPrism(m, [[x0,y0],[x1,y0],[x1,y1],[x0,y1]], z0, z1);
+}
+function solidPrismX(m, profile, x0, x1){
+  m.group = (m.group ?? 0) + 1;         // profile: [[y,z],...] CCW seen from +X
+  const n = profile.length;
+  for (let i = 0; i < n; i++){
+    const j = (i+1) % n;
+    quad(m, [x0, profile[i][0], profile[i][1]], [x0, profile[j][0], profile[j][1]],
+            [x1, profile[j][0], profile[j][1]], [x1, profile[i][0], profile[i][1]]);
+  }
+  for (let i = 1; i < n-1; i++){
+    tri(m, [x1, profile[0][0], profile[0][1]], [x1, profile[i][0], profile[i][1]], [x1, profile[i+1][0], profile[i+1][1]]);
+    tri(m, [x0, profile[0][0], profile[0][1]], [x0, profile[i+1][0], profile[i+1][1]], [x0, profile[i][0], profile[i][1]]);
+  }
+}
+/* one Gridfinity foot: 0.8 chamfer, 1.8 straight, 2.15 chamfer up to 41.5 */
+function footRings(){
+  return [
+    {loop: roundedRect(35.62, 35.62, 0.81), z: 0},
+    {loop: roundedRect(37.20, 37.20, 1.60), z: 0.8},
+    {loop: roundedRect(37.20, 37.20, 1.60), z: 2.6},
+    {loop: roundedRect(41.50, 41.50, 3.75), z: GEO.FOOT_H},
+  ];
+}
+/* the whole bin, as overlapping closed volumes in one mesh - slicers union them */
+function buildBin(w, d, u){
+  const m = Mesh();
+  const ox = PITCH*w - GEO.CLR, oy = PITCH*d - GEO.CLR, top = u*U_MM;
+  const outer = roundedRect(ox, oy, GEO.R);
+  const inner = roundedRect(ox - 2*GEO.WALL, oy - 2*GEO.WALL, Math.max(0.8, GEO.R - GEO.WALL));
+  solidPrism(m, outer, GEO.FOOT_H, GEO.FLOOR);            // floor slab
+  solidRing(m, outer, inner, GEO.FLOOR, top);             // walls
+  const rings = footRings();
+  for (let i = 0; i < w; i++)
+    for (let j = 0; j < d; j++)
+      solidLoft(m, rings, (i - (w-1)/2) * PITCH, (j - (d-1)/2) * PITCH);
+  const halfW = ox/2 - 1.0;                               // stays inside the rounded envelope
+  const frontY = -oy/2 + GEO.WALL;
+  solidBox(m, -halfW, halfW, frontY, frontY + GEO.SHELF_D, top - GEO.SHELF_T, top);
+  const under = top - GEO.SHELF_T;                        // 45 deg support ramp
+  solidPrismX(m, [[frontY, under - GEO.SHELF_D], [frontY + GEO.SHELF_D, under], [frontY, under]], -halfW, halfW);
+  return m;
+}
+function meshToSTL(m, name){
+  const n = m.tri.length;
+  const buf = new ArrayBuffer(84 + n*50);
+  const dv = new DataView(buf);
+  const header = new TextEncoder().encode(name.slice(0, 79));
+  new Uint8Array(buf, 0, 80).set(header);
+  dv.setUint32(80, n, true);
+  let o = 84;
+  for (const t of m.tri){
+    dv.setFloat32(o, t[0], true); dv.setFloat32(o+4, t[1], true); dv.setFloat32(o+8, t[2], true); o += 12;
+    for (let k = 3; k < 6; k++){
+      dv.setFloat32(o, t[k][0], true); dv.setFloat32(o+4, t[k][1], true); dv.setFloat32(o+8, t[k][2], true); o += 12;
+    }
+    dv.setUint16(o, 0, true); o += 2;
+  }
+  return new Blob([buf], {type: "application/octet-stream"});
+}
+
+/* ---------- minimal ZIP reader/writer (no external library) ---------- */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++){
+    let c = i;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+async function deflateRaw(bytes){
+  if (typeof CompressionStream !== "function") return null;
+  try {
+    const cs = new CompressionStream("deflate-raw");
+    const stream = new Blob([bytes]).stream().pipeThrough(cs);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  } catch { return null; }
+}
+async function inflateRaw(bytes){
+  const ds = new DecompressionStream("deflate-raw");
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+const enc = new TextEncoder();
+async function zipCreate(files, {compress = true} = {}){
+  const chunks = [], central = [];
+  let offset = 0;
+  for (const f of files){
+    const name = enc.encode(f.name);
+    const raw = typeof f.data === "string" ? enc.encode(f.data)
+      : f.data instanceof Uint8Array ? f.data : new Uint8Array(f.data);
+    const crc = crc32(raw);
+    let method = 0, body = raw;
+    if (compress && raw.length > 256){
+      const packed = await deflateRaw(raw);
+      if (packed && packed.length < raw.length){ method = 8; body = packed; }
+    }
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
+    lh.setUint16(8, method, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, body.length, true); lh.setUint32(22, raw.length, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    chunks.push(new Uint8Array(lh.buffer), name, body);
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true);
+    cd.setUint16(8, 0, true); cd.setUint16(10, method, true); cd.setUint16(12, 0, true); cd.setUint16(14, 0x21, true);
+    cd.setUint32(16, crc, true); cd.setUint32(20, body.length, true); cd.setUint32(24, raw.length, true);
+    cd.setUint16(28, name.length, true); cd.setUint32(42, offset, true);
+    central.push(new Uint8Array(cd.buffer), name);
+    offset += 30 + name.length + body.length;
+  }
+  const cdSize = central.reduce((s, c) => s + c.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], {type: "application/zip"});
+}
+async function zipRead(buffer){
+  const dv = new DataView(buffer), bytes = new Uint8Array(buffer);
+  let eocd = -1;
+  for (let i = buffer.byteLength - 22; i >= 0 && i > buffer.byteLength - 66000; i--)
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error("not a zip file");
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const out = [];
+  for (let i = 0; i < count; i++){
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const csize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const cmtLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    const lNameLen = dv.getUint16(local + 26, true), lExtraLen = dv.getUint16(local + 28, true);
+    const start = local + 30 + lNameLen + lExtraLen;
+    out.push({name, method, raw: bytes.subarray(start, start + csize)});
+    p += 46 + nameLen + extraLen + cmtLen;
+  }
+  return out.map(e => ({
+    name: e.name,
+    async data(){
+      if (e.method === 0) return e.raw.slice().buffer;
+      return (await inflateRaw(e.raw)).buffer;
+    }
+  }));
+}
+
+/* ---------- STL reading, mesh utilities, 3MF writing ---------- */
+function parseSTL(buf){
+  const dv = new DataView(buf);
+  const n = buf.byteLength >= 84 ? dv.getUint32(80, true) : 0;
+  const binary = buf.byteLength === 84 + n*50 && n > 0;
+  const m = Mesh();
+  if (binary){
+    let o = 84;
+    for (let i = 0; i < n; i++){
+      const nx = dv.getFloat32(o, true), ny = dv.getFloat32(o+4, true), nz = dv.getFloat32(o+8, true);
+      const v = [];
+      for (let k = 0; k < 3; k++){
+        const p = o + 12 + k*12;
+        v.push([dv.getFloat32(p, true), dv.getFloat32(p+4, true), dv.getFloat32(p+8, true)]);
+      }
+      m.tri.push([nx, ny, nz, v[0], v[1], v[2], 0]);
+      o += 50;
+    }
+    return m;
+  }
+  const text = new TextDecoder().decode(new Uint8Array(buf));
+  const nums = /vertex\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)/g;
+  const pts = [];
+  let g;
+  while ((g = nums.exec(text))) pts.push([+g[1], +g[2], +g[3]]);
+  for (let i = 0; i + 2 < pts.length; i += 3) tri(m, pts[i], pts[i+1], pts[i+2]);
+  return m;
+}
+function meshBounds(m){
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const t of m.tri) for (let k = 3; k < 6; k++) for (let a = 0; a < 3; a++){
+    lo[a] = Math.min(lo[a], t[k][a]); hi[a] = Math.max(hi[a], t[k][a]);
+  }
+  return {lo, hi};
+}
+function meshTranslate(m, dx, dy, dz){
+  const out = Mesh();
+  for (const t of m.tri)
+    out.tri.push([t[0], t[1], t[2],
+      [t[3][0]+dx, t[3][1]+dy, t[3][2]+dz],
+      [t[4][0]+dx, t[4][1]+dy, t[4][2]+dz],
+      [t[5][0]+dx, t[5][1]+dy, t[5][2]+dz], t[6] ?? 0]);
+  return out;
+}
+/* seat a label mesh on the shelf of a w x d x u bin: centred in x, on the shelf
+   centre line in y, top face flush with the bin's top face */
+function seatLabel(label, w, d, u){
+  const {lo, hi} = meshBounds(label);
+  const oy = PITCH*d - GEO.CLR, top = u*U_MM;
+  const shelfY = -oy/2 + GEO.WALL + GEO.SHELF_D/2;
+  return meshTranslate(label,
+    -(lo[0] + hi[0])/2,
+    shelfY - (lo[1] + hi[1])/2,
+    top - hi[2]);
+}
+function indexed(m){
+  const map = new Map(), verts = [], tris = [];
+  const key = (v, g) => g + "|" + v.map(c => c.toFixed(4)).join(",");
+  for (const t of m.tri){
+    const idx = [];
+    for (let k = 3; k < 6; k++){
+      const kk = key(t[k], t[6] ?? 0);
+      let i = map.get(kk);
+      if (i === undefined){ i = verts.length; verts.push(t[k]); map.set(kk, i); }
+      idx.push(i);
+    }
+    if (idx[0] !== idx[1] && idx[1] !== idx[2] && idx[0] !== idx[2]) tris.push(idx);
+  }
+  return {verts, tris};
+}
+function xmlEscape(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function objectXML(id, name, mesh){
+  const {verts, tris} = indexed(mesh);
+  const v = verts.map(p => `<vertex x="${p[0].toFixed(4)}" y="${p[1].toFixed(4)}" z="${p[2].toFixed(4)}"/>`).join("");
+  const t = tris.map(f => `<triangle v1="${f[0]}" v2="${f[1]}" v3="${f[2]}"/>`).join("");
+  return {xml: `<object id="${id}" name="${xmlEscape(name)}" type="model"><mesh><vertices>${v}</vertices><triangles>${t}</triangles></mesh></object>`,
+          faces: tris.length};
+}
+/* one 3MF: BODY (+ LABEL) as two parts of one assembly, label on filament 2 */
+async function build3MF(name, bodyMesh, labelMesh){
+  const parts = [{id: 1, name: "BODY", mesh: bodyMesh, extruder: 1}];
+  if (labelMesh) parts.push({id: 2, name: "LABEL_INLAY", mesh: labelMesh, extruder: 2});
+  const built = parts.map(p => ({...p, ...objectXML(p.id, p.name, p.mesh)}));
+  const parentId = 3;
+  const model =
+    `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">` +
+      `<resources>${built.map(b => b.xml).join("")}` +
+      `<object id="${parentId}" name="${xmlEscape(name)}" type="model"><components>` +
+        built.map(b => `<component objectid="${b.id}"/>`).join("") +
+      `</components></object></resources>` +
+      `<build><item objectid="${parentId}" partnumber="${xmlEscape(name)}"/></build>` +
+    `</model>`;
+  const settings =
+    `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  <object id="${parentId}">\n` +
+    `    <metadata key="name" value="${xmlEscape(name)}"/>\n    <metadata key="extruder" value="1"/>\n` +
+    built.map(b =>
+      `    <part id="${b.id}" subtype="normal_part">\n` +
+      `      <metadata key="name" value="${b.name}"/>\n` +
+      `      <metadata key="extruder" value="${b.extruder}"/>\n` +
+      `      <mesh_stat face_count="${b.faces}" edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reserved="0" backwards_edges="0"/>\n` +
+      `    </part>\n`).join("") +
+    `  </object>\n</config>\n`;
+  return zipCreate([
+    {name: "[Content_Types].xml", data:
+      `<?xml version="1.0" encoding="UTF-8"?>` +
+      `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+      `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+      `<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>`},
+    {name: "_rels/.rels", data:
+      `<?xml version="1.0" encoding="UTF-8"?>` +
+      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Target="/3D/3dmodel.model" Id="rel0" ` +
+      `Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>`},
+    {name: "3D/3dmodel.model", data: model},
+    {name: "Metadata/model_settings.config", data: settings},
+  ]);
+}
+
+/* ---------- constants: Gridfinity + bin geometry (mm) ---------- */
+const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2,
+      FLOOR_Z = 7.2, SHELF_T = 1.2, SHELF_D = 12, U_MM = 7,
+      LENGTH_CLEARANCE = 2, MAX_CELLS = GW * GD;
+const KIND_NAME = {SK:"Senkkopf", LK:"Linsenkopf PH", ZK:"Zylinderkopf", "6kt":"Sechskant"};
+const KIND_VAR  = {SK:"--sk", LK:"--lk", ZK:"--zk", "6kt":"--kt"};
+const KIND_ORDER = ["SK","LK","ZK","6kt"];
+const SHADE = {10:.66, 8:.78, 6:.9, 5:1, 4:1.07, 3:1.14};
+
+function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
+const state = {
+  u: 8, cell: 36,
+  bins: BINS.map(b => ({...b})),
+  // sel holds positions, not one position — multi-select is the normal case now.
+  // anchor is the last bin touched, so Shift-click knows where a range starts.
+  sel: new Set(), anchor: null, selectMode: false, savedId: null
+};
+function lengthOk(b){
+  const [ix, iy] = interior(b.w, b.d);
+  return Math.max(ix, iy) >= b.outer + LENGTH_CLEARANCE;
+}
+function placed(b){ return b.x !== null && b.x !== undefined; }
+
+/* ---------- DOM ---------- */
+const $ = id => document.getElementById(id);
+const grid = $("grid"), shell = $("shell"), tray = $("tray"), trayItems = $("trayItems");
+const modal = $("modal");
+let nodes = new Map();
+
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function tint(hex, f){
+  const h = hex.replace("#","");
+  const n = h.length === 3 ? h.split("").map(c => c+c).join("") : h;
+  const [r,g,b] = [0,2,4].map(i => Math.min(255, Math.round(parseInt(n.slice(i,i+2),16) * f)));
+  return `rgb(${r} ${g} ${b})`;
+}
+function layoutGrid(){
+  document.documentElement.style.setProperty("--cell", state.cell + "px");
+  grid.style.width  = GW * state.cell + "px";
+  grid.style.height = GD * state.cell + "px";
+  grid.querySelectorAll(".zone").forEach(z => z.remove());
+  let x = 0;
+  for (const [kind, cols] of [["SK",4],["LK",4],["ZK",8],["6kt",8],["Reserve",1]]){
+    const z = document.createElement("div");
+    z.className = "zone";
+    z.style.left  = x * state.cell + "px";
+    z.style.width = cols * state.cell + "px";
+    z.innerHTML = `<span>${kind}</span>`;
+    grid.appendChild(z);
+    x += cols;
+  }
+}
+function binNode(b){
+  let el = nodes.get(b.pos);
+  if (!el){
+    el = document.createElement("div");
+    el.className = "bin";
+    el.dataset.pos = b.pos;
+    el.innerHTML = `<span class="t"></span><span class="q"></span>`;
+    el.addEventListener("pointerdown", onPointerDown);
+    nodes.set(b.pos, el);
+  }
+  return el;
+}
+function paint(b, el){
+  const lok = lengthOk(b);
+  el.style.background = tint(cssVar(KIND_VAR[b.kind]) || "#888", SHADE[b.dia] ?? 1);
+  el.classList.toggle("lenbad", !lok);
+  el.classList.toggle("sel", state.sel.has(b.pos));
+  el.querySelector(".t").textContent = `${b.thread}×${b.len}`;
+  el.querySelector(".q").textContent = `P${String(b.pos).padStart(3,"0")} · ${b.qty}×`;
+  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.qty} pcs · ${b.w}×${b.d} · ${state.u}U`
+    + (lok ? "" : "\nScrew is too long for this box");
+}
+function render(){
+  const inGrid = [], out = [];
+  for (const b of state.bins) (placed(b) ? inGrid : out).push(b);
+  for (const b of inGrid){
+    const el = binNode(b);
+    if (el.parentElement !== grid) grid.appendChild(el);
+    el.style.width  = b.w * state.cell - 2 + "px";
+    el.style.height = b.d * state.cell - 2 + "px";
+    el.style.left   = b.x * state.cell + 1 + "px";
+    el.style.top    = (GD - (b.y + b.d)) * state.cell + 1 + "px";
+    el.style.transform = "";
+    paint(b, el);
+  }
+  trayItems.innerHTML = "";
+  for (const b of out){
+    const el = binNode(b);
+    el.style.width = el.style.height = el.style.left = el.style.top = "";
+    trayItems.appendChild(el);
+    paint(b, el);
+  }
+  tray.classList.toggle("hide", out.length === 0);
+  updateStatus();
+}
+function updateStatus(){
+  const used = state.bins.filter(placed).reduce((s,b) => s + b.w*b.d, 0);
+  const lenBad = state.bins.filter(b => !lengthOk(b)).length;
+  const unp = state.bins.filter(b => !placed(b)).length;
+  $("cellsUsed").textContent = used;
+  $("cellsFree").textContent = MAX_CELLS - used;
+  $("nLen").textContent = lenBad;
+  $("nUnp").textContent = unp;
+  $("chipLen").classList.toggle("warn", lenBad > 0);
+  $("chipUnp").classList.toggle("warn", unp > 0);
+  $("nSel").textContent = state.sel.size;
+  const ok = lenBad === 0 && unp === 0;
+  const v = $("verdict");
+  v.className = "verdict " + (ok ? "ok" : "bad");
+  $("verdictText").textContent = ok
+    ? "Layout works — all 116 positions fit"
+    : `Does not fit — ${[lenBad && lenBad+" too short for the screw", unp && unp+" unplaced"].filter(Boolean).join(", ")}`;
+  saveLocal();
+}
+
+/* ---------- drag & drop ---------- */
+let drag = null, ghost = null;
+function cellFromPoint(clientX, clientY, b){
+  const r = grid.getBoundingClientRect();
+  const cx = (clientX - r.left) / state.cell, cy = (clientY - r.top) / state.cell;
+  const x = Math.round(cx - b.w/2), rowTop = Math.round(cy - b.d/2);
+  return [x, GD - rowTop - b.d];
+}
+function collides(b, x, y, ignore){
+  if (x < 0 || y < 0 || x + b.w > GW || y + b.d > GD) return true;
+  return state.bins.some(o => o !== b && placed(o) && !(ignore && ignore.has(o)) &&
+    x < o.x + o.w && x + b.w > o.x && y < o.y + o.d && y + b.d > o.y);
+}
+
+/* ---------- selection ---------- */
+function selectionList(){
+  return state.bins.filter(b => state.sel.has(b.pos)).sort((a, z) => a.pos - z.pos);
+}
+function clearSelection(){ state.sel.clear(); state.anchor = null; render(); }
+function selectAll(){ for (const b of state.bins) state.sel.add(b.pos); render(); }
+function toggleSel(pos){
+  if (state.sel.has(pos)) state.sel.delete(pos); else state.sel.add(pos);
+  state.anchor = pos;
+}
+function selectRange(pos){
+  const all = [...state.bins].sort((a, z) => a.pos - z.pos).map(b => b.pos);
+  const from = all.indexOf(state.anchor ?? pos), to = all.indexOf(pos);
+  if (from < 0 || to < 0){ toggleSel(pos); return; }
+  for (let i = Math.min(from, to); i <= Math.max(from, to); i++) state.sel.add(all[i]);
+}
+function setSelectMode(on){
+  state.selectMode = on;
+  $("btnSelectMode").classList.toggle("selmode-on", on);
+  $("btnSelectMode").textContent = on ? "Selecting — done" : "Select bins";
+  grid.classList.toggle("selmode", on);
+  $("shell").classList.toggle("selmode", on);
+}
+$("btnSelectMode").onclick = () => {
+  setSelectMode(!state.selectMode);
+  setGenNote(state.selectMode
+    ? "Selector mode on — click bins to add or remove them. Click “Selecting — done” to leave."
+    : "Selector mode off.");
+};
+$("btnSelClear").onclick = () => { clearSelection(); setGenNote("Selection cleared."); };
+// clicking empty drawer space drops the selection
+grid.addEventListener("pointerdown", e => { if (e.target === grid) clearSelection(); });
+
+function onPointerDown(e){
+  if (e.button !== 0) return;
+  const pos = +e.currentTarget.dataset.pos;
+  const b = state.bins.find(z => z.pos === pos);
+  // A selection gesture must never start a drag, or ctrl-click would also move the bin.
+  if (state.selectMode || e.ctrlKey || e.metaKey || e.shiftKey){
+    e.preventDefault();
+    if (e.shiftKey && state.anchor !== null) selectRange(pos); else toggleSel(pos);
+    render();
+    return;
+  }
+  if (!state.sel.has(pos)){ state.sel.clear(); state.sel.add(pos); }
+  state.anchor = pos;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  drag = {b, el: e.currentTarget, sx: e.clientX, sy: e.clientY, moved: false, ok: false, tx: 0, ty: 0};
+  render();
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp, {once:true});
+}
+function onPointerMove(e){
+  if (!drag) return;
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+  drag.moved = true;
+  drag.el.classList.add("dragging");
+  drag.el.style.transform = `translate(${dx}px,${dy}px)`;
+  const [x, y] = cellFromPoint(e.clientX, e.clientY, drag.b);
+  drag.tx = x; drag.ty = y;
+  drag.ok = !collides(drag.b, x, y);
+  if (!ghost){ ghost = document.createElement("div"); ghost.className = "drop-ghost"; grid.appendChild(ghost); }
+  ghost.classList.toggle("bad", !drag.ok);
+  ghost.style.width  = drag.b.w * state.cell - 2 + "px";
+  ghost.style.height = drag.b.d * state.cell - 2 + "px";
+  ghost.style.left   = Math.max(-state.cell, Math.min(GW*state.cell, x*state.cell)) + 1 + "px";
+  ghost.style.top    = (GD - (y + drag.b.d)) * state.cell + 1 + "px";
+}
+function onPointerUp(e){
+  window.removeEventListener("pointermove", onPointerMove);
+  if (!drag) return;
+  const d = drag; drag = null;
+  d.el.classList.remove("dragging");
+  ghost?.remove(); ghost = null;
+  if (!d.moved){ openModal(d.b); render(); return; }
+  const r = grid.getBoundingClientRect();
+  const inside = e.clientX > r.left - 40 && e.clientX < r.right + 40 && e.clientY > r.top - 40 && e.clientY < r.bottom + 40;
+  if (!inside){ d.b.x = d.b.y = null; }
+  else if (d.ok){ d.b.x = d.tx; d.b.y = d.ty; }
+  render();
+}
+grid.addEventListener("keydown", e => {
+  if (e.key === "Escape"){ e.preventDefault(); clearSelection(); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === "a" || e.key === "A")){ e.preventDefault(); selectAll(); return; }
+  const list = selectionList().filter(placed);
+  if (!list.length) return;
+  const step = {ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,1], ArrowDown:[0,-1]}[e.key];
+  if (step){
+    e.preventDefault();
+    // Move the selection as one block, ignoring collisions among its own members,
+    // and only if every bin in it can make the move.
+    const moving = new Set(list);
+    if (list.every(b => !collides(b, b.x + step[0], b.y + step[1], moving))){
+      for (const b of list){ b.x += step[0]; b.y += step[1]; }
+      render();
+    }
+  } else if (e.key === "r" || e.key === "R"){
+    e.preventDefault();
+    for (const b of list) rotate(b);
+  } else if (e.key === "Enter"){
+    e.preventDefault(); openModal(list[0]);
+  }
+});
+
+/* ---------- editing ---------- */
+function rotate(b){
+  const [w, d] = [b.d, b.w];
+  if (placed(b)){
+    const old = [b.w, b.d]; b.w = w; b.d = d;
+    if (collides(b, b.x, b.y)){ [b.w, b.d] = old; return false; }
+  } else { b.w = w; b.d = d; }
+  render(); if (modal.open) syncModal(); return true;
+}
+function resize(b, w, d){
+  w = Math.max(1, Math.min(4, w)); d = Math.max(1, Math.min(4, d));
+  const old = [b.w, b.d];
+  b.w = w; b.d = d;
+  if (placed(b) && collides(b, b.x, b.y)){
+    const spot = firstFree(b);
+    if (spot) [b.x, b.y] = spot; else { b.x = b.y = null; }
+  }
+  render(); syncModal();
+  return old;
+}
+function firstFree(b){
+  for (let y = 0; y + b.d <= GD; y++)
+    for (let x = 0; x + b.w <= GW; x++)
+      if (!collides(b, x, y)) return [x, y];
+  return null;
+}
+let modalBin = null;
+function openModal(b){
+  modalBin = b; syncModal();
+  if (!modal.open) modal.showModal();
+}
+function syncModal(){
+  const b = modalBin; if (!b) return;
+  const [ix, iy] = interior(b.w, b.d), lok = lengthOk(b);
+  $("mTitle").textContent = `${b.thread} × ${b.len}`;
+  $("mSub").textContent = `${b.kind} · ${KIND_NAME[b.kind]} · ${b.norm} · P${String(b.pos).padStart(3,"0")}`;
+  $("wVal").textContent = b.w; $("dVal").textContent = b.d; $("qVal").textContent = b.qty;
+  $("fInner").textContent = `${ix.toFixed(1)} × ${iy.toFixed(1)} mm`;
+  $("fLen").textContent = `${b.outer.toFixed(1)} mm` + (lok ? "" : " — does not fit");
+  $("fLen").className = "v" + (lok ? "" : " bad");
+  $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
+  const lab = labels.get(b.pos);
+  $("fLabel").textContent = lab ? lab.file : labelKind(b);
+  $("fLabel").className = "v" + (lab || server?.cad ? "" : " muted");
+
+}
+$("mClose").onclick = $("mDone").onclick = () => modal.close();
+$("mRotate").onclick = () => rotate(modalBin);
+$("wPlus").onclick  = () => resize(modalBin, modalBin.w+1, modalBin.d);
+$("wMinus").onclick = () => resize(modalBin, modalBin.w-1, modalBin.d);
+$("dPlus").onclick  = () => resize(modalBin, modalBin.w, modalBin.d+1);
+$("dMinus").onclick = () => resize(modalBin, modalBin.w, modalBin.d-1);
+$("qPlus").onclick  = () => { modalBin.qty += 5; render(); syncModal(); };
+$("qMinus").onclick = () => { modalBin.qty = Math.max(5, modalBin.qty - 5); render(); syncModal(); };
+
+/* ---------- global controls ---------- */
+$("uSlider").oninput = e => {
+  state.u = +e.target.value;
+  $("uOut").textContent = `${state.u}U · ${state.u*U_MM} mm`;
+  render(); if (modal.open) syncModal();
+};
+$("zoom").oninput = e => { state.cell = +e.target.value; $("zoomOut").textContent = state.cell + " px"; layoutGrid(); render(); };
+
+/* ---------- auto-arrange: size bands per type block ---------- */
+function autoArrange(){
+  const order = b => [-b.dia, -b.len, b.pos];
+  const byKind = Object.fromEntries(KIND_ORDER.map(k => [k, []]));
+  for (const b of state.bins) byKind[b.kind].push(b);
+  let colCursor = 0;
+  for (const kind of KIND_ORDER){
+    const list = byKind[kind].sort((a, z) => {
+      const [A, B] = [order(a), order(z)];
+      return A[0]-B[0] || A[1]-B[1] || A[2]-B[2];
+    });
+    const depth = list.reduce((s,b) => s + b.d, 0);
+    let cols = Math.max(1, Math.ceil(depth / GD));
+    while (cols > 0 && colCursor + cols*2 > GW){ cols--; }
+    const used = new Array(Math.max(cols,1)).fill(0);
+    const stacks = Array.from({length: Math.max(cols,1)}, () => []);
+    for (const b of list){
+      let best = -1;
+      for (let i = 0; i < cols; i++){
+        if (used[i] + b.d > GD) continue;
+        if (best < 0 || used[i] < used[best]) best = i;
+      }
+      if (best < 0){ b.x = b.y = null; continue; }
+      stacks[best].push(b); used[best] += b.d;
+    }
+    stacks.forEach((stack, i) => {
+      let row = GD - used[i];                        // front-anchor the column
+      for (const b of stack){
+        b.x = colCursor + i*2;
+        b.y = GD - (row + b.d);
+        row += b.d;
+      }
+    });
+    colCursor += cols*2;
+  }
+  render();
+}
+$("btnAuto").onclick = autoArrange;
+$("btnReset").onclick = () => {
+  state.bins = BINS.map(b => ({...b}));
+  state.u = 8;
+  state.sel.clear(); state.anchor = null;
+  $("uSlider").value = 8; $("uOut").textContent = "8U · 56 mm";
+  render();
+};
+
+/* ---------- persistence ---------- */
+const LS_KEY = "schublade1077.v1";
+function snapshot(){
+  return {u: state.u,
+    bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, qty:b.qty}))};
+}
+function restore(snap){
+  if (!snap || !Array.isArray(snap.bins)) return;
+  state.u = snap.u ?? state.u;
+  const map = new Map(snap.bins.map(b => [b.pos, b]));
+  for (const b of state.bins){
+    const s = map.get(b.pos); if (!s) continue;
+    b.w = s.w; b.d = s.d; b.x = s.x; b.y = s.y; if (s.qty) b.qty = s.qty;
+  }
+  $("uSlider").value = state.u; $("uOut").textContent = `${state.u}U · ${state.u*U_MM} mm`;
+  render();
+}
+function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(snapshot())); } catch {} }
+function loadLocal(){ try { const raw = localStorage.getItem(LS_KEY); if (raw) restore(JSON.parse(raw)); } catch {} }
+
+function toCSV(){
+  const rows = [["position","type","thread","length_mm","qty","box_w","box_d","height_u","grid_x","row_from_front"]];
+  for (const b of [...state.bins].sort((a,z) => a.pos - z.pos)){
+    rows.push([b.pos, b.kind, b.thread, b.len, b.qty, b.w, b.d, state.u,
+      placed(b) ? b.x : "", placed(b) ? b.y + 1 : ""]);
+  }
+  return rows.map(r => r.join(",")).join("\n");
+}
+
+/* ---------- optional platform capabilities ---------- */
+let dbNs = null, dlNs = null;
+$("btnExport").onclick = async () => {
+  if (!dlNs) return;
+  try { await dlNs.save({filename: `schublade_layout_${state.u}U.csv`, data: toCSV()}); }
+  catch (err) { if (err?.code !== "declined") $("saveNote").textContent = "Export unavailable in this view."; }
+};
+$("btnSave").onclick = async () => {
+  if (!dbNs) return;
+  const name = prompt("Name for this layout", `${state.u}U · ${new Date().toLocaleDateString()}`);
+  if (!name) return;
+  try {
+    await dbNs.collection("layouts").add({name, ts: Date.now(), ...snapshot()});
+    refreshSaves();
+  } catch { $("saveNote").textContent = "Could not save — storage unavailable."; }
+};
+async function refreshSaves(){
+  if (!dbNs) return;
+  try {
+    const snap = await dbNs.collection("layouts").orderBy("ts","desc").limit(12).get();
+    const list = $("saveList"); list.innerHTML = "";
+    if (snap.empty){ $("saveNote").textContent = "No saved layouts yet."; return; }
+    $("saveNote").textContent = "Layouts are stored with this page.";
+    for (const doc of snap.docs){
+      const d = doc.data() || {};
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `<b></b><span class="btnrow"><button data-a="load">Load</button><button data-a="del" class="ghost">&times;</button></span>`;
+      row.querySelector("b").textContent = d.name || doc.id;
+      row.querySelector('[data-a="load"]').onclick = () => restore(d);
+      row.querySelector('[data-a="del"]').onclick = async () => { await dbNs.doc("layouts/" + doc.id).delete(); refreshSaves(); };
+      list.appendChild(row);
+    }
+  } catch { $("saveNote").textContent = "Saved layouts unavailable."; }
+}
+
+
+/* ---------- label files (read locally, never uploaded) ---------- */
+const labels = new Map();                     // position -> {file, mesh}
+function labelState(){
+  const n = labels.size;
+  $("labelState").textContent = n ? `${n} label file${n === 1 ? "" : "s"} loaded` : "No label files loaded";
+  $("labelState").style.color = n ? "var(--ok)" : "var(--muted)";
+  if (modal.open) syncModal();
+}
+function posFromName(name){
+  const m = /P0*(\d{1,3})[_\.]/i.exec(name.replace(/^.*\//, ""));
+  return m ? +m[1] : null;
+}
+async function ingestFiles(fileList){
+  const files = [...fileList];
+  let added = 0, zips = files.filter(f => /\.zip$/i.test(f.name));
+  setGenNote("Reading label files …");
+  try {
+    for (const z of zips){
+      const entries = (await zipRead(await z.arrayBuffer()))
+        .filter(e => /\.stl$/i.test(e.name) && /label/i.test(e.name));
+      for (const e of entries){
+        const pos = posFromName(e.name);
+        if (!pos) continue;
+        labels.set(pos, {file: e.name.replace(/^.*\//, ""), mesh: parseSTL(await e.data())});
+        added++;
+      }
+    }
+    for (const f of files.filter(f => /\.stl$/i.test(f.name))){
+      const pos = posFromName(f.name);
+      if (!pos) continue;
+      labels.set(pos, {file: f.name, mesh: parseSTL(await f.arrayBuffer())});
+      added++;
+    }
+  } catch (err){ setGenNote("Could not read those files: " + err.message); return; }
+  labelState();
+  setGenNote(added ? `${added} label mesh${added === 1 ? "" : "es"} ready.`
+                   : "No label STLs found in that selection — expected names like P006_…_LABEL_INLAY.stl.");
+}
+$("btnLabels").onclick = () => $("labelInput").click();
+$("labelInput").onchange = e => { ingestFiles(e.target.files); e.target.value = ""; };
+$("btnClearLabels").onclick = () => { labels.clear(); labelState(); setGenNote("Label files cleared."); };
+
+/* ---------- file generation ---------- */
+function baseName(b){
+  return `P${String(b.pos).padStart(3,"0")}_${b.kind}_${b.thread}x${b.len}_Q${b.qty}_${b.w}x${b.d}_${state.u}U`;
+}
+let toastTimer = null;
+function setGenNote(msg){
+  $("genNote").textContent = msg;
+  const t = $("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove("hide");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add("hide"), 6000);
+}
+async function downloads(){
+  if (dlNs) return dlNs;
+  try { dlNs = await window.claude?.use?.("downloads") ?? null; } catch { dlNs = null; }
+  return dlNs;
+}
+function anchorSave(filename, blob){
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 20000);
+    return true;
+  } catch { return false; }
+}
+async function offer(filename, blob){
+  const size = (blob.size/1048576).toFixed(1);
+  const dl = await downloads();
+  if (dl){
+    setGenNote(`Confirm the download of ${filename} (${size} MB) …`);
+    try { await dl.save({filename, data: blob}); return true; }
+    catch (err){
+      const code = err?.code || "unknown";
+      if (code === "declined"){ setGenNote("Download cancelled."); return false; }
+      setGenNote(`Platform save failed (${code}); falling back to a direct download …`);
+    }
+  }
+  if (anchorSave(filename, blob)){
+    setGenNote(`${filename} (${size} MB) sent to your downloads.`);
+    return true;
+  }
+  setGenNote(`Built ${filename} (${size} MB) but this view refuses to hand files over. Run the local docker package for reliable downloads.`);
+  return false;
+}
+function labelFor(b){
+  const lab = labels.get(b.pos);
+  return lab ? seatLabel(lab.mesh, b.w, b.d, state.u) : null;
+}
+function labelKind(b){
+  if (labels.get(b.pos)) return "Chappel STL (loaded)";
+  return server?.cad ? "built by the generator script" : "none — needs the build service";
+}
+async function generateOne(b){
+  if (!b){ setGenNote("Select a bin first — click one in the drawer."); return; }
+  setGenNote(`Building ${b.w}×${b.d} · ${state.u}U …`);
+  await new Promise(r => setTimeout(r));
+  const mesh = buildBin(b.w, b.d, state.u);
+  const file = baseName(b) + "_BODY.stl";
+  const ok = await offer(file, meshToSTL(mesh, file));
+  setGenNote(ok ? `${file} — ${mesh.tri.length.toLocaleString()} triangles.` : "Nothing was saved.");
+}
+async function generate3MF(b){
+  if (!b){ setGenNote("Select a bin first — click one in the drawer."); return; }
+  const warn = labelWarning();
+  if (warn){ setGenNote(warn); await new Promise(r => setTimeout(r, 1200)); }
+  setGenNote(`Building ${baseName(b)} …`);
+  await new Promise(r => setTimeout(r));
+  const body = buildBin(b.w, b.d, state.u), label = labelFor(b);
+  const file = baseName(b) + ".3mf";
+  const ok = await offer(file, await build3MF(baseName(b), body, label));
+  setGenNote(ok ? `${file} — ${label ? "BODY + LABEL_INLAY (Chappel STL)" : "BODY only — no label available in the browser"}.`
+                : "Nothing was saved.");
+}
+async function generateAllSTL(){
+  const sizes = new Map();
+  for (const b of state.bins){
+    const key = `${b.w}x${b.d}`;
+    if (!sizes.has(key)) sizes.set(key, {w: b.w, d: b.d, members: []});
+    sizes.get(key).members.push(b);
+  }
+  const rows = [["position","type","thread","length_mm","qty","box","height_u","stl_file"]];
+  const entries = [];
+  let tris = 0;
+  progress.start("Building bodies (STL)", {total: sizes.size, detail: "one body per distinct box size"});
+  let i = 0;
+  for (const [key, s] of sizes){
+    progress.step(i++, `BODY_${key}_${state.u}U.stl`);
+    await new Promise(r => setTimeout(r));
+    const file = `BODY_${key}_${state.u}U.stl`;
+    const mesh = buildBin(s.w, s.d, state.u);
+    tris += mesh.tri.length;
+    entries.push({name: file, data: await meshToSTL(mesh, file).arrayBuffer()});
+    for (const b of s.members) rows.push([b.pos, b.kind, b.thread, b.len, b.qty, key, state.u, file]);
+  }
+  entries.push({name: "bin_mapping.csv", data: rows.map(r => r.join(",")).join("\n")});
+  progress.step(sizes.size, "packing the zip …");
+  await new Promise(r => setTimeout(r));
+  const ok = await offer(`schublade_bodies_${state.u}U.zip`, await zipCreate(entries));
+  progress.close();
+  setGenNote(ok ? `${sizes.size} distinct bodies · ${tris.toLocaleString()} triangles.` : "Nothing was saved.");
+}
+async function generateAll3MF(){
+  // With no labels every position of the same size is the same file - emit one per size.
+  const perPosition = labels.size > 0;
+  const list = perPosition
+    ? [...state.bins].sort((a, z) => a.pos - z.pos)
+    : [...new Map(state.bins.map(b => [`${b.w}x${b.d}`, b])).values()];
+  const entries = [];
+  const bodies = new Map();
+  let withLabel = 0;
+  progress.start("Building all 3MF files", {total: list.length, detail: "in this browser"});
+  for (let i = 0; i < list.length; i++){
+    const b = list[i];
+    progress.step(i, `${b.w}×${b.d} · ${state.u}U — P${String(b.pos).padStart(3,"0")}`);
+    setGenNote(`Building ${i+1} of ${list.length} — ${b.w}×${b.d} · ${state.u}U …`);
+    await new Promise(r => setTimeout(r));
+    const key = `${b.w}x${b.d}`;
+    if (!bodies.has(key)) bodies.set(key, buildBin(b.w, b.d, state.u));
+    const label = perPosition ? labelFor(b) : null;
+    if (label) withLabel++;
+    const name = perPosition ? baseName(b) : `BOX_${key}_${state.u}U`;
+    entries.push({name: name + ".3mf", data: await (await build3MF(name, bodies.get(key), label)).arrayBuffer()});
+  }
+  progress.step(list.length, `packing ${list.length} files …`);
+  setGenNote(`Packing ${list.length} files …`);
+  await new Promise(r => setTimeout(r));
+  const ok = await offer(`schublade_3mf_${state.u}U.zip`, await zipCreate(entries, {compress: false}));
+  progress.close();
+  if (ok) setGenNote(perPosition
+    ? `Saved ${list.length} 3MF files, ${withLabel} with a label part.`
+    : `Saved ${list.length} bare bodies, one per box size. Labels come from the build service ` +
+      `(docker compose up -d --build) or from loaded Chappel STLs.`);
+}
+function guard(fn){
+  return async (...args) => {
+    try { await fn(...args); }
+    catch (err){ setGenNote("Generation failed: " + (err?.message || err)); }
+    // The popup must never outlive the work, however the work ended.
+    finally { progress.close(); }
+  };
+}
+function selected(){
+  const list = selectionList();
+  if (!list.length) setGenNote("No bins selected — click a box in the drawer, or use “Select bins”.");
+  return list;
+}
+async function generateSelectedSTL(list){
+  const sizes = new Map();
+  for (const b of list) sizes.set(`${b.w}x${b.d}`, [b.w, b.d]);
+  const entries = [];
+  progress.start("Building selected bodies (STL)", {total: sizes.size, detail: "one body per distinct box size"});
+  let i = 0;
+  for (const [key, [w, d]] of sizes){
+    progress.step(i++, `BODY_${key}_${state.u}U.stl`);
+    await new Promise(r => setTimeout(r));
+    const file = `BODY_${key}_${state.u}U.stl`;
+    entries.push({name: file, data: await meshToSTL(buildBin(w, d, state.u), file).arrayBuffer()});
+  }
+  progress.step(sizes.size, "packing the zip …");
+  const rows = [["position","type","thread","length_mm","qty","box","height_u","stl_file"]];
+  for (const b of list)
+    rows.push([b.pos, b.kind, b.thread, b.len, b.qty, `${b.w}x${b.d}`, state.u,
+               `BODY_${b.w}x${b.d}_${state.u}U.stl`]);
+  entries.push({name: "bin_mapping.csv", data: rows.map(r => r.join(",")).join("\n")});
+  const ok = await offer(`schublade_selected_bodies_${state.u}U.zip`, await zipCreate(entries));
+  setGenNote(ok ? `${sizes.size} distinct bodies for ${list.length} selected positions.` : "Nothing was saved.");
+}
+async function generate3MFSet(list, zipName){
+  const entries = [], bodies = new Map();
+  let withLabel = 0;
+  progress.start("Building 3MF files", {total: list.length, detail: "in this browser"});
+  for (let i = 0; i < list.length; i++){
+    const b = list[i];
+    progress.step(i, `${baseName(b)} — ${b.w}×${b.d} · ${state.u}U`);
+    setGenNote(`Building ${i+1} of ${list.length} — ${b.w}×${b.d} · ${state.u}U …`);
+    await new Promise(r => setTimeout(r));
+    const key = `${b.w}x${b.d}`;
+    if (!bodies.has(key)) bodies.set(key, buildBin(b.w, b.d, state.u));
+    const label = labelFor(b);
+    if (label) withLabel++;
+    entries.push({name: baseName(b) + ".3mf",
+      data: await (await build3MF(baseName(b), bodies.get(key), label)).arrayBuffer()});
+  }
+  progress.step(list.length, `packing ${list.length} files …`);
+  setGenNote(`Packing ${list.length} files …`);
+  await new Promise(r => setTimeout(r));
+  const ok = await offer(zipName, await zipCreate(entries, {compress: false}));
+  progress.close();
+  setGenNote(ok ? `Saved ${list.length} 3MF files, ${withLabel} with a label part.` : "Nothing was saved.");
+}
+// One bin, built the best way available: through the pipeline when the service is up, so
+// the Chappel label is embedded as a second part, and the browser body only as a fallback.
+// Both the sidebar button and the per-bin modal go through here — they drifted apart once,
+// and the modal quietly handed out label-less files while claiming otherwise.
+function buildOne3MF(b){
+  return serverMode()
+    ? serverGenerate([{pos: b.pos, w: b.w, d: b.d}], baseName(b) + ".3mf")
+    : generate3MF(b);
+}
+$("btnGenAll").onclick = guard(generateAllSTL);
+$("btnGenSel").onclick = guard(async () => {
+  const list = selected(); if (!list.length) return;
+  return list.length === 1 ? generateOne(list[0]) : generateSelectedSTL(list);
+});
+$("btnGen3mfAll").onclick = guard(() => serverMode()
+  ? serverGenerate(state.bins.map(b => ({pos: b.pos, w: b.w, d: b.d})), `schublade_3mf_${state.u}U.zip`)
+  : generateAll3MF());
+$("btnGen3mfSel").onclick = guard(async () => {
+  const list = selected(); if (!list.length) return;
+  if (list.length === 1) return buildOne3MF(list[0]);
+  const zipName = `schublade_3mf_selected_${list.length}_${state.u}U.zip`;
+  return serverMode()
+    ? serverGenerate(list.map(b => ({pos: b.pos, w: b.w, d: b.d})), zipName)
+    : generate3MFSet(list, zipName);
+});
+$("mStl").onclick = guard(() => { modal.close(); return generateOne(modalBin); });
+$("m3mf").onclick = guard(() => { const b = modalBin; modal.close(); return buildOne3MF(b); });
+
+/* ---------- local build service (part of the default docker compose set) ---------- */
+let server = null;
+async function probeServer(){
+  try {
+    const r = await fetch("api/health", {cache: "no-store"});
+    if (!r.ok) return;
+    server = await r.json();
+  } catch { return; }
+  if (!server) return;
+  $("serverCard").classList.remove("hide");
+  $("serverState").textContent = server.cad
+    ? `CadQuery service ready · ${server.labels} labels cached`
+    : "Service reachable, but CadQuery is not installed in it";
+  $("useServer").disabled = !server.cad;
+  $("useServer").checked = !!server.cad;
+  $("btnFetchLabels").disabled = !server.cad;
+}
+function serverMode(){ return !!server?.cad && $("useServer").checked; }
+function labelWarning(){
+  if (serverMode() || labels.size) return null;
+  return "Labels are built by generate_gridfinity_chappel_bins.py in the build service, "
+       + "which runs by default. If it is not up, start it with: docker compose up -d --build "
+       + "— or load your Chappel label STLs. Without either, the 3MF holds the bare body.";
+}
+async function serverGenerate(items, filename){
+  const n = items.length;
+  progress.start(`Building ${n} box${n === 1 ? "" : "es"}`, {
+    detail: "generate_gridfinity_chappel_bins.py — body with the label pocket cut + Chappel inlay",
+    note: "The build service works synchronously and reports nothing until it is finished, so "
+        + "this cannot show per-box progress. Roughly 5 s per box once the label artwork is "
+        + "cached; positions that still need scraping take considerably longer."
+  });
+  setGenNote(`generate_gridfinity_chappel_bins.py is building ${n} box${n === 1 ? "" : "es"} `
+    + `(body with the label pocket cut + Chappel inlay). Missing label artwork is scraped first; this can take a while …`);
+  const buf = await fetchBuffer("api/generate", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({items, height_u: state.u})
+  }, filename);
+  progress.close();
+  const type = filename.endsWith(".zip") ? "application/zip" : "model/3mf";
+  await offer(filename, new Blob([buf], {type}));
+}
+async function fetchLabels(){
+  setGenNote("Asking the server to fetch missing labels from label.alch.shop — this drives a headless browser and takes a while …");
+  progress.start("Fetching label artwork", {
+    detail: "driving headless Chromium against label.alch.shop",
+    note: "One page load and download per uncached screw size, and the scrape reports nothing "
+        + "back until it finishes, so only the elapsed time is real here. Already-cached sizes "
+        + "are skipped. Safe to leave running."
+  });
+  try {
+    const r = await fetch("api/labels/fetch", {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"});
+    const out = await r.json();
+    setGenNote(r.ok ? `Label cache: ${out.cached} of ${out.total} positions.` : "Label fetch failed: " + (out.detail || "unknown"));
+    await probeServer();
+  } catch (err){ setGenNote("Label fetch failed: " + err.message); }
+  finally { progress.close(); }
+}
+
+/* ---------- progress popup ----------
+   Honest by construction: a bar only goes determinate when something real is being
+   counted — items in a loop, or bytes off the wire. The build service is synchronous
+   and reports nothing until it returns, so that phase stays indeterminate with an
+   elapsed clock rather than inventing a percentage. */
+const progress = (() => {
+  const el = id => document.getElementById(id);
+  let t0 = 0, ticker = 0, total = 0, frac = -1, detail = "", live = false;
+
+  function fmt(s){
+    s = Math.max(0, Math.round(s));
+    return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${String(s % 60).padStart(2, "0")}s`;
+  }
+  function render(){
+    if (!live) return;
+    const elapsed = (Date.now() - t0) / 1000;
+    el("prgElapsed").textContent = fmt(elapsed);
+    el("prgDetail").textContent = detail;
+    const track = el("prgTrack");
+    if (frac < 0){
+      track.classList.add("prg-indet");
+      // Must be set here, not left to the stylesheet: start() writes an inline width,
+      // and an inline style outranks .prg-indet .prg-fill{width:100%}, which would
+      // leave the indeterminate bar rendered as an empty track.
+      el("prgFill").style.width = "100%";
+      el("prgPct").textContent = "—";
+      el("prgEta").textContent = "unknown";
+      return;
+    }
+    track.classList.remove("prg-indet");
+    el("prgFill").style.width = `${Math.round(frac * 100)}%`;
+    el("prgPct").textContent = `${Math.round(frac * 100)}%`;
+    // Rate measured from this run only — no guessing before there is something to measure.
+    el("prgEta").textContent = frac > 0.02
+      ? `~${fmt(elapsed * (1 - frac) / frac)}`
+      : "estimating …";
+  }
+  function start(title, {total: n = 0, detail: d = "", note = ""} = {}){
+    total = n; frac = n > 0 ? 0 : -1; detail = d; t0 = Date.now(); live = true;
+    el("prgTitle").textContent = title;
+    el("prgNote").textContent = note;
+    el("prgFill").style.width = "0%";
+    render();
+    if (!el("prgModal").open) el("prgModal").showModal();
+    clearInterval(ticker);
+    ticker = setInterval(render, 250);
+  }
+  function setTotal(n){ total = n; if (n > 0 && frac < 0) frac = 0; render(); }
+  function step(done, d){
+    if (d !== undefined) detail = d;
+    frac = total > 0 ? Math.min(done / total, 1) : -1;
+    render();
+  }
+  function bytes(got, len, d){
+    if (d !== undefined) detail = `${d} — ${(got/1048576).toFixed(1)} of ${(len/1048576).toFixed(1)} MB`;
+    frac = len > 0 ? Math.min(got / len, 1) : -1;
+    render();
+  }
+  function note(d){ detail = d; render(); }
+  function busy(){ return live; }
+  function close(){
+    clearInterval(ticker); ticker = 0; live = false;
+    if (el("prgModal").open) el("prgModal").close();
+  }
+  return {start, setTotal, step, bytes, note, busy, close};
+})();
+
+/* One place for "POST and read the body with a real byte counter", so the download
+   phase reports actual progress even though the build phase cannot. */
+async function fetchBuffer(url, opts, label){
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error((await r.text()).slice(0, 200) || `HTTP ${r.status}`);
+  const len = +r.headers.get("content-length") || 0;
+  if (!r.body || !len){
+    progress.note(`${label} — receiving …`);
+    return await r.arrayBuffer();
+  }
+  const reader = r.body.getReader();
+  const chunks = [];
+  let got = 0;
+  for (;;){
+    const {done, value} = await reader.read();
+    if (done) break;
+    chunks.push(value); got += value.length;
+    progress.bytes(got, len, `downloading ${label}`);
+  }
+  const out = new Uint8Array(got);
+  let o = 0;
+  for (const c of chunks){ out.set(c, o); o += c.length; }
+  return out.buffer;
+}
+
+/* ---------- 3MF / STL viewer ----------
+   WebGL rather than a canvas painter's-algorithm sort, because of this exact model:
+   LABEL_INLAY is flush with the body top at z = 56 and sits inside a pocket, so any
+   depth sort flickers along that seam. A real depth buffer draws it correctly.
+   No library — same rule as the rest of this file. */
+const viewer = (() => {
+  const idOf = i => document.getElementById(i);
+  const IDENT = [1,0,0, 0,1,0, 0,0,1, 0,0,0];
+  const BODY_COLOR = [0.44, 0.47, 0.50];
+  const PALETTE = [[0.44,0.47,0.50],[0.15,0.42,0.58],[0.18,0.49,0.32],[0.76,0.55,0.20],[0.66,0.28,0.22]];
+
+  let gl = null, prog = null, canvas = null, loc = {}, vbo = null;
+  let parts = [], triCount = 0, bbox = null, failed = false;
+  const cam = {az: 0.6, el: 0.45, dist: 3, target: [0,0,0], radius: 1};
+  let pending = false;
+
+  /* ---- tiny matrix helpers (column-major, as WebGL wants) ---- */
+  function perspective(fovy, aspect, near, far){
+    const f = 1/Math.tan(fovy/2), nf = 1/(near-far);
+    return [f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0];
+  }
+  function lookAt(eye, center, up){
+    const z = norm(sub(eye, center)), x = norm(cross(up, z)), y = cross(z, x);
+    return [x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+            -dot(x,eye), -dot(y,eye), -dot(z,eye), 1];
+  }
+  function mul(a, b){
+    const o = new Array(16).fill(0);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++)
+      for (let k = 0; k < 4; k++) o[i*4+j] += b[i*4+k] * a[k*4+j];
+    return o;
+  }
+  const sub = (a,b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+  const dot = (a,b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+  const cross = (a,b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  function norm(v){ const l = Math.hypot(...v) || 1; return [v[0]/l, v[1]/l, v[2]/l]; }
+
+  /* ---- 3MF transforms: row-vector convention, p' = p * M + t ---- */
+  function parseXf(str){
+    if (!str) return IDENT.slice();
+    const n = str.trim().split(/[\s,]+/).map(Number);
+    return n.length === 12 && n.every(v => Number.isFinite(v)) ? n : IDENT.slice();
+  }
+  function applyXf(m, p){
+    return [p[0]*m[0] + p[1]*m[3] + p[2]*m[6] + m[9],
+            p[0]*m[1] + p[1]*m[4] + p[2]*m[7] + m[10],
+            p[0]*m[2] + p[1]*m[5] + p[2]*m[8] + m[11]];
+  }
+  function mulXf(parent, child){            // apply child first, then parent
+    const r = new Array(12).fill(0);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+      r[i*3+j] = child[i*3]*parent[j] + child[i*3+1]*parent[3+j] + child[i*3+2]*parent[6+j];
+    for (let j = 0; j < 3; j++)
+      r[9+j] = child[9]*parent[j] + child[10]*parent[3+j] + child[11]*parent[6+j] + parent[9+j];
+    return r;
+  }
+
+  /* ---- parsing ---- */
+  const kids = (node, name) => [...node.children].filter(c => c.localName === name);
+
+  async function parse3MF(buf){
+    const entries = await zipRead(buf);
+    const pick = re => entries.find(e => re.test(e.name.replace(/^\/+/, "")));
+    const modelEntry = pick(/^3D\/.*\.model$/i) || pick(/\.model$/i);
+    if (!modelEntry) throw new Error("no 3D model part inside this 3MF");
+    const doc = new DOMParser().parseFromString(
+      new TextDecoder().decode(await modelEntry.data()), "application/xml");
+    if (doc.getElementsByTagName("parsererror").length) throw new Error("the model part is not valid XML");
+
+    // Bambu keeps the filament assignment here; absent in a plain 3MF, which is fine.
+    const meta = new Map();
+    const cfgEntry = pick(/model_settings\.config$/i);
+    if (cfgEntry){
+      try {
+        const cfg = new DOMParser().parseFromString(
+          new TextDecoder().decode(await cfgEntry.data()), "application/xml");
+        for (const p of cfg.getElementsByTagName("part")){
+          const kv = {};
+          for (const m of p.getElementsByTagName("metadata")) kv[m.getAttribute("key")] = m.getAttribute("value");
+          meta.set(p.getAttribute("id"), {name: kv.name || null, extruder: +kv.extruder || null});
+        }
+      } catch { /* a malformed config must not stop the geometry rendering */ }
+    }
+
+    const objects = new Map();
+    for (const o of doc.getElementsByTagName("*")){
+      if (o.localName !== "object") continue;
+      const meshEl = kids(o, "mesh")[0];
+      const rec = {id: o.getAttribute("id"), name: o.getAttribute("name") || "", verts: [], tris: [], comps: []};
+      if (meshEl){
+        const vEl = kids(meshEl, "vertices")[0], tEl = kids(meshEl, "triangles")[0];
+        if (vEl) for (const v of kids(vEl, "vertex"))
+          rec.verts.push([+v.getAttribute("x"), +v.getAttribute("y"), +v.getAttribute("z")]);
+        if (tEl) for (const t of kids(tEl, "triangle"))
+          rec.tris.push([+t.getAttribute("v1"), +t.getAttribute("v2"), +t.getAttribute("v3")]);
+      }
+      const cEl = kids(o, "components")[0];
+      if (cEl) for (const c of kids(cEl, "component"))
+        rec.comps.push({objectid: c.getAttribute("objectid"), xf: parseXf(c.getAttribute("transform"))});
+      objects.set(rec.id, rec);
+    }
+
+    const leaves = [];
+    const walk = (id, xf, depth) => {
+      const o = objects.get(String(id));
+      if (!o || depth > 12) return;
+      if (o.tris.length) { leaves.push({obj: o, xf}); return; }
+      for (const c of o.comps) walk(c.objectid, mulXf(xf, c.xf), depth + 1);
+    };
+    const buildEl = [...doc.getElementsByTagName("*")].find(e => e.localName === "build");
+    const items = buildEl ? kids(buildEl, "item") : [];
+    if (items.length) for (const it of items) walk(it.getAttribute("objectid"), parseXf(it.getAttribute("transform")), 0);
+    else for (const o of objects.values()) if (o.tris.length) leaves.push({obj: o, xf: IDENT.slice()});
+    if (!leaves.length) throw new Error("this 3MF contains no triangles");
+
+    return leaves.map((l, i) => {
+      const m = meta.get(l.obj.id) || {};
+      const ext = m.extruder;
+      return {
+        name: m.name || l.obj.name || `object ${l.obj.id}`,
+        extruder: ext,
+        color: ext === 1 ? BODY_COLOR : PALETTE[((ext || i + 1) % PALETTE.length + PALETTE.length) % PALETTE.length],
+        verts: l.obj.verts, tris: l.obj.tris, xf: l.xf, visible: true
+      };
+    });
+  }
+
+  // The editor's own Mesh format: tri = [nx,ny,nz, v0,v1,v2, group]
+  function fromMesh(mesh, name, extruder, color){
+    const verts = [], tris = [];
+    for (const t of mesh.tri){
+      const b = verts.length;
+      verts.push(t[3], t[4], t[5]);
+      tris.push([b, b+1, b+2]);
+    }
+    return {name, extruder, color, verts, tris, xf: IDENT.slice(), visible: true};
+  }
+
+  /* ---- GL ---- */
+  const VS = `attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aCol;
+    uniform mat4 uMVP; varying vec3 vN; varying vec3 vC;
+    void main(){ vN = aNrm; vC = aCol; gl_Position = uMVP * vec4(aPos, 1.0); }`;
+  const FS = `precision mediump float; varying vec3 vN; varying vec3 vC;
+    void main(){
+      vec3 n = normalize(vN);
+      float k = 0.34
+        + 0.62 * max(dot(n, normalize(vec3(0.35, -0.55, 0.75))), 0.0)
+        + 0.16 * max(dot(n, normalize(vec3(-0.6, 0.35, 0.2))), 0.0);
+      gl_FragColor = vec4(vC * k, 1.0);
+    }`;
+
+  function initGL(){
+    if (gl || failed) return !!gl;
+    const stage = idOf("v3dStage");
+    canvas = document.createElement("canvas");
+    stage.insertBefore(canvas, stage.firstChild);
+    gl = canvas.getContext("webgl", {antialias: true, depth: true})
+      || canvas.getContext("experimental-webgl", {antialias: true, depth: true});
+    if (!gl){ failed = true; canvas.remove(); canvas = null; return false; }
+    const sh = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      return s;
+    };
+    prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    loc = {
+      pos: gl.getAttribLocation(prog, "aPos"),
+      nrm: gl.getAttribLocation(prog, "aNrm"),
+      col: gl.getAttribLocation(prog, "aCol"),
+      mvp: gl.getUniformLocation(prog, "uMVP")
+    };
+    vbo = gl.createBuffer();
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    new ResizeObserver(() => draw()).observe(stage);
+    return true;
+  }
+
+  function upload(){
+    const data = [];
+    triCount = 0;
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const p of parts){
+      p.offset = triCount * 3;
+      let n = 0;
+      for (const t of p.tris){
+        const a = applyXf(p.xf, p.verts[t[0]]);
+        const b = applyXf(p.xf, p.verts[t[1]]);
+        const c = applyXf(p.xf, p.verts[t[2]]);
+        if (!a || !b || !c) continue;
+        const nv = norm(cross(sub(b, a), sub(c, a)));
+        for (const v of [a, b, c]){
+          data.push(v[0], v[1], v[2], nv[0], nv[1], nv[2], p.color[0], p.color[1], p.color[2]);
+          for (let k = 0; k < 3; k++){ lo[k] = Math.min(lo[k], v[k]); hi[k] = Math.max(hi[k], v[k]); }
+        }
+        n++;
+      }
+      p.count = n * 3;
+      triCount += n;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    bbox = {lo, hi};
+    cam.target = [(lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2];
+    cam.radius = Math.max(Math.hypot(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]) / 2, 1e-3);
+    cam.dist = cam.radius * 2.6;
+  }
+
+  function draw(){
+    if (!gl || pending) return;
+    pending = true;
+    requestAnimationFrame(() => {
+      pending = false;
+      const stage = idOf("v3dStage");
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(stage.clientWidth, 1), h = Math.max(stage.clientHeight, 1);
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      const g = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g) || [240, 240, 240];
+      gl.clearColor(g[0]/255, g[1]/255, g[2]/255, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!triCount) return;
+      const ce = Math.cos(cam.el), se = Math.sin(cam.el);
+      const eye = [cam.target[0] + cam.dist*ce*Math.sin(cam.az),
+                   cam.target[1] - cam.dist*ce*Math.cos(cam.az),
+                   cam.target[2] + cam.dist*se];
+      const mvp = mul(perspective(0.62, w/h, cam.radius*0.02, cam.radius*60),
+                      lookAt(eye, cam.target, [0, 0, 1]));
+      gl.useProgram(prog);
+      gl.uniformMatrix4fv(loc.mvp, false, new Float32Array(mvp));
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      const S = 9 * 4;
+      for (const [i, a] of [[0, loc.pos], [3, loc.nrm], [6, loc.col]]){
+        gl.enableVertexAttribArray(a);
+        gl.vertexAttribPointer(a, 3, gl.FLOAT, false, S, i * 4);
+      }
+      for (const p of parts) if (p.visible && p.count) gl.drawArrays(gl.TRIANGLES, p.offset, p.count);
+    });
+  }
+
+  /* ---- UI ---- */
+  function renderPartList(){
+    const box = idOf("v3dPartList");
+    box.innerHTML = "";
+    if (parts.length < 2 && !parts.some(p => p.extruder)) return;
+    for (const p of parts){
+      const row = document.createElement("div");
+      row.className = "v3d-row";
+      const lab = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = p.visible;
+      cb.onchange = () => { p.visible = cb.checked; draw(); };
+      const sw = document.createElement("span");
+      sw.className = "v3d-sw";
+      sw.style.background = `rgb(${p.color.map(c => Math.round(c*255)).join(",")})`;
+      const nm = document.createElement("span");
+      nm.className = "v3d-nm"; nm.textContent = p.name;
+      lab.append(cb, sw, nm);
+      const ext = document.createElement("span");
+      ext.className = "v3d-ext";
+      ext.textContent = p.extruder ? `filament ${p.extruder}` : "—";
+      row.append(lab, ext);
+      box.appendChild(row);
+    }
+  }
+  function setStats(sub){
+    idOf("v3dParts").textContent = parts.length;
+    idOf("v3dTris").textContent = triCount.toLocaleString();
+    idOf("v3dDims").textContent = bbox
+      ? `${(bbox.hi[0]-bbox.lo[0]).toFixed(1)} × ${(bbox.hi[1]-bbox.lo[1]).toFixed(1)} × ${(bbox.hi[2]-bbox.lo[2]).toFixed(1)} mm`
+      : "—";
+    if (sub !== undefined) idOf("v3dSub").textContent = sub;
+    idOf("v3dDrop").classList.toggle("hide", triCount > 0);
+  }
+  function show(newParts, title, sub){
+    if (!initGL()){
+      idOf("v3dDrop").textContent = "This browser gave no WebGL context, so the viewer cannot draw.";
+      idOf("v3dModal").showModal();
+      return;
+    }
+    parts = newParts;
+    upload();
+    renderPartList();
+    idOf("v3dTitle").textContent = title;
+    setStats(sub);
+    const dlg = idOf("v3dModal");
+    if (!dlg.open) dlg.showModal();
+    draw();
+  }
+
+  // The page knows where each position sits in the drawer; the viewer does not.
+  // It hands a position number to this hook and gets [dx, dy] in mm back, or null.
+  let placer = null;
+  function setPlacer(fn){ placer = fn; }
+  function offsetParts(list, dx, dy){
+    for (const p of list){ p.xf = p.xf.slice(); p.xf[9] += dx; p.xf[10] += dy; }
+    return list;
+  }
+  // A .3mf and a zip of .3mf files are both zips, so tell them apart by content:
+  // a batch archive holds entries ending in .3mf, a single model does not.
+  async function parseZip(buf){
+    const models = (await zipRead(buf)).filter(e => /\.3mf$/i.test(e.name));
+    if (!models.length) return {parts: await parse3MF(buf), note: "3MF"};
+    const parts = [];
+    // Unpacking a batch is genuinely countable, so the bar goes exact here.
+    progress.setTotal(models.length);
+    for (let i = 0; i < models.length; i++){
+      const e = models[i];
+      progress.step(i, `unpacking ${e.name}`);
+      await new Promise(r => setTimeout(r));   // let the bar paint between models
+      const sub = await parse3MF(await e.data());
+      const m = /P(\d{1,3})/i.exec(e.name.replace(/^.*\//, ""));
+      const pos = m ? +m[1] : null;
+      const tag = pos ? `P${String(pos).padStart(3, "0")}` : e.name.replace(/\.3mf$/i, "");
+      for (const p of sub) p.name = `${tag} ${p.name}`;
+      const at = (pos != null && placer) ? placer(pos) : null;
+      // Fall back to a plain row when the position is unknown, so the models do not
+      // all pile up on top of each other at the origin.
+      offsetParts(sub, at ? at[0] : i * 100, at ? at[1] : 0);
+      parts.push(...sub);
+    }
+    return {parts, note: `${models.length} files`};
+  }
+  async function loadBuffer(buf, name){
+    if (new Uint8Array(buf, 0, 2)[0] !== 0x50){
+      progress.close();                  // never stack the popup under the viewer
+      show([fromMesh(parseSTL(buf), name, null, PALETTE[1])], name, "STL");
+      return;
+    }
+    const {parts, note} = await parseZip(buf);
+    progress.close();
+    show(parts, name, note);
+  }
+  async function loadFile(file){
+    try {
+      idOf("v3dSub").textContent = "reading …";
+      progress.start(`Opening ${file.name}`, {
+        detail: `reading ${(file.size/1048576).toFixed(1)} MB …`,
+        note: "Parsing happens in this browser; a batch zip reports one step per model."
+      });
+      await loadBuffer(await file.arrayBuffer(), file.name);
+    } catch (err){
+      idOf("v3dDrop").textContent = "Could not read that file: " + (err?.message || err);
+      idOf("v3dDrop").classList.remove("hide");
+      idOf("v3dModal").showModal();
+    } finally { progress.close(); }
+  }
+
+  /* orbit + zoom */
+  function wire(){
+    const stage = idOf("v3dStage");
+    let drag = null;
+    stage.addEventListener("pointerdown", e => {
+      drag = {x: e.clientX, y: e.clientY};
+      stage.setPointerCapture(e.pointerId);
+    });
+    stage.addEventListener("pointermove", e => {
+      if (!drag) return;
+      cam.az += (e.clientX - drag.x) * 0.01;
+      cam.el = Math.max(-1.5, Math.min(1.5, cam.el + (e.clientY - drag.y) * 0.01));
+      drag = {x: e.clientX, y: e.clientY};
+      draw();
+    });
+    const stop = () => { drag = null; };
+    stage.addEventListener("pointerup", stop);
+    stage.addEventListener("pointercancel", stop);
+    stage.addEventListener("wheel", e => {
+      e.preventDefault();
+      cam.dist = Math.max(cam.radius*0.4, Math.min(cam.radius*40, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9)));
+      draw();
+    }, {passive: false});
+    for (const ev of ["dragenter", "dragover"])
+      stage.addEventListener(ev, e => { e.preventDefault(); stage.classList.add("v3d-over"); });
+    for (const ev of ["dragleave", "drop"])
+      stage.addEventListener(ev, e => { e.preventDefault(); stage.classList.remove("v3d-over"); });
+    stage.addEventListener("drop", e => {
+      const f = e.dataTransfer?.files?.[0];
+      if (f) loadFile(f);
+    });
+    idOf("v3dReset").onclick = () => {
+      cam.az = 0.6; cam.el = 0.45; cam.dist = cam.radius * 2.6; draw();
+    };
+    idOf("v3dClose").onclick = () => idOf("v3dModal").close();
+    idOf("v3dOpen2").onclick = () => idOf("viewInput").click();
+  }
+
+  return {show, loadFile, loadBuffer, fromMesh, wire, setPlacer, offsetParts, parse3MF,
+          PALETTE, BODY_COLOR};
+})();
+
+async function viewSelected(){
+  const list = selected();
+  if (!list.length) return;
+  const many = list.length > 1;
+  // Any number of bins goes through the pipeline when the service is up, so the view
+  // always shows the real Chappel labels. Several come back as a zip of 3MFs, which
+  // the viewer unpacks and lays out at the bins' drawer positions.
+  if (serverMode()){
+    setGenNote(many
+      ? `Building ${list.length} boxes with generate_gridfinity_chappel_bins.py to view them. `
+        + "Label artwork that is not cached yet is scraped first, so this can take a while …"
+      : `Building ${baseName(list[0])} in the pipeline to view it …`);
+    progress.start(`Building ${list.length} box${many ? "es" : ""} to view`, {
+      detail: "generate_gridfinity_chappel_bins.py — body with the label pocket cut + Chappel inlay",
+      note: "The build service reports nothing until it is done, so the elapsed time is the only "
+          + "real figure during this phase. The bar becomes exact once the file starts arriving "
+          + "and while the viewer unpacks it."
+    });
+    const buf = await fetchBuffer("api/generate", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({items: list.map(b => ({pos: b.pos, w: b.w, d: b.d})), height_u: state.u})
+    }, many ? `${list.length} boxes` : baseName(list[0]) + ".3mf");
+    await viewer.loadBuffer(buf,
+      many ? `${list.length} selected bins` : baseName(list[0]) + ".3mf");
+    setGenNote(many
+      ? `Viewing ${list.length} boxes the generator script produced, with their Chappel labels.`
+      : "Viewing the file the generator script produced.");
+    return;
+  }
+  const parts = [];
+  for (const b of list){
+    let body = buildBin(b.w, b.d, state.u);
+    let lab = labelFor(b);
+    if (many && placed(b)){
+      // lay the group out as it sits in the drawer — meshTranslate returns a new mesh
+      const dx = (b.x + b.w/2 - GW/2) * PITCH;
+      const dy = (b.y + b.d/2 - GD/2) * PITCH;
+      body = meshTranslate(body, dx, dy, 0);
+      if (lab) lab = meshTranslate(lab, dx, dy, 0);
+    }
+    const tag = `P${String(b.pos).padStart(3,"0")}`;
+    parts.push(viewer.fromMesh(body, many ? `${tag} BODY` : "BODY", 1, viewer.BODY_COLOR));
+    if (lab) parts.push(viewer.fromMesh(lab, many ? `${tag} LABEL` : "LABEL_INLAY", 2, viewer.PALETTE[1]));
+  }
+  viewer.show(parts, many ? `${list.length} selected bins` : baseName(list[0]),
+    many ? `built in this browser · ${parts.length} parts, positioned as in the drawer`
+         : (parts.length > 1 ? "built in this browser · BODY + LABEL_INLAY"
+                             : "built in this browser · body only, no label loaded"));
+}
+viewer.wire();
+// so a batch of 3MFs — from the service, or a zip dropped onto the viewer — lands
+// where those bins actually sit in the drawer
+viewer.setPlacer(pos => {
+  const b = state.bins.find(z => z.pos === pos);
+  return b && placed(b) ? [(b.x + b.w/2 - GW/2) * PITCH, (b.y + b.d/2 - GD/2) * PITCH] : null;
+});
+$("btnViewFile").onclick = () => $("viewInput").click();
+$("viewInput").onchange = e => { const f = e.target.files[0]; if (f) viewer.loadFile(f); e.target.value = ""; };
+$("btnViewSel").onclick = guard(viewSelected);
+
+/* ---------- boot ---------- */
+layoutGrid();
+render();
+labelState();
+loadLocal();
+(async () => {
+  try { dbNs = await window.claude?.use?.("db") ?? null; } catch { dbNs = null; }
+  try { dlNs = await window.claude?.use?.("downloads") ?? null; } catch { dlNs = null; }
+  $("btnSave").disabled = !dbNs;
+  // Do not claim we cannot hand over files: offer() falls back to a blob URL + <a download>,
+  // which works in any normal browser and is the path the local docker package always takes.
+  // If that fallback ever fails, offer() says so itself, at the moment it actually happens.
+  setGenNote(dlNs
+    ? "Ready. 3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2."
+    : "Ready. Downloads go straight to your browser. 3MF files carry BODY and LABEL_INLAY as two parts, label on filament 2.");
+  if (dbNs) refreshSaves();
+  else $("saveNote").textContent = "Saving is unavailable here; the working layout is kept in this browser.";
+  probeServer();
+  $("btnFetchLabels").onclick = guard(fetchLabels);
+})();
+
+</script>
+</body>
+</html>
