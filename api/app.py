@@ -17,12 +17,12 @@ import os
 import queue
 import shutil
 import sys
-import tempfile
 import threading
 import time
 import uuid
 import zipfile
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, Response
@@ -74,10 +74,16 @@ def cached_labels() -> set[int]:
     return out
 
 
+# Editor vocabulary, as the drawer is drawn (front at the bottom): "bot" = label shelf on
+# the front edge (the original design), "top" = on the back edge.
+LABEL_SIDE = {"bot": "front", "top": "back"}
+
+
 class Item(BaseModel):
     pos: int
     w: int = Field(ge=1, le=6)
     d: int = Field(ge=1, le=6)
+    label: Literal["bot", "top"] = "bot"
 
 
 class BuildRequest(BaseModel):
@@ -85,6 +91,11 @@ class BuildRequest(BaseModel):
     height_u: int = Field(default=8, ge=3, le=12)
     keep: bool = True                 # also write the files into OUT_DIR
     fetch_missing: bool = True        # scrape label artwork we do not have yet
+    # "integrated": label inlaid in each bin, one 3MF per screw.
+    # "removable": snap-rim bins deduplicated per size/edge/depth + one label plate per screw.
+    # "makerworld": lipped bins deduplicated per size + one clip-on label tray per screw.
+    style: Literal["integrated", "removable", "makerworld"] = "integrated"
+    label_depth: float = Field(default=10.0, ge=6.0, le=30.0)   # removable plate depth, mm
 
 
 class FetchRequest(BaseModel):
@@ -132,60 +143,74 @@ def _spec_for(gen, item: Item, height_u: int) -> dict:
         raise HTTPException(404, f"position {item.pos} is not in the inventory")
     spec = dict(base)
     spec["grid_w"], spec["grid_d"], spec["height_u"] = item.w, item.d, height_u
+    spec["label_side"] = LABEL_SIDE[item.label]
     return spec
 
 
-def _cached_3mf(gen, spec: dict) -> Path | None:
-    """A previously built 3MF for this exact spec, if nothing it depends on changed since.
+def _cached(path: Path, label: Path | None, needs_label: bool) -> bool:
+    """Is this cached build newer than everything it was made from?
 
-    The file name encodes position, footprint and height, so a size change is a cache miss
-    by construction. A newer generator script, app.py or label artwork invalidates it too.
+    The name encodes screw, footprint, height, side and style, so any of those changing is a
+    miss by construction; a newer generator script, app.py or label artwork invalidates it.
     """
-    path = BUILT / f"{gen.filename_stem(spec)}.3mf"
-    if not path.is_file():
-        return None
-    label = gen.find_chappel_cache_path(CACHE, spec)
-    if label is None:
-        return None
-    inputs = (GENERATOR, Path(__file__), label)
+    if not path.is_file() or (needs_label and label is None):
+        return False
+    inputs = [GENERATOR, Path(__file__)] + ([label] if label is not None else [])
     newest = max(p.stat().st_mtime for p in inputs if p.exists())
-    return path if path.stat().st_mtime >= newest else None
+    return path.stat().st_mtime >= newest
 
 
-def _build_one(gen, spec: dict, work: Path) -> tuple[str, bytes]:
-    """Body with the label pocket cut + label inlay -> one two-part 3MF."""
-    import trimesh
+def _cached_build(stem: str, label: Path | None, needs_label: bool, build) -> bytes:
+    """Return BUILT/<stem>.3mf, building it with build(path) first if it is stale."""
+    path = BUILT / f"{stem}.3mf"
+    if not _cached(path, label, needs_label):
+        work = BUILT / ".partial"             # same file system, so replace() is atomic
+        work.mkdir(parents=True, exist_ok=True)
+        tmp = work / f"{stem}.3mf"            # the builders name the 3MF object after the file
+        build(tmp)
+        tmp.replace(path)                     # never a half-written cache entry
+    return path.read_bytes()
 
+
+def _build_integrated(gen, spec: dict) -> tuple[str, bytes]:
     stem = gen.filename_stem(spec)
-    cached = _cached_3mf(gen, spec)
-    if cached is not None:
-        return cached.name, cached.read_bytes()
-    body_path, label_path = work / f"{stem}_BODY.stl", work / f"{stem}_LABEL.stl"
-    body = gen.make_finished_body(spec, CACHE)
-    gen.cq.exporters.export(body, str(body_path), tolerance=0.09, angularTolerance=0.22)
-    inlay = gen.make_label_inlay(spec, CACHE)
-    gen.cq.exporters.export(inlay, str(label_path), tolerance=0.06, angularTolerance=0.18)
-
-    body_mesh = trimesh.load_mesh(body_path, force="mesh")
-    label_mesh = trimesh.load_mesh(label_path, force="mesh")
-    body_mesh.visual.face_colors = [70, 70, 70, 255]
-    label_mesh.visual.face_colors = gen.KIND_COLOR[spec["kind"]]
-    out_path = work / f"{stem}.3mf"
-    gen.export_assembled_3mf(body_mesh, label_mesh, out_path, stem)
-    data = out_path.read_bytes()
-    BUILT.mkdir(parents=True, exist_ok=True)
-    tmp = BUILT / f".{out_path.name}.tmp"
-    tmp.write_bytes(data)
-    tmp.replace(BUILT / out_path.name)          # atomic: never a half-written cache entry
-    return out_path.name, data
+    label = gen.find_chappel_cache_path(CACHE, spec)
+    data = _cached_build(stem, label, True, lambda p: gen.build_integrated_3mf(spec, CACHE, p))
+    return f"{stem}.3mf", data
 
 
-def _check_request(gen, items: list[Item], height_u: int) -> None:
+def _build_snap_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
+    w, d, u, side, depth = key
+    data = _cached_build(gen.snap_bin_stem(w, d, u, side, depth), None, False,
+                         lambda p: gen.build_snap_bin_3mf(w, d, u, p, side, depth))
+    return f"bins/{gen.snap_bin_stem(w, d, u, side, depth, count)}.3mf", data
+
+
+def _build_mw_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
+    w, d, u = key
+    data = _cached_build(gen.mw_bin_stem(w, d, u), None, False,
+                         lambda p: gen.build_mw_bin_3mf(w, d, u, p))
+    return f"bins/{gen.mw_bin_stem(w, d, u, count)}.3mf", data
+
+
+def _build_label_plate(gen, spec: dict) -> tuple[str, bytes]:
+    stem = gen.label_plate_stem(spec)
+    label = gen.find_chappel_cache_path(CACHE, spec)
+    data = _cached_build(stem, label, True, lambda p: gen.build_label_plate_3mf(spec, CACHE, p))
+    return f"labels/{stem}.3mf", data
+
+
+def _check_request(gen, req: BuildRequest) -> None:
     """Reject bad input up front, before anything is queued or scraped."""
-    if not items:
+    if not req.items:
         raise HTTPException(400, "no items requested")
-    for item in items:
-        _spec_for(gen, item, height_u)
+    for item in req.items:
+        spec = _spec_for(gen, item, req.height_u)
+        if req.style in ("removable", "makerworld"):
+            try:
+                gen.plate_depth({**spec, "label_depth": req.label_depth})
+            except ValueError as exc:
+                raise HTTPException(422, f"{gen.screw_name(spec)}: {exc}") from exc
 
 
 def _fetch_missing(gen, items: list[Item]) -> None:
@@ -210,26 +235,42 @@ def _fetch_missing(gen, items: list[Item]) -> None:
         )
 
 
-def _build_all(gen, items: list[Item], height_u: int, keep: bool,
-               on_box=lambda done, name: None) -> tuple[str, str, bytes]:
-    """Build every item -> (filename, media type, bytes). Caller holds BUILD_LOCK."""
+def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "integrated",
+               label_depth: float = 10.0, on_box=lambda done, name, total: None) -> tuple[str, str, bytes]:
+    """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK."""
+    specs = [_spec_for(gen, item, height_u) for item in items]
+    for spec in specs:
+        spec["label_style"] = style
+        spec["label_depth"] = label_depth
+    if style in ("removable", "makerworld"):
+        bins, labels = gen.removable_file_plan(specs)
+        if style == "makerworld":
+            bin_jobs = [(gen.mw_bin_stem(*key, count), lambda k=key, c=count: _build_mw_bin(gen, k, c))
+                        for key, count in bins]
+        else:
+            bin_jobs = [(gen.snap_bin_stem(*key, count=count), lambda k=key, c=count: _build_snap_bin(gen, k, c))
+                        for key, count in bins]
+        jobs = (bin_jobs
+                + [(gen.label_plate_stem(sp), lambda sp=sp: _build_label_plate(gen, sp)) for sp in labels])
+    else:
+        jobs = [(gen.filename_stem(sp), lambda sp=sp: _build_integrated(gen, sp)) for sp in specs]
+
     built: list[tuple[str, bytes]] = []
-    with tempfile.TemporaryDirectory(prefix="schublade_") as tmp:
-        work = Path(tmp)
-        for n, item in enumerate(items):
-            spec = _spec_for(gen, item, height_u)
-            on_box(n, gen.filename_stem(spec))
-            try:
-                built.append(_build_one(gen, spec, work))
-            except Exception as exc:              # noqa: BLE001
-                raise RuntimeError(f"P{item.pos:03d}: {exc}") from exc
-        on_box(len(items), "")
+    for n, (name, job) in enumerate(jobs):
+        on_box(n, name, len(jobs))
+        try:
+            built.append(job())
+        except Exception as exc:                  # noqa: BLE001
+            raise RuntimeError(f"{name}: {exc}") from exc
+    on_box(len(jobs), "", len(jobs))
 
     if keep:
-        OUT.mkdir(parents=True, exist_ok=True)
         for name, data in built:
-            (OUT / name).write_bytes(data)
+            target = OUT / (f"{style}_{height_u}U" if style != "integrated" else "") / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
 
+    # A removable box is always two files (bin + label), so it always comes as a zip.
     if len(built) == 1:
         name, data = built[0]
         return name, "model/3mf", data
@@ -237,7 +278,8 @@ def _build_all(gen, items: list[Item], height_u: int, keep: bool,
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:   # 3MFs are already deflated
         for name, data in built:
             zf.writestr(name, data)
-    return f"schublade_3mf_{height_u}U.zip", "application/zip", buf.getvalue()
+    suffix = "" if style == "integrated" else f"_{style}"
+    return f"drawer_3mf_{height_u}U{suffix}.zip", "application/zip", buf.getvalue()
 
 
 @app.post("/api/generate")
@@ -245,14 +287,14 @@ def generate(req: BuildRequest):
     """Synchronous build, for scripts. The editor uses /api/jobs: a long batch outlives
     HTTP proxies (GitHub's port forwarding drops the request after about a minute)."""
     gen = generator()
-    _check_request(gen, req.items, req.height_u)
+    _check_request(gen, req)
     with BUILD_LOCK:
         try:
             if req.fetch_missing:
                 _fetch_missing(gen, req.items)
             elif not {i.pos for i in req.items} <= cached_labels():
                 raise RuntimeError("label artwork missing and fetch_missing is false")
-            name, media, data = _build_all(gen, req.items, req.height_u, req.keep)
+            name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc)) from exc
     return Response(data, media_type=media,
@@ -271,7 +313,8 @@ JOB_QUEUE: "queue.Queue[str]" = queue.Queue()
 
 
 def _job_key(req: BuildRequest) -> str:
-    return json.dumps([req.height_u, req.keep, [[i.pos, i.w, i.d] for i in req.items]])
+    return json.dumps([req.height_u, req.keep, req.style, req.label_depth,
+                       [[i.pos, i.w, i.d, i.label] for i in req.items]])
 
 
 def _job_public(job: dict) -> dict:
@@ -294,11 +337,11 @@ def _run_job(job: dict) -> None:
                        _had=len(job["_wanted"] & have))
             _fetch_missing(gen, req.items)
 
-        def on_box(done: int, name: str) -> None:
-            job.update(done=done, current=name)
+        def on_box(done: int, name: str, total: int) -> None:
+            job.update(done=done, current=name, total=total)
 
         job.update(phase="build", done=0, total=len(req.items), current="")
-        name, media, data = _build_all(gen, req.items, req.height_u, req.keep, on_box)
+        name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth, on_box)
 
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
     path = JOBS_DIR / f"{job['id']}.bin"
@@ -337,7 +380,7 @@ threading.Thread(target=_worker, name="build-worker", daemon=True).start()
 @app.post("/api/jobs")
 def create_job(req: BuildRequest):
     gen = generator()
-    _check_request(gen, req.items, req.height_u)
+    _check_request(gen, req)
     req.fetch_missing = True
     key = _job_key(req)
     with JOBS_LOCK:

@@ -189,7 +189,8 @@ def build_screw(kind, d, L):
     return mesh
 
 # -------- parse generated box set --------
-RX = re.compile(r'^P(\d+)_([^_]+)_M?(\d+)x(\d+)_Q(\d+)_([0-9]+)x([0-9]+)_([0-9]+)U_(BODY|LABEL_INLAY)\.stl$')
+# SK_M6x80_2x3_8U[_LBACK]_BODY.stl -- files carry no position or quantity
+RX = re.compile(r'^([^_]+)_M(\d+)x(\d+)_([0-9]+)x([0-9]+)_([0-9]+)U(_LBACK)?_(BODY|LABEL_INLAY)\.stl$')
 
 
 def load_items(source_zip: Path, work: Path) -> list[dict]:
@@ -203,17 +204,20 @@ def load_items(source_zip: Path, work: Path) -> list[dict]:
             m = RX.match(fn)
             if not m:
                 continue
-            pos, kind, dia, length, qty, w, h, u, _suffix = m.groups()
-            bucket[int(pos)] = {
-                'pos': int(pos), 'kind': kind, 'dia': int(dia), 'length': int(length),
-                'qty': int(qty), 'grid_w': int(w), 'grid_d': int(h), 'u': int(u),
+            kind, dia, length, w, h, u, back, _suffix = m.groups()
+            name = f'{kind}_M{dia}x{length}'
+            bucket[name] = {
+                'name': name, 'kind': kind, 'dia': int(dia), 'length': int(length),
+                'grid_w': int(w), 'grid_d': int(h), 'u': int(u),
+                'label_side': 'back' if back else 'front',
                 'path': str(d / fn), 'file': fn,
             }
 
     items = []
-    for pos in sorted(bodies):
-        rec = dict(bodies[pos])
-        label = labels.get(pos)
+    # 'pos' is only an internal key here: a stable index in name order
+    for pos, name in enumerate(sorted(bodies), 1):
+        rec = dict(bodies[name], pos=pos)
+        label = labels.get(name)
         rec['label_path'] = label['path'] if label else None
         rec['label_file'] = label['file'] if label else ''
         items.append(rec)
@@ -224,17 +228,17 @@ def check_bins(items: list[dict]) -> None:
     """Reject a box set that does not match this revision, with a precise message."""
     bad_width = [it for it in items if it['grid_w'] != BIN_WIDTH]
     if bad_width:
-        sample = ', '.join(f"P{it['pos']:03d} {it['grid_w']}x{it['grid_d']}" for it in bad_width[:8])
+        sample = ', '.join(f"{it['name']} {it['grid_w']}x{it['grid_d']}" for it in bad_width[:8])
         raise SystemExit(
             f'{len(bad_width)} bin(s) are not {BIN_WIDTH} cells wide, e.g. {sample}.\n'
             'Re-run the generator: this layout expects 2x1, 2x2 and 2x3 bins only.')
     bad_depth = [it for it in items if it['grid_d'] not in (1, 2, 3)]
     if bad_depth:
-        sample = ', '.join(f"P{it['pos']:03d} {it['grid_w']}x{it['grid_d']}" for it in bad_depth[:8])
+        sample = ', '.join(f"{it['name']} {it['grid_w']}x{it['grid_d']}" for it in bad_depth[:8])
         raise SystemExit(f'bin(s) deeper than 3 cells: {sample}')
     bad_height = [it for it in items if it['u'] != BIN_HEIGHT_U]
     if bad_height:
-        sample = ', '.join(f"P{it['pos']:03d} {it['u']}U" for it in bad_height[:8])
+        sample = ', '.join(f"{it['name']} {it['u']}U" for it in bad_height[:8])
         raise SystemExit(
             f'every bin must be {BIN_HEIGHT_U}U; found {sample}. Regenerate the box set.')
 
@@ -265,11 +269,11 @@ def pack_zone(bins: list[dict], width: int, depth: int = GRID_D):
 
     for b in sorted(bins, key=_sort_key):
         if b['grid_d'] > depth:
-            raise RuntimeError(f'P{b["pos"]:03d} is {b["grid_d"]} cells deep, the drawer has {depth}')
+            raise RuntimeError(f'{b["name"]} is {b["grid_d"]} cells deep, the drawer has {depth}')
         index = min(range(ncols), key=lambda i: (used[i], i))
         if used[index] + b['grid_d'] > depth:
             raise RuntimeError(
-                f'block of {width} columns is full at P{b["pos"]:03d}; '
+                f'block of {width} columns is full at {b["name"]}; '
                 f'column depths {used}')
         columns[index].append(b)
         used[index] += b['grid_d']
@@ -303,21 +307,21 @@ def build_layout(items: list[dict]) -> list[dict]:
     return out
 
 
-def occupancy(placements: list[dict]) -> dict[tuple[int, int], int]:
-    occ: dict[tuple[int, int], int] = {}
+def occupancy(placements: list[dict]) -> dict[tuple[int, int], str]:
+    occ: dict[tuple[int, int], str] = {}
     for p in placements:
         for dx in range(p['grid_w']):
             for dy in range(p['grid_d']):
                 cell = (p['grid_x'] + dx, p['grid_y'] + dy)
                 if not (0 <= cell[0] < GRID_W and 0 <= cell[1] < GRID_D):
-                    raise RuntimeError(f'P{p["pos"]:03d} leaves the drawer grid at {cell}')
+                    raise RuntimeError(f'{p["name"]} leaves the drawer grid at {cell}')
                 if cell in occ:
-                    raise RuntimeError(f'cell {cell}: P{p["pos"]:03d} overlaps P{occ[cell]:03d}')
-                occ[cell] = p['pos']
+                    raise RuntimeError(f'cell {cell}: {p["name"]} overlaps {occ[cell]}')
+                occ[cell] = p['name']
     return occ
 
 
-def free_rectangles(occ: dict[tuple[int, int], int]) -> list[tuple[str, int, int, int, int]]:
+def free_rectangles(occ: dict[tuple[int, int], str]) -> list[tuple[str, int, int, int, int]]:
     """Greedily merge the unused cells of every block into maximal rectangles."""
     x0 = zone_x0()
     spans = {k: range(x0[k], x0[k] + ZONE_WIDTH[k]) for k in ZONE_ORDER}
@@ -379,7 +383,7 @@ def assemble(source_zip: Path, out_dir: Path) -> dict:
     manifest_path = out_dir / 'drawer_layout_manifest_v9.csv'
     with manifest_path.open('w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['position', 'type', 'type_name', 'diameter_mm', 'length_mm', 'qty',
+        writer.writerow(['name', 'type', 'type_name', 'diameter_mm', 'length_mm',
                          'box_w', 'box_d', 'orientation', 'height_u', 'zone',
                          'grid_x', 'grid_y', 'x_mm', 'y_mm', 'z_mm', 'body_file', 'label_file'])
 
@@ -390,11 +394,11 @@ def assemble(source_zip: Path, out_dir: Path) -> dict:
             expect = (p['grid_w']*CELL, p['grid_d']*CELL)
             if abs(ext[2] - p['u'] * 7.0) > 1.0:
                 raise SystemExit(
-                    f'P{p["pos"]:03d}: mesh is {ext[2]:.1f} mm tall but its name says '
+                    f'{p["name"]}: mesh is {ext[2]:.1f} mm tall but its name says '
                     f'{p["u"]}U ({p["u"] * 7.0:.0f} mm). Regenerate this bin.')
             if abs(ext[0] - expect[0]) > 1.5 or abs(ext[1] - expect[1]) > 1.5:
                 raise SystemExit(
-                    f'P{p["pos"]:03d}: mesh is {ext[0]:.1f} x {ext[1]:.1f} mm but its name says '
+                    f'{p["name"]}: mesh is {ext[0]:.1f} x {ext[1]:.1f} mm but its name says '
                     f'{p["grid_w"]}x{p["grid_d"]} cells. Regenerate this bin.')
 
             tx = WALL + GRID_OFFSET_X + p['grid_x'] * CELL + ext[0] / 2.0
@@ -402,15 +406,15 @@ def assemble(source_zip: Path, out_dir: Path) -> dict:
             tz = FLOOR_Z
             body.apply_translation([tx, ty, tz])
             body.visual.vertex_colors = TYPE_COLORS[p['kind']]
-            scene.add_geometry(body, node_name=f'body_{p["pos"]:03d}',
-                               geom_name=f'body_{p["pos"]:03d}')
+            scene.add_geometry(body, node_name=f'body_{p["name"]}',
+                               geom_name=f'body_{p["name"]}')
 
             if p['label_path']:
                 label = mesh_from_file(p['label_path'])
                 label.apply_translation([tx, ty, tz])
                 label.visual.vertex_colors = LABEL_COLOR
-                scene.add_geometry(label, node_name=f'label_{p["pos"]:03d}',
-                                   geom_name=f'label_{p["pos"]:03d}')
+                scene.add_geometry(label, node_name=f'label_{p["name"]}',
+                                   geom_name=f'label_{p["name"]}')
 
             screw = build_screw(p['kind'], p['dia'], p['length'])
             comps = screw.split(only_watertight=False)
@@ -426,18 +430,22 @@ def assemble(source_zip: Path, out_dir: Path) -> dict:
                 minb, maxb = screw.bounds
                 screw.apply_translation([-(minb[0]+maxb[0])/2.0, -minb[1], 0.0])
             s_ext = screw.extents
-            # hover it inside the open bin, away from the label edge at the front
+            # hover it inside the open bin, away from whichever edge carries the label
+            back = p.get('label_side') == 'back'
             screw_tx = WALL + GRID_OFFSET_X + p['grid_x']*CELL + (ext[0] - s_ext[0]) / 2.0
-            screw_ty = (WALL + GRID_OFFSET_Y + p['grid_y']*CELL
-                        + (ext[1]*0.67 if p['grid_d'] == 1 else (ext[1] - s_ext[1])/2.0 + 6.0))
+            if p['grid_d'] == 1:
+                offset = ext[1] * (0.33 if back else 0.67)
+            else:
+                offset = (ext[1] - s_ext[1]) / 2.0 + (-6.0 if back else 6.0)
+            screw_ty = WALL + GRID_OFFSET_Y + p['grid_y']*CELL + offset
             screw_tz = FLOOR_Z + ext[2] + 2.0
             screw.apply_translation([screw_tx, screw_ty, screw_tz])
             screw.visual.vertex_colors = SCREW_COLOR
-            scene.add_geometry(screw, node_name=f'screw_{p["pos"]:03d}',
-                               geom_name=f'screw_{p["pos"]:03d}')
+            scene.add_geometry(screw, node_name=f'screw_{p["name"]}',
+                               geom_name=f'screw_{p["name"]}')
 
             writer.writerow([
-                p['pos'], p['kind'], TYPE_NAMES[p['kind']], p['dia'], p['length'], p['qty'],
+                p['name'], p['kind'], TYPE_NAMES[p['kind']], p['dia'], p['length'],
                 p['grid_w'], p['grid_d'],
                 'landscape' if p['grid_w'] > p['grid_d'] else 'portrait',
                 p['u'], p['zone'], p['grid_x'], p['grid_y'],

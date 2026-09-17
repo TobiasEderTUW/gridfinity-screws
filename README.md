@@ -22,6 +22,35 @@ reports an error and hands out nothing. The same goes for **View selected**.
 
 The sidebar shows the service state and how many labels are cached.
 
+## Label styles
+
+A switch under *Generate boxes* chooses one of three designs for every box:
+
+| | **Integrated** (default) | **Removable** | **MakerWorld** |
+|---|---|---|---|
+| bin | shelf + 45° ramp at the label edge, Chappel inlay cut into it | plain walls with a 0.6 mm snap rim round the inside, 1.6 mm below the top (45° above and below, prints without support), and under the label a 45° ramp whose flat top the plate rests on (0.1 mm gap) | plain walls with a lip round the top inside, the counterpart of the label's clip profile (45° faces only) |
+| label | part of the bin, filament 2 | separate 2.4 mm plate that fills the inner width, **Label width** deep (slider, 6–19 mm, default 10); a V-groove on its wall-side edges clicks over the rim; Chappel inlay flush on filament 2; exported face-down, ready to print | replica of MakerWorld model 431547: a 1.8 mm face plate with a 3.16 mm skirt along both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the bin lip and a 0.6 mm bump hooks under it. Chappel inlay flush in the face; **Label width** slider; exported face-down |
+| files | one `SK_M6x80_2x3_8U.3mf` per box | `bins/BIN_2x1_8U_D10_x83.3mf`, one per distinct bin (size, label width, `_LBACK` for top-edge boxes), the count in the name, plus `labels/LABEL_SK_M6x80_W2_D10.3mf` per box | `bins/BIN_2x1_8U_MW_x83.3mf`, one per size (the bin does not depend on the label), plus `labels/LABEL_SK_M6x80_W2_D10_MW.3mf` per box |
+
+The removable design follows the MakerWorld *Removable Label – Gridfinity AddOn*
+(model 431547) in spirit; the dimensions are ours. A removable bin does not depend on the
+label artwork, so every box with the same size, label edge and label width shares one file
+(the ramp sits under the label, so edge and width shape the bin). A single removable box
+downloads as a zip holding its bin and its label. CLI: `--style integrated|removable|makerworld`,
+`--label-depth 10`. The Chappel artwork keeps 1.8 mm to the plate's long edges, so a
+shallow plate means small lettering: at 10 mm the artwork is 6.3 mm tall, at 6 mm only
+2.3 mm, which is below what prints legibly.
+The fit is checked in CAD only (removable: 0.15 mm clearance, 0.45 mm snap engagement;
+MakerWorld: 0.15 mm clearance all round the clip profile, 0.55 mm bump under the lip):
+print one bin and one label before the batch.
+
+The MakerWorld profile was measured from the model's STL (in `./tmp/`, untracked, licence
+CC BY-NC-SA). Its 0.5 mm raised sticker rim is left out: the label prints face down for the
+two-colour inlay, and the rim would leave the whole face as an unsupported bridge.
+
+Files carry no position number and no quantity: boxes are named by type and size
+(`SK_M6x80`), which is unique in the inventory.
+
 ## Labels
 
 The label artwork comes from Alexandre Chappel's generator, exactly as the script has
@@ -52,8 +81,8 @@ if you close the tab.
 
 ```
 docker-compose.yml     web + api, both in the default set
-web/                   nginx + the editor; /api/ is proxied to 127.0.0.1:8000
-                       (web shares the api container's network namespace)
+web/                   nginx + the editor; /api/ is proxied to the api's published port
+                       (host.docker.internal:${API_PORT})
 generator/             your two pipeline scripts, bind-mounted read-only into the service
   generate_gridfinity_chappel_bins.py    inventory, sizing rules, box + label geometry
   assemble_final_drawer_v9.py            drawer assembly and layout proof
@@ -61,8 +90,9 @@ cache/                 scraped label artwork — keep this, it saves the scrape
 out/                   server-built 3MF files
 ```
 
-Edit anything in `generator/` on the host and restart the api service to pick it up:
-`docker compose restart api`.
+`generator/`, `api/app.py` and `web/public/` are bind-mounted. Editor changes are live on
+reload; for the other two run `docker compose restart api`. No image rebuild is needed for
+any of them, which matters on a small Codespaces disk.
 
 ## The original CLI still works
 
@@ -78,7 +108,7 @@ docker compose run --rm api \
 | GET | `/api/health` | is CadQuery loadable, how many labels are cached |
 | GET | `/api/labels` | cached positions |
 | POST | `/api/labels/fetch` | scrape missing labels (`{"positions": [6, 7]}` or `{}` for all) |
-| POST | `/api/jobs` | same body as `/api/generate`; queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
+| POST | `/api/jobs` | same body as `/api/generate` (items may add `"label": "top"`, the request `"style": "removable"` and `"label_depth": 10`); queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
 | GET | `/api/jobs/{id}` | status: `queued` → `labels` (done/total = labels fetched) → `build` (done/total = boxes) → `done` or `error` |
 | GET | `/api/jobs/{id}/file` | the 3MF (one box) or zip, once `done`; the last 8 finished jobs are kept in `cache/jobs/` |
 | POST | `/api/generate` | `{"items": [{"pos": 6, "w": 2, "d": 3}], "height_u": 8}` → 3MF or zip, synchronously (for scripts) |
@@ -91,19 +121,28 @@ docker compose run --rm api \
   Codespaces port forwarding dropped the old synchronous "All as 3MF" after about a minute
   (nginx logged `499`) while the scrape carried on server-side. If the page is closed, the
   job still finishes; clicking the same button again reattaches to it.
-- **Networking.** `api` runs on Docker's default bridge (`network_mode: bridge`) and `web`
-  runs inside api's network namespace. On a compose project network, hosts that only
-  forward `docker0` traffic (GitHub Codespaces: legacy iptables `FORWARD DROP`) gave nginx a
-  504 on `/api/` and left the scrape unable to resolve `label.alch.shop`. Both ports are
-  therefore published on the `api` service.
+- **Networking.** Both containers run on Docker's default bridge (`network_mode: bridge`),
+  and nginx reaches the api through the host's published port (`host.docker.internal`,
+  mapped to the docker0 gateway). On a compose project network, hosts that only forward
+  `docker0` traffic (GitHub Codespaces: legacy iptables `FORWARD DROP`) gave nginx a 504 on
+  `/api/` and left the scrape unable to resolve `label.alch.shop`. An earlier fix had web
+  share api's network namespace; that took the editor down whenever api restarted.
 - **Built boxes are cached.** The page keeps every file it built in memory, so downloading
   or viewing the same boxes again is instant. The service also keeps them in
   `./cache/built_3mf/` and reuses them until the generator script or that label changes.
   Changing a box's size or the height is always a fresh build.
+- **Label edge.** Every box has its label shelf on the front edge (**Bot**, the drawer-front
+  side, default) or the back edge (**Top**, as the drawer is drawn). Choose per box in its
+  menu, with **L** on a selection, or for all boxes under *Generate boxes*. A dark stripe on
+  each tile shows the edge. A top label is the same shelf and ramp mirrored to the back; the
+  label artwork is moved, not rotated, so it still reads from the drawer front. Those files
+  end in `_LBACK`. From the CLI: `--label-side front|back`.
 - **Layout file.** **Export CSV** / **Import CSV…** use the same columns
-  (`position, …, box_w, box_d, height_u, grid_x, row_from_front`). An import that is out of
-  bounds, overlapping or mixes heights is rejected as a whole. Positions missing from the
-  file are moved out of the drawer.
-- **Labels are matched by position number** (`P006` in the filename), not by screw size.
+  (`type, thread, length_mm, box_w, box_d, height_u, grid_x, row_from_front, label`); a box is
+  identified by type + thread + length, and `label` is optional on import (default `bot`).
+  An import that is out of bounds, overlapping, lists a box twice or mixes heights is
+  rejected as a whole. Boxes missing from the file are moved out of the drawer.
+- **Label artwork is cached per position internally** (`cache/chappel_raw_labels/P006_…`);
+  that number never appears in the editor or in built files.
 - The editor keeps your working layout in the browser's local storage.
 - Ports come from `.env` (`WEB_PORT`, `API_PORT`); copy `.env.example` to start.

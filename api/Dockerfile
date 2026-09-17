@@ -28,7 +28,9 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 # --frozen: fail loudly if the lock does not match pyproject.toml, rather than
 # silently re-resolving and producing a different image than the one we verified.
-RUN uv sync --frozen --no-dev \
+# --no-cache: with UV_LINK_MODE=copy the uv cache would be a second full copy of every
+# package inside this layer; on a small disk (Codespaces) that made the export fail.
+RUN uv sync --frozen --no-dev --no-cache \
  && /opt/venv/bin/playwright install chromium
 
 ENV PATH="/opt/venv/bin:$PATH"

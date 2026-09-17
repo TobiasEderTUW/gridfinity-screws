@@ -93,9 +93,20 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .bin:active{cursor:grabbing}
 .bin .t{font-size:11px;font-weight:600;line-height:1.1;color:#10161a;text-align:center;
   font-family:"IBM Plex Mono",ui-monospace,monospace;pointer-events:none}
-.bin .q{font-size:8.5px;color:#2a3338;opacity:.85;pointer-events:none;font-family:"IBM Plex Mono",ui-monospace,monospace}
 .bin.lenbad::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--alert) 55%,transparent) 0 4px,transparent 4px 9px)}
+/* which edge carries the label shelf (drawer front is at the bottom of the grid) */
+.bin .lab{position:absolute;left:3px;right:3px;height:3px;border-radius:2px;background:rgba(0,0,0,.42);pointer-events:none}
+.bin .lab.bot{bottom:2px}
+.bin .lab.top{top:2px}
+.tray .items .bin .lab{display:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:5px 12px}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:#fff}
+.stepper .g .seg button{width:auto;padding:5px 14px}
+.seg.wide{display:flex}
+.seg.wide button{flex:1;padding:5px 4px}
 .bin.sel{box-shadow:0 0 0 2px var(--accent),var(--shadow);z-index:6}
 .bin.dragging{opacity:.92;z-index:20;box-shadow:0 10px 24px rgba(0,0,0,.3)}
 .drop-ghost{position:absolute;border-radius:4px;border:2px dashed var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);
@@ -224,7 +235,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <div class="row"><label for="zoom">Zoom</label><output id="zoomOut">36 px</output></div>
           <input type="range" id="zoom" min="22" max="60" step="2" value="36">
         </div>
-        <div class="note">Drag a bin to move it, click it to edit. Arrow keys nudge the selection, <b>R</b> rotates it.<br>
+        <div class="note">Drag a bin to move it, click it to edit. Arrow keys nudge the selection, <b>R</b> rotates it, <b>L</b> flips its label edge.<br>
           <b>Ctrl</b>/<b>⌘</b>-click adds a bin, <b>Shift</b>-click extends a range, <b>Esc</b> clears. <b>Select bins</b> keeps that mode on so a plain click toggles.</div>
       </div>
 
@@ -233,6 +244,19 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
         <div class="ctrl">
           <div class="row"><label for="uSlider">Box height</label><output id="uOut">8U &middot; 56 mm</output></div>
           <input type="range" id="uSlider" min="3" max="10" step="1" value="8">
+        </div>
+        <div class="ctrl">
+          <div class="row"><label>Label style</label></div>
+          <span class="seg wide" role="group" aria-label="Label style"><button id="styleInt" title="Label inlaid in the bin: one two-colour 3MF per box">Integrated</button><button id="styleRem" title="Plain bins with a snap rim, shared per size, plus separate two-colour label plates">Removable</button><button id="styleMw" title="Replica of MakerWorld model 431547: bins with a top lip, plus clip-on two-colour label trays">MakerWorld</button></span>
+        </div>
+        <div class="ctrl" id="depthCtrl">
+          <div class="row"><label for="depthSlider">Label width</label><output id="depthOut">10 mm</output></div>
+          <input type="range" id="depthSlider" min="6" max="19" step="0.5" value="10"
+                 title="Depth of the removable label plate, measured from the wall into the box">
+        </div>
+        <div class="ctrl">
+          <div class="row"><label>Label edge, all boxes</label>
+            <span class="seg" role="group" aria-label="Label edge for all boxes"><button id="allTop" title="Shelf on the back edge of every box">Top</button><button id="allBot" title="Shelf on the front edge of every box">Bot</button></span></div>
         </div>
         <div class="note" id="serverState">build service: checking &hellip;</div>
         <div class="btnrow" style="margin-top:9px">
@@ -296,8 +320,8 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
       </div>
     </div>
     <div class="stepper">
-      <span>Quantity stored</span>
-      <div class="g"><button id="qMinus" aria-label="Fewer">&minus;</button><b id="qVal">50</b><button id="qPlus" aria-label="More">+</button></div>
+      <span>Label edge</span>
+      <div class="g"><span class="seg" role="group" aria-label="Label edge"><button id="mLabTop" title="Shelf on the back edge">Top</button><button id="mLabBot" title="Shelf on the front edge (drawer front)">Bot</button></span></div>
     </div>
     <div class="facts">
       <div><span>Interior</span><span class="v" id="fInner">0 &times; 0 mm</span></div>
@@ -363,7 +387,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
 </dialog>
 
 <script>
-const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":7},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"qty":50,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"qty":50,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":9},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"qty":50,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":10},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"qty":30,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":1,"d":3,"x":2,"y":11},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"qty":5,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":1,"d":3,"x":3,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":0,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":1},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":0,"y":2},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":3},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":5},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":0},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":2},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":2,"y":3},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":4},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"qty":50,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":2,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"qty":50,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":7},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":0,"y":8},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":9},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":11},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"qty":50,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":0,"y":12},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":13},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":8,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":8,"y":1},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":8,"y":2},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":3},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":8,"y":4},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":8,"y":5},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"qty":100,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":8,"y":6},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"qty":100,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":7},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":10,"y":0},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":10,"y":1},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":10,"y":3},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":10,"y":4},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":10,"y":5},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"qty":100,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":6},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"qty":50,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":10,"y":7},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"qty":50,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":12,"y":0},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":1},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":12,"y":2},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":12,"y":3},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":12,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":7},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":2,"x":12,"y":9},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"qty":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":12,"y":11},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":14,"y":0},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":1},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":14,"y":3},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":14,"y":5},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":14,"y":7},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":14,"y":11},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"qty":50,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":8},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"qty":50,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":10,"y":10},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"qty":25,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":10,"y":12},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"qty":25,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":8,"y":9},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"qty":25,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":11},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"qty":100,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":4,"y":1},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":2},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":4,"y":3},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":4},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"qty":100,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":4,"y":5},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"qty":100,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":6,"y":0},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":1},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":6,"y":2},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"qty":100,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":3},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"qty":100,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":6,"y":4},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"qty":100,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"qty":100,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":4,"y":7},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"qty":100,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":8},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"qty":100,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":4,"y":9},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"qty":100,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":10},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"qty":100,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":4,"y":12},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":7},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"qty":100,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":6,"y":8},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"qty":100,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":10},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"qty":100,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":6,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"qty":100,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":16,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"qty":100,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":16,"y":1},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"qty":100,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":2},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"qty":100,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":16,"y":3},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"qty":10,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":16,"y":4},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"qty":100,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":0},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"qty":100,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":18,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"qty":50,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":18,"y":2},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"qty":50,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":18,"y":3},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"qty":50,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":4},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"qty":50,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":18,"y":5},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"qty":100,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":20,"y":0},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"qty":50,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":1},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"qty":50,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":20,"y":2},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"qty":50,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":20,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"qty":50,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":20,"y":4},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"qty":50,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":5},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"qty":30,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":20,"y":6},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"qty":50,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":22,"y":0},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"qty":50,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":1},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"qty":50,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":22,"y":2},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"qty":50,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":3},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"qty":50,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":22,"y":4},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"qty":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":22,"y":6},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"qty":30,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":2,"x":22,"y":8},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"qty":30,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":2,"x":20,"y":10},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"qty":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":20,"y":12},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"qty":30,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":3,"x":18,"y":8},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"qty":30,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":18,"y":11},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"qty":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":3,"x":16,"y":5},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"qty":30,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":16,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"qty":25,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":11}];
+const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":7},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":9},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":10},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":1,"d":3,"x":2,"y":11},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":1,"d":3,"x":3,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":0,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":1},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":0,"y":2},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":3},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":5},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":0},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":2},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":2,"y":3},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":4},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":2,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":7},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":0,"y":8},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":9},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":11},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":0,"y":12},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":13},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":8,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":8,"y":1},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":8,"y":2},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":3},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":8,"y":4},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":8,"y":5},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":8,"y":6},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":7},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":10,"y":0},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":10,"y":1},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":10,"y":3},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":10,"y":4},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":10,"y":5},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":6},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":10,"y":7},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":12,"y":0},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":1},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":12,"y":2},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":12,"y":3},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":12,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":7},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":2,"x":12,"y":9},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":12,"y":11},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":14,"y":0},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":1},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":14,"y":3},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":14,"y":5},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":14,"y":7},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":14,"y":11},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":8},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":10,"y":10},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":10,"y":12},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":8,"y":9},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":11},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":4,"y":1},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":2},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":4,"y":3},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":4},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":4,"y":5},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":6,"y":0},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":1},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":6,"y":2},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":3},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":6,"y":4},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":4,"y":7},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":8},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":4,"y":9},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":10},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":4,"y":12},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":7},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":6,"y":8},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":10},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":6,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":16,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":16,"y":1},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":2},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":16,"y":3},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":16,"y":4},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":0},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":18,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":18,"y":2},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":18,"y":3},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":4},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":18,"y":5},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":20,"y":0},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":1},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":20,"y":2},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":20,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":20,"y":4},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":5},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":20,"y":6},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":22,"y":0},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":1},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":22,"y":2},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":3},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":22,"y":4},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":22,"y":6},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":2,"x":22,"y":8},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":2,"x":20,"y":10},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":20,"y":12},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":3,"x":18,"y":8},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":18,"y":11},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":3,"x":16,"y":5},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":16,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":11}];
 /* ---------- mesh container (parseSTL output, viewer input) ---------- */
 function Mesh(){ return {tri: [], group: 0}; }
 function tri(m, a, b, c){
@@ -451,8 +475,8 @@ const SHADE = {10:.66, 8:.78, 6:.9, 5:1, 4:1.07, 3:1.14};
 
 function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
 const state = {
-  u: 8, cell: 36,
-  bins: BINS.map(b => ({...b})),
+  u: 8, cell: 36, style: "integrated", labelDepth: 10,
+  bins: BINS.map(b => ({label: "bot", ...b})),
   // sel holds positions, not one position — multi-select is the normal case now.
   // anchor is the last bin touched, so Shift-click knows where a range starts.
   sel: new Set(), anchor: null, selectMode: false, savedId: null
@@ -487,7 +511,7 @@ function binNode(b){
     el = document.createElement("div");
     el.className = "bin";
     el.dataset.pos = b.pos;
-    el.innerHTML = `<span class="t"></span><span class="q"></span>`;
+    el.innerHTML = `<span class="t"></span><span class="lab"></span>`;
     el.addEventListener("pointerdown", onPointerDown);
     nodes.set(b.pos, el);
   }
@@ -499,8 +523,8 @@ function paint(b, el){
   el.classList.toggle("lenbad", !lok);
   el.classList.toggle("sel", state.sel.has(b.pos));
   el.querySelector(".t").textContent = `${b.thread}×${b.len}`;
-  el.querySelector(".q").textContent = `P${String(b.pos).padStart(3,"0")} · ${b.qty}×`;
-  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.qty} pcs · ${b.w}×${b.d} · ${state.u}U`
+  el.querySelector(".lab").className = "lab " + b.label;
+  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${b.label === "top" ? "top (back edge)" : "bot (front edge)"}`
     + (lok ? "" : "\nScrew is too long for this box");
 }
 function render(){
@@ -531,6 +555,14 @@ function updateStatus(){
   $("cellsUsed").textContent = used;
   $("cellsFree").textContent = MAX_CELLS - used;
   $("nSel").textContent = state.sel.size;
+  $("styleInt").classList.toggle("on", state.style === "integrated");
+  $("styleRem").classList.toggle("on", state.style === "removable");
+  $("styleMw").classList.toggle("on", state.style === "makerworld");
+  $("depthCtrl").classList.toggle("hide", state.style === "integrated");
+  $("depthSlider").value = state.labelDepth;
+  $("depthOut").textContent = `${state.labelDepth} mm`;
+  $("allTop").classList.toggle("on", state.bins.every(b => b.label === "top"));
+  $("allBot").classList.toggle("on", state.bins.every(b => b.label !== "top"));
   saveLocal();
 }
 
@@ -648,6 +680,11 @@ grid.addEventListener("keydown", e => {
   } else if (e.key === "r" || e.key === "R"){
     e.preventDefault();
     for (const b of list) rotate(b);
+  } else if (e.key === "l" || e.key === "L"){
+    e.preventDefault();
+    const to = list.every(b => b.label === "top") ? "bot" : "top";
+    for (const b of list) b.label = to;
+    render();
   } else if (e.key === "Enter"){
     e.preventDefault(); openModal(list[0]);
   }
@@ -688,23 +725,45 @@ function syncModal(){
   const b = modalBin; if (!b) return;
   const [ix, iy] = interior(b.w, b.d), lok = lengthOk(b);
   $("mTitle").textContent = `${b.thread} × ${b.len}`;
-  $("mSub").textContent = `${b.kind} · ${KIND_NAME[b.kind]} · ${b.norm} · P${String(b.pos).padStart(3,"0")}`;
-  $("wVal").textContent = b.w; $("dVal").textContent = b.d; $("qVal").textContent = b.qty;
+  $("mSub").textContent = `${b.kind} · ${KIND_NAME[b.kind]} · ${b.norm}`;
+  $("wVal").textContent = b.w; $("dVal").textContent = b.d;
   $("fInner").textContent = `${ix.toFixed(1)} × ${iy.toFixed(1)} mm`;
   $("fLen").textContent = `${b.outer.toFixed(1)} mm` + (lok ? "" : " — does not fit");
   $("fLen").className = "v" + (lok ? "" : " bad");
   $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
+  $("mLabTop").classList.toggle("on", b.label === "top");
+  $("mLabBot").classList.toggle("on", b.label !== "top");
   $("fLabel").textContent = labelKind(b);
   $("fLabel").className = "v" + (server?.cad ? "" : " bad");
 }
 $("mClose").onclick = $("mDone").onclick = () => modal.close();
 $("mRotate").onclick = () => rotate(modalBin);
+$("mLabTop").onclick = () => { modalBin.label = "top"; render(); syncModal(); };
+$("mLabBot").onclick = () => { modalBin.label = "bot"; render(); syncModal(); };
+function setAllLabels(side){
+  for (const b of state.bins) b.label = side;
+  render(); if (modal.open) syncModal();
+  setGenNote(`Label edge set to ${side} for all ${state.bins.length} boxes.`);
+}
+$("allTop").onclick = () => setAllLabels("top");
+function setStyle(style){
+  state.style = style;
+  render(); if (modal.open) syncModal();
+  setGenNote({
+    integrated: "Integrated labels: one two-colour 3MF per box, label inlaid in the bin.",
+    removable: "Removable labels: each bin is built once per size, label edge and width (BIN_2x1_8U_D10_x83 = used 83 times), plus one label plate per box.",
+    makerworld: "MakerWorld labels: lipped bins built once per size (BIN_2x1_8U_MW_x83 = used 83 times), plus one clip-on label tray per box.",
+  }[style]);
+}
+$("styleInt").onclick = () => setStyle("integrated");
+$("depthSlider").oninput = e => { state.labelDepth = +e.target.value; render(); };
+$("styleRem").onclick = () => setStyle("removable");
+$("styleMw").onclick = () => setStyle("makerworld");
+$("allBot").onclick = () => setAllLabels("bot");
 $("wPlus").onclick  = () => resize(modalBin, modalBin.w+1, modalBin.d);
 $("wMinus").onclick = () => resize(modalBin, modalBin.w-1, modalBin.d);
 $("dPlus").onclick  = () => resize(modalBin, modalBin.w, modalBin.d+1);
 $("dMinus").onclick = () => resize(modalBin, modalBin.w, modalBin.d-1);
-$("qPlus").onclick  = () => { modalBin.qty += 5; render(); syncModal(); };
-$("qMinus").onclick = () => { modalBin.qty = Math.max(5, modalBin.qty - 5); render(); syncModal(); };
 
 /* ---------- global controls ---------- */
 $("uSlider").oninput = e => {
@@ -753,8 +812,8 @@ function autoArrange(){
 }
 $("btnAuto").onclick = autoArrange;
 $("btnReset").onclick = () => {
-  state.bins = BINS.map(b => ({...b}));
-  state.u = 8;
+  state.bins = BINS.map(b => ({label: "bot", ...b}));
+  state.u = 8; state.style = "integrated"; state.labelDepth = 10;
   state.sel.clear(); state.anchor = null;
   $("uSlider").value = 8; $("uOut").textContent = "8U · 56 mm";
   render();
@@ -764,16 +823,19 @@ $("btnReset").onclick = () => {
 // v2: the default layout changed (2026-09-16); a v1 layout in local storage would hide it.
 const LS_KEY = "schublade1077.v2";
 function snapshot(){
-  return {u: state.u,
-    bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, qty:b.qty}))};
+  return {u: state.u, style: state.style, labelDepth: state.labelDepth,
+    bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, label:b.label}))};
 }
 function restore(snap){
   if (!snap || !Array.isArray(snap.bins)) return;
   state.u = snap.u ?? state.u;
+  if (snap.style) state.style = ["removable", "makerworld"].includes(snap.style) ? snap.style : "integrated";
+  if (Number.isFinite(snap.labelDepth)) state.labelDepth = Math.min(19, Math.max(6, snap.labelDepth));
   const map = new Map(snap.bins.map(b => [b.pos, b]));
   for (const b of state.bins){
     const s = map.get(b.pos); if (!s) continue;
-    b.w = s.w; b.d = s.d; b.x = s.x; b.y = s.y; if (s.qty) b.qty = s.qty;
+    b.w = s.w; b.d = s.d; b.x = s.x; b.y = s.y;
+    b.label = s.label === "top" ? "top" : "bot";
   }
   $("uSlider").value = state.u; $("uOut").textContent = `${state.u}U · ${state.u*U_MM} mm`;
   render();
@@ -782,10 +844,10 @@ function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(snapshot
 function loadLocal(){ try { const raw = localStorage.getItem(LS_KEY); if (raw) restore(JSON.parse(raw)); } catch {} }
 
 function toCSV(){
-  const rows = [["position","type","thread","length_mm","qty","box_w","box_d","height_u","grid_x","row_from_front"]];
+  const rows = [["type","thread","length_mm","box_w","box_d","height_u","grid_x","row_from_front","label"]];
   for (const b of [...state.bins].sort((a,z) => a.pos - z.pos)){
-    rows.push([b.pos, b.kind, b.thread, b.len, b.qty, b.w, b.d, state.u,
-      placed(b) ? b.x : "", placed(b) ? b.y + 1 : ""]);
+    rows.push([b.kind, b.thread, b.len, b.w, b.d, state.u,
+      placed(b) ? b.x : "", placed(b) ? b.y + 1 : "", b.label]);
   }
   return rows.map(r => r.join(",")).join("\n");
 }
@@ -795,9 +857,10 @@ function fromCSV(text){
   if (lines.length < 2) throw new Error("the file has no data rows");
   const head = lines[0].split(",").map(h => h.trim().toLowerCase());
   const col = name => head.indexOf(name);
-  for (const need of ["position","box_w","box_d","grid_x","row_from_front"])
+  for (const need of ["type","thread","length_mm","box_w","box_d","grid_x","row_from_front"])
     if (col(need) < 0) throw new Error(`missing column “${need}”`);
-  const known = new Map(state.bins.map(b => [b.pos, b]));
+  // boxes are identified by type + thread + length, which is unique in the inventory
+  const known = new Map(state.bins.map(b => [screwName(b).toLowerCase(), b]));
   const rows = new Map();
   let u = null;
   lines.slice(1).forEach((line, n) => {
@@ -810,34 +873,38 @@ function fromCSV(text){
       if (!Number.isInteger(v) || v < lo || v > hi) throw new Error(`${at}: ${name} “${raw}” is not a whole number in ${lo}–${hi}`);
       return v;
     };
-    const pos = int("position", 1, 9999);
-    if (!known.has(pos)) throw new Error(`${at}: position ${pos} is not in the inventory`);
-    if (rows.has(pos)) throw new Error(`${at}: position ${pos} appears twice`);
+    const key = `${c[col("type")] ?? ""}_${c[col("thread")] ?? ""}x${c[col("length_mm")] ?? ""}`.toLowerCase();
+    const bin = known.get(key);
+    if (!bin) throw new Error(`${at}: ${key.toUpperCase()} is not in the inventory`);
+    const pos = bin.pos, name = screwName(bin);
+    if (rows.has(pos)) throw new Error(`${at}: ${name} appears twice`);
     const w = int("box_w", 1, 6), d = int("box_d", 1, 6);
     const x = int("grid_x", 0, GW - 1, true), front = int("row_from_front", 1, GD, true);
     if ((x === null) !== (front === null)) throw new Error(`${at}: grid_x and row_from_front must both be set or both be empty`);
     const y = front === null ? null : front - 1;
-    if (x !== null && (x + w > GW || y + d > GD)) throw new Error(`${at}: P${pos} (${w}×${d}) sticks out of the drawer`);
-    const qty = int("qty", 1, 100000, true);
+    if (x !== null && (x + w > GW || y + d > GD)) throw new Error(`${at}: ${name} (${w}×${d}) sticks out of the drawer`);
+    const rawLabel = col("label") < 0 ? "" : (c[col("label")] ?? "").toLowerCase();
+    if (!["", "top", "bot"].includes(rawLabel)) throw new Error(`${at}: label “${rawLabel}” must be top or bot`);
+    const label = rawLabel || "bot";
     const hu = int("height_u", 3, 10, true);
     if (hu !== null){
       if (u !== null && hu !== u) throw new Error(`${at}: height_u ${hu} differs from ${u} — all boxes share one height`);
       u = hu;
     }
-    rows.set(pos, {pos, w, d, x, y, qty});
+    rows.set(pos, {pos, name, w, d, x, y, label});
   });
   const cells = new Map();
   for (const r of rows.values()){
     if (r.x === null) continue;
     for (let i = 0; i < r.w; i++) for (let j = 0; j < r.d; j++){
       const k = `${r.x + i},${r.y + j}`;
-      if (cells.has(k)) throw new Error(`P${r.pos} overlaps P${cells.get(k)}`);
-      cells.set(k, r.pos);
+      if (cells.has(k)) throw new Error(`${r.name} overlaps ${cells.get(k)}`);
+      cells.set(k, r.name);
     }
   }
   // positions the file does not mention are taken out of the drawer rather than left
   // where they were, where they could collide with the imported ones
-  const bins = state.bins.map(b => rows.get(b.pos) ?? {pos: b.pos, w: b.w, d: b.d, x: null, y: null});
+  const bins = state.bins.map(b => rows.get(b.pos) ?? {pos: b.pos, w: b.w, d: b.d, x: null, y: null, label: b.label});
   return {snap: {u: u ?? state.u, bins}, missing: state.bins.length - rows.size};
 }
 
@@ -862,8 +929,11 @@ $("csvInput").onchange = async e => {
 };
 
 /* ---------- file generation ---------- */
+function screwName(b){ return `${b.kind}_${b.thread}x${b.len}`; }
+// same names as the generator's filename_stem(): no position, no quantity
 function baseName(b){
-  return `P${String(b.pos).padStart(3,"0")}_${b.kind}_${b.thread}x${b.len}_Q${b.qty}_${b.w}x${b.d}_${state.u}U`;
+  return `${screwName(b)}_${b.w}x${b.d}_${state.u}U`
+    + (b.label === "top" ? "_LBACK" : "");
 }
 let toastTimer = null;
 function setGenNote(msg){
@@ -926,18 +996,23 @@ function selected(){
   if (!list.length) setGenNote("No bins selected — click a box in the drawer, or use “Select bins”.");
   return list;
 }
-const itemsOf = list => list.map(b => ({pos: b.pos, w: b.w, d: b.d}));
+// a box with a separate label is always two files (bin + label), so it downloads as a zip
+function singleName(b){
+  return state.style === "integrated" ? baseName(b) + ".3mf" : `${baseName(b)}_${state.style}.zip`;
+}
+function batchName(what){
+  return `drawer_3mf_${what}_${state.u}U${state.style === "integrated" ? "" : "_" + state.style}.zip`;
+}
+const itemsOf = list => list.map(b => ({pos: b.pos, w: b.w, d: b.d, label: b.label}));
 $("btnGen3mfAll").onclick = guard(() =>
-  serverGenerate(itemsOf(state.bins), `schublade_3mf_${state.u}U.zip`));
+  serverGenerate(itemsOf(state.bins), batchName("all")));
 $("btnGen3mfSel").onclick = guard(async () => {
   const list = selected(); if (!list.length) return;
-  return serverGenerate(itemsOf(list), list.length === 1
-    ? baseName(list[0]) + ".3mf"
-    : `schublade_3mf_selected_${list.length}_${state.u}U.zip`);
+  return serverGenerate(itemsOf(list), list.length === 1 ? singleName(list[0]) : batchName(`selected_${list.length}`));
 });
 $("m3mf").onclick = guard(() => {
   const b = modalBin; modal.close();
-  return serverGenerate(itemsOf([b]), baseName(b) + ".3mf");
+  return serverGenerate(itemsOf([b]), singleName(b));
 });
 
 /* ---------- build service ----------
@@ -972,7 +1047,9 @@ async function probeServer(){
 // key and a real build. The service keeps its own disk cache as well (cache/built_3mf).
 const buildCache = new Map();          // key -> Uint8Array, oldest first
 const BUILD_CACHE_MAX = 256 * 1048576;
-function cacheKey(items){ return JSON.stringify({u: state.u, items}); }
+function cacheKey(items){
+  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, items});
+}
 function cachePut(key, bytes){
   buildCache.delete(key);
   buildCache.set(key, bytes);
@@ -1001,7 +1078,7 @@ async function buildBuffer(items, filename, title){
   try {
     let job = await jsonRequest("api/jobs", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items, height_u: state.u})
+      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth})
     });
     let failures = 0, phase = "";
     while (job.phase !== "done"){
@@ -1473,13 +1550,13 @@ const viewer = (() => {
       progress.step(i, `unpacking ${e.name}`);
       await new Promise(r => setTimeout(r));   // let the bar paint between models
       const sub = await parse3MF(await e.data());
-      const m = /P(\d{1,3})/i.exec(e.name.replace(/^.*\//, ""));
-      const pos = m ? +m[1] : null;
-      const tag = pos ? `P${String(pos).padStart(3, "0")}` : e.name.replace(/\.3mf$/i, "");
+      const file = e.name.replace(/^.*\//, "").replace(/\.3mf$/i, "");
+      const m = /(?:^|_)((?:SK|LK|ZK|6kt)_M\d+x\d+)(?:_|$)/i.exec(file);
+      const tag = m ? m[1] : file;
       for (const p of sub) p.name = `${tag} ${p.name}`;
-      const at = (pos != null && placer) ? placer(pos) : null;
-      // Fall back to a plain row when the position is unknown, so the models do not
-      // all pile up on top of each other at the origin.
+      const at = (m && placer) ? placer(m[1]) : null;
+      // Fall back to a plain row when the file maps to no single box (a shared BIN_ file,
+      // or a foreign name), so the models do not all pile up at the origin.
       offsetParts(sub, at ? at[0] : i * 100, at ? at[1] : 0);
       parts.push(...sub);
     }
@@ -1559,7 +1636,7 @@ async function viewSelected(){
   // Always through the pipeline, so the view shows exactly what a download would contain,
   // label included. Several come back as a zip of 3MFs, which the viewer unpacks and lays
   // out at the bins' drawer positions.
-  const name = many ? `${list.length} selected bins` : baseName(list[0]) + ".3mf";
+  const name = many ? `${list.length} selected bins` : singleName(list[0]);
   const buf = await buildBuffer(itemsOf(list), name,
     `Building ${list.length} box${many ? "es" : ""} to view`);
   await viewer.loadBuffer(buf, name);
@@ -1570,8 +1647,8 @@ async function viewSelected(){
 viewer.wire();
 // so a batch of 3MFs — from the service, or a zip dropped onto the viewer — lands
 // where those bins actually sit in the drawer
-viewer.setPlacer(pos => {
-  const b = state.bins.find(z => z.pos === pos);
+viewer.setPlacer(name => {
+  const b = state.bins.find(z => screwName(z).toLowerCase() === name.toLowerCase());
   return b && placed(b) ? [(b.x + b.w/2 - GW/2) * PITCH, (b.y + b.d/2 - GD/2) * PITCH] : null;
 });
 $("btnViewFile").onclick = () => $("viewInput").click();
@@ -1580,8 +1657,10 @@ $("btnViewSel").onclick = guard(viewSelected);
 
 /* ---------- boot ---------- */
 layoutGrid();
-render();
+// Load before the first render: render() saves, and would overwrite the stored layout
+// with the defaults before it is read.
 loadLocal();
+render();
 (async () => {
   try { dlNs = await window.claude?.use?.("downloads") ?? null; } catch { dlNs = null; }
   probeServer();

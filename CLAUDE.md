@@ -39,7 +39,7 @@ show the arithmetic, name what has not been verified. They catch hand-waving.
 | fill target | bulk volume ≤ 80 % of the usable cavity; worst bin 80.9 % (6kt M10×80, already at the largest allowed footprint) |
 | drawer blocks | SK 4 cols │ LK 4 │ ZK 8 │ 6kt 8 │ reserve 1 = 25 |
 | column depths | SK 14/14, LK 14/13, ZK 13/13/13/13, 6kt 11/11/11/10 |
-| script version | `2026-09-13.7-volume-checked-uniform-8U` |
+| script version | `2026-09-17.1-label-side` |
 
 ---
 
@@ -79,7 +79,7 @@ generator/generate_gridfinity_chappel_bins.py   the pipeline: inventory, sizing,
 generator/assemble_final_drawer_v9.py           drawer assembly + layout algorithm + preview manifest
 api/app.py                                      FastAPI wrapper around the pipeline (jobs, caches)
 web/public/index.html                           the browser editor (single file, no build step)
-docker-compose.yml                              web + api, both default; web shares api's netns
+docker-compose.yml                              web + api, both on the default bridge
 ```
 
 ### generate_gridfinity_chappel_bins.py
@@ -136,6 +136,57 @@ Layout persistence is local storage plus **CSV export/import** (same columns bot
 import validates bounds, overlaps, a single height, and rejects the whole file on any
 error). The claude.ai `db` "saved layouts" list was removed.
 
+**Label edge (2026-09-17).** Each box has `label: "bot" | "top"` (editor vocabulary: the
+grid is drawn with the drawer front at the bottom). `bot` = shelf on the front edge (the
+original design), `top` = on the back edge. Set in the box menu, with **L** on a selection,
+or for all boxes in "Generate boxes"; stored in local storage and in the CSV `label` column
+(optional on import, default `bot`); a dark stripe on each tile marks the edge. The api maps
+it to the generator's `label_side` (`front` / `back`). In the generator, `make_bin_body(...,
+side)` mirrors shelf + ramp through XZ; `_chappel_label_geometry` only moves the pocket and
+inlay to the back shelf, **it does not rotate the graphic**, so the text still reads from the
+drawer front (verified: identical centre-of-mass offset for both sides). Back files are
+named `…_8U_LBACK`; front names are unchanged. CLI: `--label-side front|back`.
+`assemble_final_drawer_v9.py` parses the suffix and keeps its screw stand-in away from the
+label edge.
+
+**Label style (2026-09-17).** Global switch `state.style` = `integrated` | `removable`
+(local storage; not in the CSV). Removable, after MakerWorld model 431547 (reference files
+the user uploaded are in `./tmp/`, untracked): `make_snap_bin()` = `make_bin_shell()` + a
+snap rim (`_snap_ring`: rounded slab minus an hourglass of two 45° tapered extrusions;
+OCC's `chamfer` fails on that loop, and a cutter face coincident with the wall face made the
+union eat all RAM and reboot the Codespace, hence the 0.3 mm overshoot).
+`make_label_plate()` = plate with a V-groove (same ring, grown by the clearance) + flush
+inlay; `build_label_plate_3mf()` flips it face down. Verified in CadQuery for a 2×1, front
+and back: rim profile 0.6 deep / 45° / 0.1 land, zero plate-bin overlap, plate material
+above and below the rim tip. Not printed. Since 2026-09-17 (user request) the snap bin also
+has `_support_ramp()` under the label: 45° prism whose flat top sits PLATE_REST_GAP = 0.1 mm
+below the plate and reaches the full plate depth (checked: reach falls 1:1 with height, no
+material in the gap, no plate clash, both edges, 10/19 mm). The clip is unchanged. So the
+bin depends on label edge and depth: `bins/BIN_<w>x<d>_<u>U_D<depth>[_LBACK]_x<count>.3mf`
+(deduplicated in `removable_file_plan()` by (w, d, u, side, depth)) +
+`labels/LABEL_<type>_<thread>x<len>_W<w>_D<depth>[_LBACK].3mf`; a single box is a zip of both.
+Plate depth ("Label width" in the GUI) is `spec['label_depth']`, default 10 mm (was a fixed
+14), GUI 6–19 mm, API 6–30 mm but `plate_depth()` also refuses more than half the bin's inner
+depth (19.55 mm for a 1-deep bin). Artwork height = depth − 3.75 mm: 6.3 mm at 10, 2.3 mm
+at 6. Checked in CadQuery at 6/10/19 mm, both edges, 2×1 / 2×3 / 1×3: no plate-bin overlap.
+
+**MakerWorld style (2026-09-17)**, third `label_style` value `makerworld`: replica of model
+431547 measured from its STL. Label = `make_mw_label()`: face plate `MW_PLATE` 1.8, skirt
+`MW_SKIRT` 3.16 on both sides + wall side, down to `MW_DEPTH` 5.05, outer profile
+(inset, depth) (0,0)→(1.31,1.31)→(1.31,3.10)→(0.61,3.80)→(0.61,5.05), built as a stack of
+45° tapered rounded-rect bands (`_mw_offset_stack`), band-cut at the free edge, 0.15 mm
+clearance. Bin = `make_mw_bin()`: shell + the matching lip all round (no ramp), so bins
+dedupe per size only: `BIN_<w>x<d>_<u>U_MW_x<n>`; labels `LABEL_…_D<depth>_MW[_LBACK]`.
+Verified in CadQuery (2×1, both edges): lip reach 0→1.31→1.31→0.61→0 at depths
+0/1.31/3.1/3.8/4.41, skirt insets 0.64/1.46/1.10/0.76 at 0.5/2.2/3.45/4.5 mm, no clash.
+Not printed. The reference's 0.5 mm sticker rim is intentionally omitted (face-down print).
+
+**No position or quantity anywhere visible** (2026-09-17): tiles, box menu (quantity
+stepper removed), tooltips, file names (`filename_stem` = `SK_M6x80_2x3_8U[_LBACK]`), the
+generator manifest, the assembly script's CSV and GLB node names, and the editor CSV (boxes
+identified by type + thread + length, unique in the inventory). `pos` survives only as an
+internal key (API items, `SPECS`, the Chappel label cache names, `--positions`).
+
 **3MF caching, two layers:** the browser keeps built files in memory keyed by
 `{height, [pos, w, d]…}` (256 MB cap, oldest evicted), so repeating a download or view is
 instant; the api keeps `cache/built_3mf/<stem>.3mf`, reused while it is newer than the
@@ -166,8 +217,27 @@ height, so any size change rebuilds.
 - **Codespaces drops forwarded traffic on compose networks** (legacy iptables `FORWARD`
   policy DROP, only `docker0` allowed). Symptom: nginx 504 on `/api/health`, the editor
   thinks there is no service, and the api cannot resolve `label.alch.shop`. Fix in place:
-  `api` uses `network_mode: bridge`, `web` uses `network_mode: service:api` and proxies to
-  `127.0.0.1:8000`. Don't move them back onto a project network.
+  both services use `network_mode: bridge`; nginx proxies to
+  `host.docker.internal:${API_PORT}` (`extra_hosts: host-gateway`; `web/nginx.conf` is an
+  nginx *template*, rendered at start). Don't move them back onto a project network, and
+  don't go back to `network_mode: service:api`: it made web die with every api restart.
+- **Codespaces disk is tight** (32 GB loop device shared by the dev container, `/workspaces`
+  and Docker; about 3 GB free with the stack up). The api image is 4.4 GB unpacked, and a
+  rebuild without build cache fills the disk ("no space left on device", and once it left
+  corrupted image layers). So `app.py`, `generator/` and `web/public/` are bind-mounted:
+  edits need `docker compose restart api` at most, never a rebuild. Deleting files from the
+  base image (e.g. `/opt/conda/pkgs`) frees nothing; they live in a lower overlay layer.
+  If a rebuild is unavoidable: `docker compose down`, `docker rmi schublade-api`,
+  `docker builder prune -af`, then build, then prune again.
+- **Editor boot order matters:** `render()` saves to local storage, so `loadLocal()` must run
+  before the first render. Until 2026-09-17 it ran after, and every reload silently reset the
+  stored layout to the defaults.
+- **Docker disk space leaks into containerd leases.** Failed/killed builds leave leases in
+  namespace `moby` that pin GBs of snapshots `docker system df` does not show. Fix used on
+  2026-09-17 (freed 11 GB): with no containers or builds running,
+  `for id in $(sudo ctr -n moby leases ls -q); do sudo ctr -n moby leases rm --sync $id; done`.
+- **The api container is capped at 4 GB** (`mem_limit`), so a runaway OCC boolean kills the
+  container instead of rebooting the Codespace.
 - **OCP/CadQuery is not thread safe** — the service serialises builds behind a lock.
 - **The label ramp eats cavity volume**: usable volume is
   `ix*iy*(rampBottom - FLOOR_Z) + ix*(12*iy - 72)`, not `ix*iy*h`.
