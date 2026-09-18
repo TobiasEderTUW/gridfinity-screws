@@ -97,7 +97,18 @@ MW_SKIRT = 3.16              # skirt width, measured in from the label edge
 MW_DEPTH = 5.05              # skirt reaches this far below the face
 MW_P1, MW_P2, MW_P3, MW_P4 = 1.31, 3.10, 3.80, 0.61   # profile breakpoints, see above
 DEFAULT_MW_FIT = 0.05        # label profile to the bin lip, per side, mm ("Label fit" in the GUI).
-MW_FIT_RANGE = (-0.10, 0.30) # 0.15 let the label slide (user test 2026-09-18); < 0 = press fit
+MW_FIT_RANGE = (-0.30, 0.30) # 0.15 let the label slide (user test 2026-09-18); < 0 = press fit
+# Optional detents ("Detents" in the GUI): at a few places the lip turns down. A short
+# vertical piece with exactly the lip's cross-section (the (inset, depth) profile above, stood
+# upright) runs from the lip DETENT_DROP further down the wall, its bottom end chamfered 45
+# degrees so it prints without support. The label's skirt gets a matching slot below the lip,
+# so the piece sits in it and the label cannot slide. Pieces sit near every corner on all four
+# walls; they do not depend on the label, so a printed bin can later take a new label of any
+# width on any wall (only front/back labels are generated today).
+DETENT_OFFSET = 5.0          # piece centre from the adjacent wall face (edges 2.8..7.2 mm,
+                             # clear of the 2.55 mm inner corner radius)
+DETENT_DROP = 4.0            # how far the piece runs below the bottom of the lip
+DETENT_CLEARANCE = 0.10      # label slot = piece section grown by this
 MW_SAFE = 1.5                # artwork margin to the face edges
 PLATE_SAFE_SIDE = 3.0        # graphic margin to the plate's side edges
 PLATE_SAFE_FRONT_BACK = 1.8  # graphic margin to the plate's wall and free edges
@@ -114,7 +125,7 @@ LABEL_SAFE_SIDE = 2.5            # minimum horizontal label-graphics margin from
 LABEL_SAFE_FRONT_BACK = 1.5      # minimum label-graphics margin within the 12 mm shelf depth
 LABEL_ICON_TEXT_GAP = 2.4        # legacy constant, unused with Chappel labels
 
-SCRIPT_VERSION = "2026-09-18.1-makerworld-fit"
+SCRIPT_VERSION = "2026-09-18.4-makerworld-lip-detents"
 CHAPPEL_URL = "https://label.alch.shop/"
 CHAPPEL_BASE_THICKNESS = 0.30     # current Raised-label default on label.alch.shop
 CHAPPEL_EXTRUSION_THICKNESS = 0.15
@@ -2589,7 +2600,7 @@ def plate_depth(spec: dict) -> float:
         raise ValueError(f"label_depth must be within {lo}-{hi} mm, got {depth}")
     _, iy, _ = _inner_outline(spec['grid_w'], spec['grid_d'])
     if depth > iy / 2:
-        raise ValueError(f"a {depth} mm label covers more than half of a {spec['grid_d']}-deep bin")
+        raise ValueError(f"a {depth} mm label covers more than half of the bin's {iy:.1f} mm inside")
     return depth
 
 
@@ -2653,9 +2664,63 @@ def _mw_offset_stack(ix: float, iy: float, ir: float, top_z: float, base: float,
     return solid
 
 
-def make_mw_bin(grid_w: int, grid_d: int, height_u: int) -> cq.Workplane:
+def label_detent(spec: dict) -> bool:
+    return bool(spec.get('label_detent', False))
+
+
+def _mw_lip_section() -> list[tuple[float, float]]:
+    """The lip profile as a plan-view outline: (inset from the wall, position along the wall),
+    centred along the wall, continued 0.6 mm into the 1.2 mm wall so it unions cleanly. Not
+    the full 1.2: a piece face lying on the bin's outer surface made OCC drop ~100 mm3 of
+    material per piece while still reporting a valid solid."""
+    prof = [(0.0, 0.0), (MW_P1, MW_P1), (MW_P1, MW_P2), (MW_P4, MW_P3), (0.0, MW_P3 + MW_P4)]
+    half = (MW_P3 + MW_P4) / 2
+    return [(u, t - half) for u, t in prof] + [(-WALL / 2, half), (-WALL / 2, -half)]
+
+
+def _detent_pieces(grid_w: int, grid_d: int, height_u: int, slot: bool = False) -> list[cq.Workplane]:
+    """The eight vertical lip pieces (two per wall, DETENT_OFFSET from each corner).
+
+    Built in a local frame (x = inset from the wall, y = along it, z = 0 at the bin top, down
+    negative), then turned onto each wall. slot=True returns the label's cutters instead: the
+    section grown by DETENT_CLEARANCE, from just above where the piece stands proud of the lip
+    down past the label skirt. Returned separately: unioning disjoint detail solids into one
+    compound first gave OCC an invalid bin once already.
+    """
+    from shapely.geometry import Polygon
+    ix, iy, _ = _inner_outline(grid_w, grid_d)
+    top_z = height_u * 7.0
+    lip_bottom = MW_P3 + MW_P4
+    if slot:
+        section = list(Polygon(_mw_lip_section()).buffer(DETENT_CLEARANCE, join_style=2).exterior.coords)[:-1]
+        z0, z1 = -(MW_DEPTH + 1.0), -(MW_P2 - 0.1)        # the label skirt below the lip's straight face
+        local = cq.Workplane('XY', origin=(0, 0, z0)).polyline(section).close().extrude(z1 - z0)
+    else:
+        bottom = lip_bottom + DETENT_DROP
+        z0, z1 = -(bottom + 0.5), -MW_P1                  # starts inside the lip, overlapping it
+        plan = cq.Workplane('XY', origin=(0, 0, z0)).polyline(_mw_lip_section()).close().extrude(z1 - z0)
+        # side view: 45 degree chamfer at the bottom end, the reach shrinking to 0 at `bottom`
+        side = (cq.Workplane('XZ')
+                .polyline([(-1.3, 0.0), (MW_P1 + 0.1, 0.0),
+                           (MW_P1 + 0.1, -(bottom - MW_P1 - 0.1)), (-1.3, -(bottom + 1.3))]).close()
+                .extrude(5.0, both=True))
+        local = plan.intersect(side)
+    pieces = []
+    for along in (-1, 1):
+        # left/right walls (inset along +x / -x), pieces near the front and back corners
+        y = along * (iy/2 - DETENT_OFFSET)
+        pieces.append(local.rotate((0, 0, 0), (0, 0, 1), 0).translate((-ix/2, y, top_z)))
+        pieces.append(local.rotate((0, 0, 0), (0, 0, 1), 180).translate((ix/2, y, top_z)))
+        # front/back walls (inset along +y / -y), pieces near the left and right corners
+        x = along * (ix/2 - DETENT_OFFSET)
+        pieces.append(local.rotate((0, 0, 0), (0, 0, 1), 90).translate((x, -iy/2, top_z)))
+        pieces.append(local.rotate((0, 0, 0), (0, 0, 1), -90).translate((x, iy/2, top_z)))
+    return pieces
+
+
+def make_mw_bin(grid_w: int, grid_d: int, height_u: int, detent: bool = False) -> cq.Workplane:
     """MakerWorld-style bin: shell plus the lip the replica label clips round, all round the
-    top inside. Independent of the label, its edge and its depth."""
+    top inside, optionally with the eight vertical detent pieces. Independent of the label."""
     top_z = height_u * 7.0
     ix, iy, ir = _inner_outline(grid_w, grid_d)
     e = 0.3                                  # cutter overshoot: no face coincides with the wall
@@ -2667,7 +2732,11 @@ def make_mw_bin(grid_w: int, grid_d: int, height_u: int) -> cq.Workplane:
         (MW_P2, MW_P3, MW_P1, MW_P4),        # lower chamfer the label bump hooks under
         (MW_P3, lip_depth + e, MW_P4, -e),   # 45 degree underside back into the wall
     ])
-    return make_bin_shell(grid_w, grid_d, height_u).union(slab.cut(cutter))
+    body = make_bin_shell(grid_w, grid_d, height_u).union(slab.cut(cutter))
+    if detent:
+        for piece in _detent_pieces(grid_w, grid_d, height_u):
+            body = body.union(piece)
+    return body
 
 
 def label_fit(spec: dict) -> float:
@@ -2715,6 +2784,9 @@ def make_mw_label(spec: dict, out: Path) -> tuple[cq.Workplane, cq.Workplane]:
     if label_side(spec) == 'back':
         band = band.mirror('XZ')
     tray = outer.cut(cavity).intersect(band)
+    if label_detent(spec):
+        for cutter in _detent_pieces(w, d, spec['height_u'], slot=True):
+            tray = tray.cut(cutter)
     area = _mw_label_area(spec)
     inlay = _chappel_label_geometry(spec, out, top_z - LABEL_INLAY_DEPTH, LABEL_INLAY_DEPTH, area=area)
     pocket = _chappel_label_geometry(
@@ -2818,15 +2890,20 @@ def snap_bin_stem(grid_w: int, grid_d: int, height_u: int, side: str = DEFAULT_L
             + (f"_x{count}" if count is not None else ""))
 
 
-def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = None) -> str:
-    """MakerWorld-style bin, shared by every screw of that size: BIN_2x1_8U_MW_x83."""
-    return f"BIN_{grid_w}x{grid_d}_{height_u}U_MW" + (f"_x{count}" if count is not None else "")
+def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = None,
+                detent: bool = False) -> str:
+    """MakerWorld-style bin, shared by every screw of that size whatever its label:
+    BIN_2x1_8U_MW_x83, with detent pieces BIN_2x1_8U_MW_DET_x83."""
+    return (f"BIN_{grid_w}x{grid_d}_{height_u}U_MW{'_DET' if detent else ''}"
+            + (f"_x{count}" if count is not None else ""))
 
 
 def label_plate_stem(spec: dict) -> str:
     """Removable label plate. It depends on bin width and plate depth: LABEL_SK_M6x80_W2_D10."""
     suffix = '' if label_side(spec) == 'front' else '_LBACK'
-    style = f'_MW_FIT{label_fit(spec):g}' if label_style(spec) == 'makerworld' else ''
+    style = ''
+    if label_style(spec) == 'makerworld':
+        style = f"_MW_FIT{label_fit(spec):g}" + ('_DET' if label_detent(spec) else '')
     return f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{style}{suffix}"
 
 
@@ -3020,9 +3097,10 @@ def build_snap_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path,
     export_parts_3mf([('BIN', bin_mesh, BODY_FILAMENT)], path, path.stem)
 
 
-def build_mw_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path) -> None:
-    """MakerWorld style: the bin with its lip, one part on filament 1."""
-    bin_mesh = _to_mesh(make_mw_bin(grid_w, grid_d, height_u), 0.09, 0.22)
+def build_mw_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path,
+                     detent: bool = False) -> None:
+    """MakerWorld style: the bin with its lip (and detent pieces), one part on filament 1."""
+    bin_mesh = _to_mesh(make_mw_bin(grid_w, grid_d, height_u, detent), 0.09, 0.22)
     export_parts_3mf([('BIN', bin_mesh, BODY_FILAMENT)], path, path.stem)
 
 
@@ -3047,13 +3125,16 @@ def removable_file_plan(specs: list[dict]) -> tuple[list[tuple[tuple, int]], lis
     """Distinct bins with their use counts, and one label per screw.
 
     Removable bins carry the support ramp, so their key is (w, d, u, side, depth);
-    MakerWorld bins are the same for every label, so theirs is (w, d, u).
+    MakerWorld bins are the same for every label, so theirs is (w, d, u), plus a 'det' marker
+    when they carry the detent pieces.
     """
     counts: dict[tuple, int] = {}
     for spec in specs:
         key = (spec['grid_w'], spec['grid_d'], spec['height_u'])
         if label_style(spec) == 'removable':
             key += (label_side(spec), plate_depth(spec))
+        elif label_detent(spec):
+            key += ('det',)
         counts[key] = counts.get(key, 0) + 1
     return sorted(counts.items()), list(specs)
 
@@ -3070,13 +3151,13 @@ def write_manifest(out: Path, specs: list[dict]) -> None:
 
 def generate(out: Path, positions: set[int] | None = None, side: str | None = None,
              style: str = DEFAULT_LABEL_STYLE, label_depth: float = DEFAULT_PLATE_DEPTH,
-             fit: float = DEFAULT_MW_FIT) -> None:
+             fit: float = DEFAULT_MW_FIT, detent: bool = False) -> None:
     validate_specs()
     selected = [s for s in SPECS if positions is None or s['pos'] in positions]
     if side is not None:
         selected = [{**s, 'label_side': side} for s in selected]
-    selected = [{**s, 'label_style': style, 'label_depth': label_depth, 'label_fit': fit}
-                for s in selected]
+    selected = [{**s, 'label_style': style, 'label_depth': label_depth, 'label_fit': fit,
+                 'label_detent': detent} for s in selected]
     if not selected:
         raise ValueError('No matching positions selected')
 
@@ -3096,8 +3177,9 @@ def generate(out: Path, positions: set[int] | None = None, side: str | None = No
         bins, labels = removable_file_plan(selected)
         for key, count in bins:
             if style == 'makerworld':
-                path = bin_dir / f"{mw_bin_stem(*key, count)}.3mf"
-                build_mw_bin_3mf(*key, path)
+                det = len(key) == 4
+                path = bin_dir / f"{mw_bin_stem(*key[:3], count, det)}.3mf"
+                build_mw_bin_3mf(*key[:3], path, det)
             else:
                 path = bin_dir / f"{snap_bin_stem(*key, count=count)}.3mf"
                 build_snap_bin_3mf(key[0], key[1], key[2], path, key[3], key[4])
@@ -3203,6 +3285,9 @@ def main():
                     help=f"MakerWorld style: gap between label clip and bin lip per side in mm "
                          f"(default {DEFAULT_MW_FIT:g}, {MW_FIT_RANGE[0]:g} to {MW_FIT_RANGE[1]:g}; "
                          f"negative = press fit).")
+    ap.add_argument('--detents', action='store_true',
+                    help="MakerWorld style: short vertical lip pieces near every corner + matching "
+                         "slots in the label, so it cannot slide.")
     ap.add_argument('--overwrite-labels', action='store_true', help='Deprecated: labels are always re-downloaded on every fetch/build.')
     args = ap.parse_args()
     out = Path(args.output)
@@ -3216,7 +3301,7 @@ def main():
 
     fetch_chappel_labels(out, positions, headed=args.headed, overwrite=True)
     generate(out, positions, side=args.label_side, style=args.style, label_depth=args.label_depth,
-             fit=args.label_fit)
+             fit=args.label_fit, detent=args.detents)
 
 
 if __name__ == '__main__':

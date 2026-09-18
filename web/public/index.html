@@ -106,6 +106,8 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .seg button.on{background:var(--accent);color:#fff}
 .stepper .g .seg button{width:auto;padding:5px 14px}
 .seg.wide{display:flex}
+.detent-opt{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:var(--ink-2);margin-top:6px;line-height:1.35}
+.detent-opt input{margin:2px 0 0;accent-color:var(--accent)}
 .seg.wide button{flex:1;padding:5px 4px}
 .bin.sel{box-shadow:0 0 0 2px var(--accent),var(--shadow);z-index:6}
 .bin.dragging{opacity:.92;z-index:20;box-shadow:0 10px 24px rgba(0,0,0,.3)}
@@ -256,12 +258,13 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
         </div>
         <div class="ctrl" id="fitCtrl">
           <div class="row"><label for="fitSlider">Label fit</label><output id="fitOut">0.05 mm</output></div>
-          <input type="range" id="fitSlider" min="-0.1" max="0.3" step="0.05" value="0.05"
+          <input type="range" id="fitSlider" min="-0.3" max="0.3" step="0.05" value="0.05"
                  title="Gap between the label's clip and the bin lip, per side. Smaller is tighter; below 0 is a press fit.">
+          <label class="detent-opt"><input type="checkbox" id="detentBox"> Detents &mdash; bumps on the side lips click into the label so it cannot slide</label>
         </div>
         <div class="ctrl">
-          <div class="row"><label>Label edge, all boxes</label>
-            <span class="seg" role="group" aria-label="Label edge for all boxes"><button id="allTop" title="Shelf on the back edge of every box">Top</button><button id="allBot" title="Shelf on the front edge of every box">Bot</button></span></div>
+          <div class="row"><label>Label edge, all boxes</label></div>
+          <span class="seg wide" role="group" aria-label="Label edge for all boxes"><button id="allTop" title="Label on the back edge of every box">Top</button><button id="allBot" title="Label on the front edge of every box">Bot</button></span>
         </div>
         <div class="note" id="serverState">build service: checking &hellip;</div>
         <div class="btnrow" style="margin-top:9px">
@@ -326,7 +329,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
     </div>
     <div class="stepper">
       <span>Label edge</span>
-      <div class="g"><span class="seg" role="group" aria-label="Label edge"><button id="mLabTop" title="Shelf on the back edge">Top</button><button id="mLabBot" title="Shelf on the front edge (drawer front)">Bot</button></span></div>
+      <div class="g"><span class="seg" role="group" aria-label="Label edge"><button id="mLabTop" title="Label on the back edge">Top</button><button id="mLabBot" title="Label on the front edge (drawer front)">Bot</button></span></div>
     </div>
     <div class="facts">
       <div><span>Interior</span><span class="v" id="fInner">0 &times; 0 mm</span></div>
@@ -480,7 +483,7 @@ const SHADE = {10:.66, 8:.78, 6:.9, 5:1, 4:1.07, 3:1.14};
 
 function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
 const state = {
-  u: 8, cell: 36, style: "integrated", labelDepth: 10, labelFit: 0.05,
+  u: 8, cell: 36, style: "integrated", labelDepth: 10, labelFit: 0.05, detent: false,
   bins: BINS.map(b => ({label: "bot", ...b})),
   // sel holds positions, not one position — multi-select is the normal case now.
   // anchor is the last bin touched, so Shift-click knows where a range starts.
@@ -529,7 +532,7 @@ function paint(b, el){
   el.classList.toggle("sel", state.sel.has(b.pos));
   el.querySelector(".t").textContent = `${b.thread}×${b.len}`;
   el.querySelector(".lab").className = "lab " + b.label;
-  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${b.label === "top" ? "top (back edge)" : "bot (front edge)"}`
+  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${EDGE_TEXT[b.label]}`
     + (lok ? "" : "\nScrew is too long for this box");
 }
 function render(){
@@ -568,9 +571,10 @@ function updateStatus(){
   $("depthOut").textContent = `${state.labelDepth} mm`;
   $("fitCtrl").classList.toggle("hide", state.style !== "makerworld");
   $("fitSlider").value = state.labelFit;
+  $("detentBox").checked = state.detent;
   $("fitOut").textContent = `${state.labelFit.toFixed(2)} mm` + (state.labelFit < 0 ? " (press fit)" : "");
-  $("allTop").classList.toggle("on", state.bins.every(b => b.label === "top"));
-  $("allBot").classList.toggle("on", state.bins.every(b => b.label !== "top"));
+  for (const [id, edge] of [["allTop","top"],["allBot","bot"]])
+    $(id).classList.toggle("on", state.bins.every(b => b.label === edge));
   saveLocal();
 }
 
@@ -739,15 +743,16 @@ function syncModal(){
   $("fLen").textContent = `${b.outer.toFixed(1)} mm` + (lok ? "" : " — does not fit");
   $("fLen").className = "v" + (lok ? "" : " bad");
   $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
-  $("mLabTop").classList.toggle("on", b.label === "top");
-  $("mLabBot").classList.toggle("on", b.label !== "top");
+  for (const [id, edge] of [["mLabTop","top"],["mLabBot","bot"]])
+    $(id).classList.toggle("on", b.label === edge);
   $("fLabel").textContent = labelKind(b);
   $("fLabel").className = "v" + (server?.cad ? "" : " bad");
 }
 $("mClose").onclick = $("mDone").onclick = () => modal.close();
 $("mRotate").onclick = () => rotate(modalBin);
-$("mLabTop").onclick = () => { modalBin.label = "top"; render(); syncModal(); };
-$("mLabBot").onclick = () => { modalBin.label = "bot"; render(); syncModal(); };
+const EDGE_TEXT = {bot: "bot (front edge)", top: "top (back edge)"};
+for (const [id, edge] of [["mLabTop","top"],["mLabBot","bot"]])
+  $(id).onclick = () => { modalBin.label = edge; render(); syncModal(); };
 function setAllLabels(side){
   for (const b of state.bins) b.label = side;
   render(); if (modal.open) syncModal();
@@ -760,11 +765,12 @@ function setStyle(style){
   setGenNote({
     integrated: "Integrated labels: one two-colour 3MF per box, label inlaid in the bin.",
     removable: "Removable labels: each bin is built once per size, label edge and width (BIN_2x1_8U_D10_x83 = used 83 times), plus one label plate per box.",
-    makerworld: "MakerWorld labels: lipped bins built once per size (BIN_2x1_8U_MW_x83 = used 83 times), plus one clip-on label tray per box.",
+    makerworld: "MakerWorld labels: lipped bins built once per size (BIN_2x1_8U_MW_x83 = used 83 times), plus one clip-on label tray per box. The lip runs round all four walls, so a bin can take a new label later.",
   }[style]);
 }
 $("styleInt").onclick = () => setStyle("integrated");
 $("depthSlider").oninput = e => { state.labelDepth = +e.target.value; render(); };
+$("detentBox").onchange = e => { state.detent = e.target.checked; render(); };
 $("fitSlider").oninput = e => { state.labelFit = Math.round(+e.target.value * 100) / 100; render(); };
 $("styleRem").onclick = () => setStyle("removable");
 $("styleMw").onclick = () => setStyle("makerworld");
@@ -822,7 +828,7 @@ function autoArrange(){
 $("btnAuto").onclick = autoArrange;
 $("btnReset").onclick = () => {
   state.bins = BINS.map(b => ({label: "bot", ...b}));
-  state.u = 8; state.style = "integrated"; state.labelDepth = 10; state.labelFit = 0.05;
+  state.u = 8; state.style = "integrated"; state.labelDepth = 10; state.labelFit = 0.05; state.detent = false;
   state.sel.clear(); state.anchor = null;
   $("uSlider").value = 8; $("uOut").textContent = "8U · 56 mm";
   render();
@@ -832,14 +838,15 @@ $("btnReset").onclick = () => {
 // v2: the default layout changed (2026-09-16); a v1 layout in local storage would hide it.
 const LS_KEY = "schublade1077.v2";
 function snapshot(){
-  return {u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit,
+  return {u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit, detent: state.detent,
     bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, label:b.label}))};
 }
 function restore(snap){
   if (!snap || !Array.isArray(snap.bins)) return;
   state.u = snap.u ?? state.u;
   if (snap.style) state.style = ["removable", "makerworld"].includes(snap.style) ? snap.style : "integrated";
-  if (Number.isFinite(snap.labelFit)) state.labelFit = Math.min(0.3, Math.max(-0.1, snap.labelFit));
+  if (Number.isFinite(snap.labelFit)) state.labelFit = Math.min(0.3, Math.max(-0.3, snap.labelFit));
+  if (typeof snap.detent === "boolean") state.detent = snap.detent;
   if (Number.isFinite(snap.labelDepth)) state.labelDepth = Math.min(19, Math.max(6, snap.labelDepth));
   const map = new Map(snap.bins.map(b => [b.pos, b]));
   for (const b of state.bins){
@@ -1058,7 +1065,7 @@ async function probeServer(){
 const buildCache = new Map();          // key -> Uint8Array, oldest first
 const BUILD_CACHE_MAX = 256 * 1048576;
 function cacheKey(items){
-  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, fit: state.labelFit, items});
+  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, fit: state.labelFit, detent: state.detent, items});
 }
 function cachePut(key, bytes){
   buildCache.delete(key);
@@ -1088,7 +1095,7 @@ async function buildBuffer(items, filename, title){
   try {
     let job = await jsonRequest("api/jobs", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth, label_fit: state.labelFit})
+      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth, label_fit: state.labelFit, label_detent: state.detent})
     });
     let failures = 0, phase = "";
     while (job.phase !== "done"){

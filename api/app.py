@@ -96,7 +96,8 @@ class BuildRequest(BaseModel):
     # "makerworld": lipped bins deduplicated per size + one clip-on label tray per screw.
     style: Literal["integrated", "removable", "makerworld"] = "integrated"
     label_depth: float = Field(default=10.0, ge=6.0, le=30.0)   # removable plate depth, mm
-    label_fit: float = Field(default=0.05, ge=-0.10, le=0.30)     # makerworld clip gap, mm
+    label_fit: float = Field(default=0.05, ge=-0.30, le=0.30)     # makerworld clip gap, mm
+    label_detent: bool = False        # makerworld: detent bumps on the side lips + dimples
 
 
 class FetchRequest(BaseModel):
@@ -188,10 +189,11 @@ def _build_snap_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
 
 
 def _build_mw_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
-    w, d, u = key
-    data = _cached_build(gen.mw_bin_stem(w, d, u), None, False,
-                         lambda p: gen.build_mw_bin_3mf(w, d, u, p))
-    return f"bins/{gen.mw_bin_stem(w, d, u, count)}.3mf", data
+    w, d, u = key[:3]
+    det = len(key) == 4                                      # (w, d, u, 'det'): with detent ribs
+    data = _cached_build(gen.mw_bin_stem(w, d, u, detent=det), None, False,
+                         lambda p: gen.build_mw_bin_3mf(w, d, u, p, det))
+    return f"bins/{gen.mw_bin_stem(w, d, u, count, det)}.3mf", data
 
 
 def _build_label_plate(gen, spec: dict) -> tuple[str, bytes]:
@@ -238,17 +240,19 @@ def _fetch_missing(gen, items: list[Item]) -> None:
 
 def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "integrated",
                label_depth: float = 10.0, on_box=lambda done, name, total: None,
-               label_fit: float = 0.05) -> tuple[str, str, bytes]:
+               label_fit: float = 0.05, label_detent: bool = False) -> tuple[str, str, bytes]:
     """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK."""
     specs = [_spec_for(gen, item, height_u) for item in items]
     for spec in specs:
         spec["label_style"] = style
         spec["label_depth"] = label_depth
         spec["label_fit"] = label_fit
+        spec["label_detent"] = label_detent
     if style in ("removable", "makerworld"):
         bins, labels = gen.removable_file_plan(specs)
         if style == "makerworld":
-            bin_jobs = [(gen.mw_bin_stem(*key, count), lambda k=key, c=count: _build_mw_bin(gen, k, c))
+            bin_jobs = [(gen.mw_bin_stem(*key[:3], count, len(key) == 4),
+                         lambda k=key, c=count: _build_mw_bin(gen, k, c))
                         for key, count in bins]
         else:
             bin_jobs = [(gen.snap_bin_stem(*key, count=count), lambda k=key, c=count: _build_snap_bin(gen, k, c))
@@ -298,7 +302,7 @@ def generate(req: BuildRequest):
             elif not {i.pos for i in req.items} <= cached_labels():
                 raise RuntimeError("label artwork missing and fetch_missing is false")
             name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth,
-                                           label_fit=req.label_fit)
+                                           label_fit=req.label_fit, label_detent=req.label_detent)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc)) from exc
     return Response(data, media_type=media,
@@ -317,7 +321,7 @@ JOB_QUEUE: "queue.Queue[str]" = queue.Queue()
 
 
 def _job_key(req: BuildRequest) -> str:
-    return json.dumps([req.height_u, req.keep, req.style, req.label_depth, req.label_fit,
+    return json.dumps([req.height_u, req.keep, req.style, req.label_depth, req.label_fit, req.label_detent,
                        [[i.pos, i.w, i.d, i.label] for i in req.items]])
 
 
@@ -346,7 +350,7 @@ def _run_job(job: dict) -> None:
 
         job.update(phase="build", done=0, total=len(req.items), current="")
         name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth, on_box,
-                                       label_fit=req.label_fit)
+                                       label_fit=req.label_fit, label_detent=req.label_detent)
 
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
     path = JOBS_DIR / f"{job['id']}.bin"

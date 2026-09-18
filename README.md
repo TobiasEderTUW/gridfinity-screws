@@ -41,9 +41,14 @@ downloads as a zip holding its bin and its label. CLI: `--style integrated|remov
 shallow plate means small lettering: at 10 mm the artwork is 6.3 mm tall, at 6 mm only
 2.3 mm, which is below what prints legibly.
 The fit is checked in CAD only (removable: 0.15 mm clearance, 0.45 mm snap engagement;
-MakerWorld: **Label fit** slider, default 0.05 mm all round the clip profile, −0.10 to
+MakerWorld: **Label fit** slider, default 0.05 mm all round the clip profile, −0.30 to
 0.30, negative is a press fit; only the label changes, so a looser or tighter label fits
-bins you already printed):
+bins you already printed). With **Detents** ticked, the bin's lip turns down at two places per wall (near each corner):
+a short vertical piece with the lip's own cross-section runs from the lip 4 mm down the wall
+(bottom end 45°, prints without support), and the label's skirt has matching slots, so it
+cannot slide. The bin still fits any label width on any wall (`BIN_2x1_8U_MW_DET`), CLI
+`--detents`. Lip and ribs run round all four walls, so a printed bin can later take a new
+label on any wall; the tools generate front (bot) and back (top) labels:
 print one bin and one label before the batch.
 
 The MakerWorld profile was measured from the model's STL (in `./tmp/`, untracked, licence

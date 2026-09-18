@@ -176,13 +176,30 @@ at 6. Checked in CadQuery at 6/10/19 mm, both edges, 2×1 / 2×3 / 1×3: no plat
 (inset, depth) (0,0)→(1.31,1.31)→(1.31,3.10)→(0.61,3.80)→(0.61,5.05), built as a stack of
 45° tapered rounded-rect bands (`_mw_offset_stack`), band-cut at the free edge. Clearance
 between clip and lip = `spec['label_fit']` ("Label fit" slider, only shown for this style),
-default 0.05 mm since 2026-09-18 (0.15 let the printed label slide), range −0.10…0.30,
+default 0.05 mm since 2026-09-18 (0.15 let the printed label slide), range −0.30…0.30,
 negative = press fit; label files carry it (`…_MW_FIT0.05`), bins do not depend on it.
 Checked in CadQuery at +0.05/+0.30/−0.10: recess gap to the lip equals the fit exactly. Bin = `make_mw_bin()`: shell + the matching lip all round (no ramp), so bins
 dedupe per size only: `BIN_<w>x<d>_<u>U_MW_x<n>`; labels `LABEL_…_D<depth>_MW_FIT<fit>[_LBACK]`.
 Verified in CadQuery (2×1, both edges): lip reach 0→1.31→1.31→0.61→0 at depths
 0/1.31/3.1/3.8/4.41, skirt insets 0.64/1.46/1.10/0.76 at 0.5/2.2/3.45/4.5 mm, no clash.
 Not printed. The reference's 0.5 mm sticker rim is intentionally omitted (face-down print).
+**Detents** (`spec['label_detent']`, checkbox shown with this style, `--detents`), third
+version 2026-09-18, confirmed with the user by sketch: at 8 places (2 per wall, piece centre
+`DETENT_OFFSET` 5 mm from each corner) the lip turns down: a vertical piece with exactly the
+lip's cross-section stood upright (`_mw_lip_section`, 1.31 proud, 4.41 wide) from the lip to
+`DETENT_DROP` 4 mm below it, bottom end chamfered 45° (`_detent_pieces`). The label's skirt
+gets the matching slot (section +0.1) below the lip's straight face; face plate untouched.
+Pieces do not depend on the label and run round all four walls **on purpose**: a printed bin
+can later take a new label on any wall. The user does *not* want left/right labels generated
+(added and removed again 2026-09-18); only front/back labels exist. Detent bins dedupe per
+size: `BIN_…_MW_DET_x<n>`; labels get `_DET`. Earlier versions (sphere bumps at the label
+middle, then small 0.4 mm ribs on the lip face) were rejected.
+Traps: union disjoint detail solids into the bin one at a time; default-oriented spheres broke
+OCC on the −x lip; and **OCC `Volume()` is unreliable on these bins** (≈2000 mm³ off the
+exported mesh for the plain 2×1), so judge booleans by local volume inside a box around the
+detail, or by the exported mesh. Verified 2×1/2×3/1×3: reach 1.31 from the lip to ~7 mm,
+tapering to 0 at 8.41; each piece adds ~30 mm³ locally; mesh watertight, one body; front and
+back labels valid with slots, no clash at fit 0.05.
 
 **No position or quantity anywhere visible** (2026-09-17): tiles, box menu (quantity
 stepper removed), tooltips, file names (`filename_stem` = `SK_M6x80_2x3_8U[_LBACK]`), the
