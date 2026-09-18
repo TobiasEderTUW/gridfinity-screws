@@ -30,18 +30,20 @@ A switch under *Generate boxes* chooses one of three designs for every box:
 |---|---|---|---|
 | bin | shelf + 45° ramp at the label edge, Chappel inlay cut into it | plain walls with a 0.6 mm snap rim round the inside, 1.6 mm below the top (45° above and below, prints without support), and under the label a 45° ramp whose flat top the plate rests on (0.1 mm gap) | plain walls with a lip round the top inside, the counterpart of the label's clip profile (45° faces only) |
 | label | part of the bin, filament 2 | separate 2.4 mm plate that fills the inner width, **Label width** deep (slider, 6–19 mm, default 10); a V-groove on its wall-side edges clicks over the rim; Chappel inlay flush on filament 2; exported face-down, ready to print | replica of MakerWorld model 431547: a 1.8 mm face plate with a 3.16 mm skirt along both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the bin lip and a 0.6 mm bump hooks under it. Chappel inlay flush in the face; **Label width** slider; exported face-down |
-| files | one `SK_M6x80_2x3_8U.3mf` per box | `bins/BIN_2x1_8U_D10_x83.3mf`, one per distinct bin (size, label width, `_LBACK` for top-edge boxes), the count in the name, plus `labels/LABEL_SK_M6x80_W2_D10.3mf` per box | `bins/BIN_2x1_8U_MW_x83.3mf`, one per size (the bin does not depend on the label), plus `labels/LABEL_SK_M6x80_W2_D10_MW.3mf` per box |
+| files | one `SK_M6x80_2x3_8U.3mf` per box | `bins/BIN_2x1_8U_D10_x83.3mf`, one per distinct bin (size, label width, `_LBACK` for top-edge boxes), the count in the name, plus `labels/LABEL_SK_M6x80_W2_D10.3mf` per box | `bins/BIN_2x1_8U_MW_x83.3mf`, one per size (the bin does not depend on the label), plus `labels/LABEL_SK_M6x80_W2_D10_MW_FIT0.05.3mf` per box |
 
 The removable design follows the MakerWorld *Removable Label – Gridfinity AddOn*
 (model 431547) in spirit; the dimensions are ours. A removable bin does not depend on the
 label artwork, so every box with the same size, label edge and label width shares one file
 (the ramp sits under the label, so edge and width shape the bin). A single removable box
-downloads as a zip holding its bin and its label. CLI: `--style integrated|removable|makerworld`,
+downloads as a zip holding its bin and its label. CLI: `--style integrated|removable|makerworld`, `--label-fit 0.05`,
 `--label-depth 10`. The Chappel artwork keeps 1.8 mm to the plate's long edges, so a
 shallow plate means small lettering: at 10 mm the artwork is 6.3 mm tall, at 6 mm only
 2.3 mm, which is below what prints legibly.
 The fit is checked in CAD only (removable: 0.15 mm clearance, 0.45 mm snap engagement;
-MakerWorld: 0.15 mm clearance all round the clip profile, 0.55 mm bump under the lip):
+MakerWorld: **Label fit** slider, default 0.05 mm all round the clip profile, −0.10 to
+0.30, negative is a press fit; only the label changes, so a looser or tighter label fits
+bins you already printed):
 print one bin and one label before the batch.
 
 The MakerWorld profile was measured from the model's STL (in `./tmp/`, untracked, licence

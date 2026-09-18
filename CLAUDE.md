@@ -174,9 +174,12 @@ at 6. Checked in CadQuery at 6/10/19 mm, both edges, 2×1 / 2×3 / 1×3: no plat
 431547 measured from its STL. Label = `make_mw_label()`: face plate `MW_PLATE` 1.8, skirt
 `MW_SKIRT` 3.16 on both sides + wall side, down to `MW_DEPTH` 5.05, outer profile
 (inset, depth) (0,0)→(1.31,1.31)→(1.31,3.10)→(0.61,3.80)→(0.61,5.05), built as a stack of
-45° tapered rounded-rect bands (`_mw_offset_stack`), band-cut at the free edge, 0.15 mm
-clearance. Bin = `make_mw_bin()`: shell + the matching lip all round (no ramp), so bins
-dedupe per size only: `BIN_<w>x<d>_<u>U_MW_x<n>`; labels `LABEL_…_D<depth>_MW[_LBACK]`.
+45° tapered rounded-rect bands (`_mw_offset_stack`), band-cut at the free edge. Clearance
+between clip and lip = `spec['label_fit']` ("Label fit" slider, only shown for this style),
+default 0.05 mm since 2026-09-18 (0.15 let the printed label slide), range −0.10…0.30,
+negative = press fit; label files carry it (`…_MW_FIT0.05`), bins do not depend on it.
+Checked in CadQuery at +0.05/+0.30/−0.10: recess gap to the lip equals the fit exactly. Bin = `make_mw_bin()`: shell + the matching lip all round (no ramp), so bins
+dedupe per size only: `BIN_<w>x<d>_<u>U_MW_x<n>`; labels `LABEL_…_D<depth>_MW_FIT<fit>[_LBACK]`.
 Verified in CadQuery (2×1, both edges): lip reach 0→1.31→1.31→0.61→0 at depths
 0/1.31/3.1/3.8/4.41, skirt insets 0.64/1.46/1.10/0.76 at 0.5/2.2/3.45/4.5 mm, no clash.
 Not printed. The reference's 0.5 mm sticker rim is intentionally omitted (face-down print).

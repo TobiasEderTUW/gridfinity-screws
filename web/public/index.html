@@ -254,6 +254,11 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <input type="range" id="depthSlider" min="6" max="19" step="0.5" value="10"
                  title="Depth of the removable label plate, measured from the wall into the box">
         </div>
+        <div class="ctrl" id="fitCtrl">
+          <div class="row"><label for="fitSlider">Label fit</label><output id="fitOut">0.05 mm</output></div>
+          <input type="range" id="fitSlider" min="-0.1" max="0.3" step="0.05" value="0.05"
+                 title="Gap between the label's clip and the bin lip, per side. Smaller is tighter; below 0 is a press fit.">
+        </div>
         <div class="ctrl">
           <div class="row"><label>Label edge, all boxes</label>
             <span class="seg" role="group" aria-label="Label edge for all boxes"><button id="allTop" title="Shelf on the back edge of every box">Top</button><button id="allBot" title="Shelf on the front edge of every box">Bot</button></span></div>
@@ -475,7 +480,7 @@ const SHADE = {10:.66, 8:.78, 6:.9, 5:1, 4:1.07, 3:1.14};
 
 function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
 const state = {
-  u: 8, cell: 36, style: "integrated", labelDepth: 10,
+  u: 8, cell: 36, style: "integrated", labelDepth: 10, labelFit: 0.05,
   bins: BINS.map(b => ({label: "bot", ...b})),
   // sel holds positions, not one position — multi-select is the normal case now.
   // anchor is the last bin touched, so Shift-click knows where a range starts.
@@ -561,6 +566,9 @@ function updateStatus(){
   $("depthCtrl").classList.toggle("hide", state.style === "integrated");
   $("depthSlider").value = state.labelDepth;
   $("depthOut").textContent = `${state.labelDepth} mm`;
+  $("fitCtrl").classList.toggle("hide", state.style !== "makerworld");
+  $("fitSlider").value = state.labelFit;
+  $("fitOut").textContent = `${state.labelFit.toFixed(2)} mm` + (state.labelFit < 0 ? " (press fit)" : "");
   $("allTop").classList.toggle("on", state.bins.every(b => b.label === "top"));
   $("allBot").classList.toggle("on", state.bins.every(b => b.label !== "top"));
   saveLocal();
@@ -757,6 +765,7 @@ function setStyle(style){
 }
 $("styleInt").onclick = () => setStyle("integrated");
 $("depthSlider").oninput = e => { state.labelDepth = +e.target.value; render(); };
+$("fitSlider").oninput = e => { state.labelFit = Math.round(+e.target.value * 100) / 100; render(); };
 $("styleRem").onclick = () => setStyle("removable");
 $("styleMw").onclick = () => setStyle("makerworld");
 $("allBot").onclick = () => setAllLabels("bot");
@@ -813,7 +822,7 @@ function autoArrange(){
 $("btnAuto").onclick = autoArrange;
 $("btnReset").onclick = () => {
   state.bins = BINS.map(b => ({label: "bot", ...b}));
-  state.u = 8; state.style = "integrated"; state.labelDepth = 10;
+  state.u = 8; state.style = "integrated"; state.labelDepth = 10; state.labelFit = 0.05;
   state.sel.clear(); state.anchor = null;
   $("uSlider").value = 8; $("uOut").textContent = "8U · 56 mm";
   render();
@@ -823,13 +832,14 @@ $("btnReset").onclick = () => {
 // v2: the default layout changed (2026-09-16); a v1 layout in local storage would hide it.
 const LS_KEY = "schublade1077.v2";
 function snapshot(){
-  return {u: state.u, style: state.style, labelDepth: state.labelDepth,
+  return {u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit,
     bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, label:b.label}))};
 }
 function restore(snap){
   if (!snap || !Array.isArray(snap.bins)) return;
   state.u = snap.u ?? state.u;
   if (snap.style) state.style = ["removable", "makerworld"].includes(snap.style) ? snap.style : "integrated";
+  if (Number.isFinite(snap.labelFit)) state.labelFit = Math.min(0.3, Math.max(-0.1, snap.labelFit));
   if (Number.isFinite(snap.labelDepth)) state.labelDepth = Math.min(19, Math.max(6, snap.labelDepth));
   const map = new Map(snap.bins.map(b => [b.pos, b]));
   for (const b of state.bins){
@@ -1048,7 +1058,7 @@ async function probeServer(){
 const buildCache = new Map();          // key -> Uint8Array, oldest first
 const BUILD_CACHE_MAX = 256 * 1048576;
 function cacheKey(items){
-  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, items});
+  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, fit: state.labelFit, items});
 }
 function cachePut(key, bytes){
   buildCache.delete(key);
@@ -1078,7 +1088,7 @@ async function buildBuffer(items, filename, title){
   try {
     let job = await jsonRequest("api/jobs", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth})
+      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth, label_fit: state.labelFit})
     });
     let failures = 0, phase = "";
     while (job.phase !== "done"){

@@ -96,7 +96,8 @@ MW_PLATE = 1.80
 MW_SKIRT = 3.16              # skirt width, measured in from the label edge
 MW_DEPTH = 5.05              # skirt reaches this far below the face
 MW_P1, MW_P2, MW_P3, MW_P4 = 1.31, 3.10, 3.80, 0.61   # profile breakpoints, see above
-MW_CLEARANCE = 0.15          # label edge to the bin wall = label profile to the lip
+DEFAULT_MW_FIT = 0.05        # label profile to the bin lip, per side, mm ("Label fit" in the GUI).
+MW_FIT_RANGE = (-0.10, 0.30) # 0.15 let the label slide (user test 2026-09-18); < 0 = press fit
 MW_SAFE = 1.5                # artwork margin to the face edges
 PLATE_SAFE_SIDE = 3.0        # graphic margin to the plate's side edges
 PLATE_SAFE_FRONT_BACK = 1.8  # graphic margin to the plate's wall and free edges
@@ -113,7 +114,7 @@ LABEL_SAFE_SIDE = 2.5            # minimum horizontal label-graphics margin from
 LABEL_SAFE_FRONT_BACK = 1.5      # minimum label-graphics margin within the 12 mm shelf depth
 LABEL_ICON_TEXT_GAP = 2.4        # legacy constant, unused with Chappel labels
 
-SCRIPT_VERSION = "2026-09-17.3-makerworld-labels"
+SCRIPT_VERSION = "2026-09-18.1-makerworld-fit"
 CHAPPEL_URL = "https://label.alch.shop/"
 CHAPPEL_BASE_THICKNESS = 0.30     # current Raised-label default on label.alch.shop
 CHAPPEL_EXTRUSION_THICKNESS = 0.15
@@ -2669,13 +2670,23 @@ def make_mw_bin(grid_w: int, grid_d: int, height_u: int) -> cq.Workplane:
     return make_bin_shell(grid_w, grid_d, height_u).union(slab.cut(cutter))
 
 
+def label_fit(spec: dict) -> float:
+    """Gap between the MakerWorld label's clip profile and the bin lip, per side, in mm.
+    Only the label changes with it; the bin is the same for every fit."""
+    fit = round(float(spec.get('label_fit', DEFAULT_MW_FIT)), 3)
+    lo, hi = MW_FIT_RANGE
+    if not lo - 1e-9 <= fit <= hi + 1e-9:
+        raise ValueError(f"label_fit must be within {lo}-{hi} mm, got {fit}")
+    return fit
+
+
 def _mw_label_area(spec: dict) -> tuple[float, float, float]:
     ix, iy, _ = _inner_outline(spec['grid_w'], spec['grid_d'])
-    depth = plate_depth(spec)
-    centre = -iy/2 + (MW_CLEARANCE + depth)/2
+    depth, c = plate_depth(spec), max(0.0, label_fit(spec))
+    centre = -iy/2 + (c + depth)/2
     if label_side(spec) == 'back':
         centre = -centre
-    return (centre, ix - 2*MW_CLEARANCE - 2*MW_SAFE, depth - MW_CLEARANCE - 2*MW_SAFE)
+    return (centre, ix - 2*c - 2*MW_SAFE, depth - c - 2*MW_SAFE)
 
 
 def make_mw_label(spec: dict, out: Path) -> tuple[cq.Workplane, cq.Workplane]:
@@ -2687,7 +2698,7 @@ def make_mw_label(spec: dict, out: Path) -> tuple[cq.Workplane, cq.Workplane]:
     w, d, top_z = spec['grid_w'], spec['grid_d'], spec['height_u'] * 7.0
     ix, iy, ir = _inner_outline(w, d)
     depth = plate_depth(spec)
-    c = MW_CLEARANCE
+    c = label_fit(spec)
     outer = _mw_offset_stack(ix, iy, ir, top_z, c, [
         (0.0, MW_P1, 0.0, MW_P1),
         (MW_P1, MW_P2, MW_P1, MW_P1),
@@ -2815,7 +2826,7 @@ def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = Non
 def label_plate_stem(spec: dict) -> str:
     """Removable label plate. It depends on bin width and plate depth: LABEL_SK_M6x80_W2_D10."""
     suffix = '' if label_side(spec) == 'front' else '_LBACK'
-    style = '_MW' if label_style(spec) == 'makerworld' else ''
+    style = f'_MW_FIT{label_fit(spec):g}' if label_style(spec) == 'makerworld' else ''
     return f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{style}{suffix}"
 
 
@@ -3058,12 +3069,14 @@ def write_manifest(out: Path, specs: list[dict]) -> None:
 
 
 def generate(out: Path, positions: set[int] | None = None, side: str | None = None,
-             style: str = DEFAULT_LABEL_STYLE, label_depth: float = DEFAULT_PLATE_DEPTH) -> None:
+             style: str = DEFAULT_LABEL_STYLE, label_depth: float = DEFAULT_PLATE_DEPTH,
+             fit: float = DEFAULT_MW_FIT) -> None:
     validate_specs()
     selected = [s for s in SPECS if positions is None or s['pos'] in positions]
     if side is not None:
         selected = [{**s, 'label_side': side} for s in selected]
-    selected = [{**s, 'label_style': style, 'label_depth': label_depth} for s in selected]
+    selected = [{**s, 'label_style': style, 'label_depth': label_depth, 'label_fit': fit}
+                for s in selected]
     if not selected:
         raise ValueError('No matching positions selected')
 
@@ -3186,6 +3199,10 @@ def main():
     ap.add_argument('--label-depth', type=float, default=DEFAULT_PLATE_DEPTH,
                     help=f"Removable style: label plate depth in mm (default {DEFAULT_PLATE_DEPTH:g}, "
                          f"{PLATE_DEPTH_RANGE[0]:g}-{PLATE_DEPTH_RANGE[1]:g}).")
+    ap.add_argument('--label-fit', type=float, default=DEFAULT_MW_FIT,
+                    help=f"MakerWorld style: gap between label clip and bin lip per side in mm "
+                         f"(default {DEFAULT_MW_FIT:g}, {MW_FIT_RANGE[0]:g} to {MW_FIT_RANGE[1]:g}; "
+                         f"negative = press fit).")
     ap.add_argument('--overwrite-labels', action='store_true', help='Deprecated: labels are always re-downloaded on every fetch/build.')
     args = ap.parse_args()
     out = Path(args.output)
@@ -3198,7 +3215,8 @@ def main():
         return
 
     fetch_chappel_labels(out, positions, headed=args.headed, overwrite=True)
-    generate(out, positions, side=args.label_side, style=args.style, label_depth=args.label_depth)
+    generate(out, positions, side=args.label_side, style=args.style, label_depth=args.label_depth,
+             fit=args.label_fit)
 
 
 if __name__ == '__main__':
