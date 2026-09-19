@@ -76,7 +76,6 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .legend{display:grid;gap:6px;font-size:12px;color:var(--ink-2)}
 .legend div{display:flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--line-strong);flex:none}
-.sw.len{background:repeating-linear-gradient(45deg,var(--alert) 0 3px,transparent 3px 6px)}
 /* ---- drawer ---- */
 .drawer-shell{position:relative;padding:10px 10px 36px;background:var(--surface-2);
   border:1px solid var(--line-strong);border-radius:8px;width:max-content}
@@ -93,8 +92,6 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .bin:active{cursor:grabbing}
 .bin .t{font-size:11px;font-weight:600;line-height:1.1;color:#10161a;text-align:center;
   font-family:"IBM Plex Mono",ui-monospace,monospace;pointer-events:none}
-.bin.lenbad::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--alert) 55%,transparent) 0 4px,transparent 4px 9px)}
 /* which edge carries the label shelf (drawer front is at the bottom of the grid) */
 .bin .lab{position:absolute;left:3px;right:3px;height:3px;border-radius:2px;background:rgba(0,0,0,.42);pointer-events:none}
 .bin .lab.bot{bottom:2px}
@@ -174,7 +171,6 @@ textarea:disabled{opacity:.5}
 .grid.selmode .bin{cursor:copy}
 .grid.selmode .bin:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
 button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff}
-/* .bin.lenbad already uses ::after, so the selection wash uses ::before */
 .bin.sel::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:color-mix(in srgb,var(--accent) 16%,transparent)}
 /* ---- progress popup ---- */
@@ -301,7 +297,6 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <div><span class="sw" style="background:var(--lk)"></span> LK &middot; Linsenkopf PH</div>
           <div><span class="sw" style="background:var(--zk)"></span> ZK &middot; Zylinderkopf</div>
           <div><span class="sw" style="background:var(--kt)"></span> 6kt &middot; Sechskant</div>
-          <div><span class="sw len"></span> screw too long for the box</div>
         </div>
       </div>
     </aside>
@@ -475,7 +470,7 @@ function parseSTL(buf){
 /* ---------- constants: Gridfinity + bin geometry (mm) ---------- */
 const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2,
       FLOOR_Z = 7.2, SHELF_T = 1.2, SHELF_D = 12, U_MM = 7,
-      LENGTH_CLEARANCE = 2, MAX_CELLS = GW * GD;
+      MAX_CELLS = GW * GD;
 const KIND_NAME = {SK:"Senkkopf", LK:"Linsenkopf PH", ZK:"Zylinderkopf", "6kt":"Sechskant"};
 const KIND_VAR  = {SK:"--sk", LK:"--lk", ZK:"--zk", "6kt":"--kt"};
 const KIND_ORDER = ["SK","LK","ZK","6kt"];
@@ -489,10 +484,6 @@ const state = {
   // anchor is the last bin touched, so Shift-click knows where a range starts.
   sel: new Set(), anchor: null, selectMode: false, savedId: null
 };
-function lengthOk(b){
-  const [ix, iy] = interior(b.w, b.d);
-  return Math.max(ix, iy) >= b.outer + LENGTH_CLEARANCE;
-}
 function placed(b){ return b.x !== null && b.x !== undefined; }
 
 /* ---------- DOM ---------- */
@@ -526,14 +517,11 @@ function binNode(b){
   return el;
 }
 function paint(b, el){
-  const lok = lengthOk(b);
   el.style.background = tint(cssVar(KIND_VAR[b.kind]) || "#888", SHADE[b.dia] ?? 1);
-  el.classList.toggle("lenbad", !lok);
   el.classList.toggle("sel", state.sel.has(b.pos));
   el.querySelector(".t").textContent = `${b.thread}×${b.len}`;
   el.querySelector(".lab").className = "lab " + b.label;
-  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${EDGE_TEXT[b.label]}`
-    + (lok ? "" : "\nScrew is too long for this box");
+  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${EDGE_TEXT[b.label]}`;
 }
 function render(){
   const inGrid = [], out = [];
@@ -735,13 +723,12 @@ function openModal(b){
 }
 function syncModal(){
   const b = modalBin; if (!b) return;
-  const [ix, iy] = interior(b.w, b.d), lok = lengthOk(b);
+  const [ix, iy] = interior(b.w, b.d);
   $("mTitle").textContent = `${b.thread} × ${b.len}`;
   $("mSub").textContent = `${b.kind} · ${KIND_NAME[b.kind]} · ${b.norm}`;
   $("wVal").textContent = b.w; $("dVal").textContent = b.d;
   $("fInner").textContent = `${ix.toFixed(1)} × ${iy.toFixed(1)} mm`;
-  $("fLen").textContent = `${b.outer.toFixed(1)} mm` + (lok ? "" : " — does not fit");
-  $("fLen").className = "v" + (lok ? "" : " bad");
+  $("fLen").textContent = `${b.outer.toFixed(1)} mm`;
   $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
   for (const [id, edge] of [["mLabTop","top"],["mLabBot","bot"]])
     $(id).classList.toggle("on", b.label === edge);
