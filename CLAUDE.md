@@ -256,6 +256,12 @@ height, so any size change rebuilds.
   namespace `moby` that pin GBs of snapshots `docker system df` does not show. Fix used on
   2026-09-17 (freed 11 GB): with no containers or builds running,
   `for id in $(sudo ctr -n moby leases ls -q); do sudo ctr -n moby leases rm --sync $id; done`.
+- **Tapered rounded-rect segments must not run their corner radius through zero.** The MW
+  label cavity (inset 3.2 > inner radius 2.55) had a 45° foot built from its bottom outline;
+  shrinking upward, the corner radius hit 0 part-way up. OCC called the solid valid, Bambu
+  Studio reported "2 non-manifold edges" on every label (2026-09-19). `_mw_offset_stack` now
+  clamps the radius at a segment's small end and grows it towards the big end. Check meshes,
+  not just `isValid()`: count edges not shared by exactly two triangles.
 - **The api container is capped at 4 GB** (`mem_limit`), so a runaway OCC boolean kills the
   container instead of rebooting the Codespace.
 - **OCP/CadQuery is not thread safe** — the service serialises builds behind a lock.

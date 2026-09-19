@@ -2659,7 +2659,14 @@ def _mw_offset_stack(ix: float, iy: float, ir: float, top_z: float, base: float,
             part = rounded_prism(ix - 2*t1, iy - 2*t1, max(0.2, ir - t1), h).translate((0, 0, z_bot))
         else:
             taper = 45 if t0 > t1 else -45      # shrinking going up = positive taper
-            part = _tapered_prism(ix - 2*t1, iy - 2*t1, max(0.2, ir - t1), z_bot, h, taper)
+            # Corner radius: clamp at the segment's SMALL end and let it grow towards the big
+            # end. Taking the natural offset at the bottom instead let a shrinking segment's
+            # corner radius run through zero part-way up (the label cavity foot, inset beyond
+            # the 2.55 mm inner radius): a degenerate corner OCC accepts but that meshes with
+            # non-manifold edges. Segments that never reach the clamp are unchanged.
+            r_small = max(0.2, ir - max(t0, t1))
+            r_bot = r_small + h if t0 > t1 else r_small
+            part = _tapered_prism(ix - 2*t1, iy - 2*t1, r_bot, z_bot, h, taper)
         solid = part if solid is None else solid.union(part)
     return solid
 
