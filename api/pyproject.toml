@@ -16,6 +16,8 @@ dependencies = [
     "shapely==2.0.6",
     "networkx==3.4.2",
     "fonttools==4.65.0",   # label text: glyph outlines and GPOS kerning of the label font
+    "manifold3d==3.5.4",   # mesh booleans: the label pocket cut (about 15x faster than OCC)
+    "mapbox-earcut==2.1.0",  # polygon triangulation for trimesh's extrude_polygon
 ]
 
 [dependency-groups]

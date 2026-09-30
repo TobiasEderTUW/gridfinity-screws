@@ -26,6 +26,7 @@ Design choices:
 
 from __future__ import annotations
 import argparse
+from functools import lru_cache
 import csv
 import math
 import zipfile
@@ -101,7 +102,7 @@ LABEL_POCKET_OVERTRAVEL = 0.08  # cutter continues above the top face for robust
 UNIFORM_HEIGHT_U = 8              # ALL bins are 56 mm high - uniform height is a hard requirement.
                                   # 7U/49 mm cannot hold the 15.04.2026 order at a sane fill level
                                   # without 1-cell-wide bins; 8U clears the 75 mm drawer easily.
-SCRIPT_VERSION = "2026-09-30.3-label-size-per-width"
+SCRIPT_VERSION = "2026-09-30.4-left-icons-mesh-labels"
 LABEL_MAX_UPSCALE = 1.35         # the artwork may grow at most this much past its 1-wide size
 
 
@@ -397,36 +398,38 @@ def label_text(spec: dict) -> str:
     return text or label_art.default_text(part_key(spec), spec['thread'], spec.get('length'))
 
 
+def label_artwork(spec: dict, area: tuple[float, float, float]) -> list:
+    """The label artwork as 2D polygons in box coordinates (mm), for a label area
+    (centre_y, safe_w, safe_h).
+
+    Layout (user's request 2026-09-30): the icons sit at the left edge of the safe area, so
+    they are in the same place on every label of a box width; the text is centred in the
+    space right of them (after the usual 2 mm gap at label scale). Everything is scaled by
+    label_scale(spec), the common size of the box width (see label_scales), and keeps its
+    natural proportions. "Left" is as read from the drawer front, also on back labels.
+    """
+    from shapely.affinity import scale as _sc, translate as _tr
+    shelf_y, safe_w, safe_h = area
+    s = min(label_scale(spec), label_fit_scale(spec))
+    icons, icons_w, text, text_w = label_art.label_parts(part_key(spec), label_text(spec))
+    left = -safe_w / 2
+    out = [_tr(_sc(p, s, s, origin=(0, 0)), left, shelf_y) for p in icons]
+    if text:
+        free_l = left + (icons_w + label_art.ICON_TEXT_GAP) * s
+        text_l = (free_l + safe_w / 2) / 2 - text_w * s / 2      # centred in what is left
+        out += [_tr(_sc(p, s, s, origin=(0, 0)), text_l, shelf_y) for p in text]
+    return out
+
+
 def _label_geometry(spec: dict, base_z: float, thickness: float,
                     area: tuple[float, float, float]) -> cq.Workplane:
-    """The label artwork (icons + text), placed in a safe area and extruded between
-    base_z and base_z + thickness. area = (centre_y, safe_w, safe_h).
-
-    The artwork keeps its natural proportions and is scaled by label_scale(spec): the common
-    scale of all labels of this box width in the drawer (see label_scales), so they are all
-    exactly alike. It never exceeds what this label alone can take.
-    """
+    """The label artwork extruded between base_z and base_z + thickness (CadQuery).
+    Reference path only: the build uses the mesh path (make_mw_label_mesh), which gives the
+    same solid about 15x faster; tools/verify_label_mesh.py compares the two."""
+    polygons = label_artwork(spec, area)
     shelf_y, safe_w, safe_h = area
-    scale = min(label_scale(spec), label_fit_scale(spec))
-    polygons = label_art.compose(part_key(spec), label_text(spec), site_layout=False)
-    graphic = cq.Workplane(obj=cq.Compound.makeCompound(
-        [_polygon_to_cq_solid(p, thickness) for p in polygons]))
-
-    shape = graphic.val()
-    # Scale only in XY. Z must remain exactly the requested inlay/pocket depth.
-    shape = shape.transformGeometry(cq.Matrix([
-        [scale, 0, 0, 0],
-        [0, scale, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1],
-    ]))
-    bb = shape.BoundingBox()
-    dx = -(bb.xmin + bb.xmax)/2
-    dy = shelf_y                   # the icon line (plate y = 0) on the label's centre line, so a
-    dz = base_z - bb.zmin          # shorter icon (wing nut) sits centred like every other
-    shape = shape.translate(cq.Vector(dx, dy, dz))
-    result = cq.Workplane(obj=shape)
-
+    solids = [_polygon_to_cq_solid(p, thickness).translate(cq.Vector(0, 0, base_z)) for p in polygons]
+    result = cq.Workplane(obj=cq.Compound.makeCompound(solids))
     bb = result.val().BoundingBox()
     assert bb.xmin >= -safe_w/2 - 0.05 and bb.xmax <= safe_w/2 + 0.05, (spec, bb.xmin, bb.xmax, safe_w)
     assert bb.ymin >= shelf_y-safe_h/2-0.05 and bb.ymax <= shelf_y+safe_h/2+0.05, (spec, bb.ymin, bb.ymax, shelf_y, safe_h)
@@ -609,6 +612,18 @@ def make_mw_label(spec: dict) -> tuple[cq.Workplane, cq.Workplane]:
     Its face is flush with the bin top. Skirt on both sides and the wall-side edge; the free
     inner edge is a plain cut. For a back label the tray is mirrored, the artwork only moved.
     """
+    top_z = spec['height_u'] * 7.0
+    tray = _mw_tray(spec)
+    area = _mw_label_area(spec)
+    inlay = _label_geometry(spec, top_z - LABEL_INLAY_DEPTH, LABEL_INLAY_DEPTH, area=area)
+    pocket = _label_geometry(
+        spec, top_z - LABEL_INLAY_DEPTH - LABEL_POCKET_BOTTOM_CLEARANCE,
+        LABEL_INLAY_DEPTH + LABEL_POCKET_BOTTOM_CLEARANCE + LABEL_POCKET_OVERTRAVEL, area=area)
+    return tray.cut(pocket), inlay
+
+
+def _mw_tray(spec: dict) -> cq.Workplane:
+    """The label tray (face plate + skirt, detent slots) without the artwork pocket."""
     w, d, top_z = spec['grid_w'], spec['grid_d'], spec['height_u'] * 7.0
     ix, iy, ir = _inner_outline(w, d)
     depth = plate_depth(spec)
@@ -632,12 +647,39 @@ def make_mw_label(spec: dict) -> tuple[cq.Workplane, cq.Workplane]:
     if label_detent(spec):
         for cutter in _detent_pieces(w, d, spec['height_u'], slot=True):
             tray = tray.cut(cutter)
-    area = _mw_label_area(spec)
-    inlay = _label_geometry(spec, top_z - LABEL_INLAY_DEPTH, LABEL_INLAY_DEPTH, area=area)
-    pocket = _label_geometry(
-        spec, top_z - LABEL_INLAY_DEPTH - LABEL_POCKET_BOTTOM_CLEARANCE,
-        LABEL_INLAY_DEPTH + LABEL_POCKET_BOTTOM_CLEARANCE + LABEL_POCKET_OVERTRAVEL, area=area)
-    return tray.cut(pocket), inlay
+    return tray
+
+
+@lru_cache(maxsize=64)
+def _mw_tray_mesh(w: int, d: int, u: int, depth: float, fit: float, detent: bool, side: str) -> trimesh.Trimesh:
+    """The label tray without its artwork pocket, as a mesh. The same for every label of one
+    size, depth, fit, detent and edge, so it is built once (CadQuery) and reused."""
+    spec = {'grid_w': w, 'grid_d': d, 'height_u': u, 'label_depth': depth, 'label_fit': fit,
+            'label_detent': detent, 'label_side': side}
+    return _to_mesh(_mw_tray(spec), 0.05, 0.18)
+
+
+def _extrude(polygons, z0: float, height: float) -> trimesh.Trimesh:
+    return trimesh.util.concatenate([
+        trimesh.creation.extrude_polygon(p, height).apply_translation([0, 0, z0]) for p in polygons])
+
+
+def make_mw_label_mesh(spec: dict) -> tuple[trimesh.Trimesh, trimesh.Trimesh]:
+    """make_mw_label() as meshes: (tray with pocket, flush inlay). The tray comes from the
+    cache; the artwork is extruded and the pocket cut with manifold3d (a mesh boolean), which
+    replaces the slow CadQuery cut of dozens of glyph solids. Same solids as the CadQuery path
+    (checked by tools/verify_label_mesh.py)."""
+    top_z = spec['height_u'] * 7.0
+    tray = _mw_tray_mesh(spec['grid_w'], spec['grid_d'], spec['height_u'], plate_depth(spec),
+                         label_fit(spec), label_detent(spec), label_side(spec)).copy()
+    art = label_artwork(spec, _mw_label_area(spec))
+    pocket = _extrude(art, top_z - LABEL_INLAY_DEPTH - LABEL_POCKET_BOTTOM_CLEARANCE,
+                      LABEL_INLAY_DEPTH + LABEL_POCKET_BOTTOM_CLEARANCE + LABEL_POCKET_OVERTRAVEL)
+    inlay = _extrude(art, top_z - LABEL_INLAY_DEPTH, LABEL_INLAY_DEPTH)
+    plate = trimesh.boolean.difference([tray, pocket], engine='manifold')
+    if not (plate.is_watertight and inlay.is_watertight):
+        raise RuntimeError(f"{screw_name(spec)}: label mesh is not watertight")
+    return plate, inlay
 
 
 def label_print_transform() -> np.ndarray:
@@ -747,10 +789,8 @@ def build_mw_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path,
 
 
 def build_label_plate_3mf(spec: dict, path: Path) -> None:
-    """The clip-on label + flush inlay, laid face down for printing."""
-    plate, inlay = make_mw_label(spec)
-    plate_mesh = _to_mesh(plate, 0.05, 0.18)
-    inlay_mesh = _to_mesh(inlay, 0.05, 0.18)
+    """The clip-on label + flush inlay, laid face down for printing (mesh path)."""
+    plate_mesh, inlay_mesh = make_mw_label_mesh(spec)
     flip = label_print_transform()
     for mesh in (plate_mesh, inlay_mesh):
         mesh.apply_transform(flip)

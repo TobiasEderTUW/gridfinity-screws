@@ -78,6 +78,11 @@ removed on request):
   The note under the slider shows the result per width; in the default drawer the two 1×3
   boxes (M6×40, M6×80) make the 1-wide labels 6.35 mm. Adding a box with a long text can
   make all labels of its width smaller. Label files carry the size (`_H6.95`).
+- **Layout:** the icons sit at the left edge of the label, in the same place on every label of
+  a box width; the text is centred in the space right of them.
+- **Bambu Studio 02.08.02** says "The 3mf file has invalid config, load geometry data only"
+  for these files. That is a bug in that version (fixed in 02.08.03): the files carry no
+  printer settings on purpose. Geometry and the filament of each part load correctly.
 - **Label fit** (default 0.05 mm all round the clip profile, −0.30 to 0.30, negative is a
   press fit): only the label changes, so a looser or tighter label fits bins you already
   printed. Checked in CAD only.
@@ -184,8 +189,9 @@ It builds the default set (`--positions 1,2,6` for a subset) with the same
 
 ## Things worth knowing
 
-- **OCP is not thread safe**, so one worker thread runs jobs in order. A 116-box batch from
-  cold takes tens of minutes (5–40 s per box; the lock-washer icons are the slowest). The editor runs every build as a job and
+- **OCP is not thread safe**, so one worker thread runs jobs in order. Labels are cut as
+  meshes (manifold3d, 0.1–0.5 s each) on a tray built once per size and setting; bins take
+  1–2 s and are built once per size, so a whole drawer takes about a minute from cold. The editor runs every build as a job and
   polls it once a second, because a single long request gets cut off by proxies: GitHub
   Codespaces port forwarding dropped the old synchronous "All as 3MF" after about a minute
   (nginx logged `499`) while the build carried on server-side. If the page is closed, the

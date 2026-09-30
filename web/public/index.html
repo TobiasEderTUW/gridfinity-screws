@@ -566,26 +566,18 @@ function textInk(str){                   // ink box in em units, pen at x = 0 on
   return {x0: -m.actualBoundingBoxLeft / 100, x1: m.actualBoundingBoxRight / 100,
           top: m.actualBoundingBoxAscent / 100, bot: -m.actualBoundingBoxDescent / 100};
 }
-// The natural layout (label_art.compose(..., site_layout=False)): icons and text at full
-// relative size, text never condensed or shrunk. Only the whole label is scaled (labelScales).
-function labelArt(b){                    // SVG markup in plate mm (y down) + its bounding box
+// The label's two blocks at natural size (generator: label_art.label_parts): the icons'
+// layout box (2 * half wide, centred on 0 in the icon path) and the text ink, at full cap
+// height, never condensed or shrunk. Only the whole label is scaled (labelScales).
+function labelArt(b){
   const L = CAT.layout, p = partInfo(b.part);
   if (!p) return null;
-  const half = p.half, iconsW = 2 * half, ih = L.icon_h;
-  const text = labelText(b);
-  const icon = dx => `<path fill-rule="evenodd" transform="translate(${dx.toFixed(3)} 0)" d="${p.icon}"/>`;
-  const only = {svg: icon(0), x0: -half, x1: half, y0: -ih / 2, y1: ih / 2};
-  if (!text) return only;
-  const ink = textInk(text);
-  if (!(ink.top > 0)) return only;
-  const sc = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
-  const tw = (ink.x1 - ink.x0) * sc;
-  const gl = -(iconsW + L.gap + tw) / 2;
-  const penX = gl + iconsW + L.gap - ink.x0 * sc;
-  const base = (ink.top + ink.bot) / 2 * sc;       // ink centred vertically
-  return {svg: icon(gl + half)
-    + `<text x="${penX.toFixed(3)}" y="${base.toFixed(3)}" font-size="${sc.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(text)}</text>`,
-    x0: gl, x1: gl + iconsW + L.gap + tw, y0: -ih / 2, y1: ih / 2};
+  const iconsW = 2 * p.half, text = labelText(b);
+  const ink = text ? textInk(text) : null;
+  if (!ink || !(ink.top > 0)) return {p, iconsW, text: "", width: iconsW};
+  const em = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
+  const tw = (ink.x1 - ink.x0) * em;
+  return {p, iconsW, text, ink, em, tw, width: iconsW + L.gap + tw};
 }
 // One label size per box width across the drawer (generator: label_scales): the largest
 // scale at which every label of that width fits its box, as icon height rounded down to
@@ -593,7 +585,7 @@ function labelArt(b){                    // SVG markup in plate mm (y down) + it
 let SCALES = {};
 function labelFit(b){
   const st = labelStrip(b), a = CAT && labelArt(b);
-  const byWidth = a ? st.sw / (a.x1 - a.x0) : Infinity;
+  const byWidth = a ? st.sw / a.width : Infinity;
   return Math.min(st.sh / (CAT?.layout.icon_h ?? 8.12), byWidth, LABEL_MAX_UPSCALE);
 }
 function labelScales(){
@@ -614,14 +606,24 @@ function labelStrip(b){
   const front = b.label !== "top";
   return {W, D, x, w, h, y: front ? D - from - h : from, cy: front ? D - mid : mid, sw, sh};
 }
+// Icons at the left edge of the safe area (the same place on every label of a box width),
+// text centred in the space right of them, all at the common size of the box width
+// (generator: label_artwork). Left as read from the drawer front, also on back labels.
 function labelMarkup(b, st){
   if (!CAT) return "";
-  // the common size of this box width; the icon line sits on the label's centre line
   const a = labelArt(b);
   if (!a) return "";
-  const sc = Math.min(SCALES[b.w] ?? Infinity, labelFit(b));
-  return `<g fill="var(--lab-ink)" transform="translate(${(st.W / 2).toFixed(3)} ${st.cy.toFixed(3)}) scale(${sc.toFixed(4)}) `
-    + `translate(${(-(a.x0 + a.x1) / 2).toFixed(3)} 0)">${a.svg}</g>`;
+  const sc = Math.min(SCALES[b.w] ?? Infinity, labelFit(b)), f = v => v.toFixed(3);
+  const left = st.W / 2 - st.sw / 2;
+  let out = `<path fill-rule="evenodd" transform="translate(${f(left + a.p.half * sc)} ${f(st.cy)}) scale(${sc.toFixed(4)})" d="${a.p.icon}"/>`;
+  if (a.text){
+    const freeL = left + (a.iconsW + CAT.layout.gap) * sc, freeR = st.W / 2 + st.sw / 2;
+    const inkL = (freeL + freeR) / 2 - a.tw * sc / 2;
+    const fs = a.em * sc, penX = inkL - a.ink.x0 * fs;
+    const baseY = st.cy + (a.ink.top + a.ink.bot) / 2 * fs;     // ink centred on the icon line
+    out += `<text x="${f(penX)}" y="${f(baseY)}" font-size="${fs.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(a.text)}</text>`;
+  }
+  return `<g fill="var(--lab-ink)">${out}</g>`;
 }
 // The tile is the cell span minus 1 px each side, minus a 1 px border: its drawing area starts
 // 2 px into the span. Showing exactly those millimetres keeps one scale (cell px per 42 mm) on

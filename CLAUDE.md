@@ -42,7 +42,7 @@ show the arithmetic, name what has not been verified. They catch hand-waving.
 | editor default layout | the user's hand layout, 308 of 350 cells (differs in 7 bins, see §4) |
 | bin height | **8U = 56 mm, uniform — this is a hard, non-negotiable requirement** |
 | fill estimation | **removed on request (2026-09-29)** — no volume model anywhere; footprints are the user's choice |
-| script version | `2026-09-30.3-label-size-per-width` |
+| script version | `2026-09-30.4-left-icons-mesh-labels` |
 
 ---
 
@@ -103,6 +103,17 @@ Derived over many iterations; do not silently re-litigate them.
      the CAD text, so it may show 6.33 where the file says 6.35. A condensing version (text
      narrowed to 65 %) existed for an hour and was rejected. `compose()` with the default
      `site_layout=True` is still the site layout the 116-label verification used.
+   - **Layout on the printed label (2026-09-30, user request):** icons at the **left edge** of
+     the safe area (the same place on every label of a box width), text centred in the space
+     right of them (after the 2 mm gap at label scale). `label_art.label_parts()` gives the two
+     blocks at natural size, `generator.label_artwork(spec, area)` places them in box mm; the
+     editor's `labelMarkup` mirrors it. "Left" as read from the drawer front, back labels too.
+   - **Fast label build (2026-09-30):** `build_label_plate_3mf` uses `make_mw_label_mesh`: the
+     tray (`_mw_tray`, CadQuery) is built once per (w, d, u, depth, fit, detent, side) and
+     cached as a mesh (`_mw_tray_mesh`, lru_cache); the artwork is extruded with trimesh
+     (`mapbox-earcut`) and the pocket cut with **manifold3d** — 0.1–0.5 s per label instead
+     of 6–21 s (the OCC cut of dozens of glyph solids was 60 % of the time). `make_mw_label`
+     (all CadQuery) stays as the reference; `tools/verify_label_mesh.py` compares both.
    - A canvas-rasterised text label was tried long ago and rejected; this is vector text in
      the site's font, which the user chose explicitly.
    - Path: `label_art.compose(part, text)` → `_label_geometry(spec, …, _mw_label_area(spec))`
@@ -355,6 +366,14 @@ of those changing rebuilds.
   Studio reported "2 non-manifold edges" on every label (2026-09-19). `_mw_offset_stack` now
   clamps the radius at a segment's small end and grows it towards the big end. Check meshes,
   not just `isValid()`: count edges not shared by exactly two triangles.
+- **"The 3mf file has invalid config, load geometry data only" in Bambu Studio 02.08.02**
+  (stable as of 2026-09-30) is a Bambu bug, not ours: its `check_project_config` returned
+  false for a 3MF without `Metadata/project_settings.config` (`if (!nd) return false`), and
+  02.08.02 shows it as a dialog. Fixed in 02.08.03 (pre-release): an empty config is valid.
+  Harmless: geometry loads and each part keeps its filament ("reset config except color";
+  `model_settings.config` is read regardless). Avoiding it on 02.08.02 needs a project config
+  in the 3MF, which Bambu merges into the user's printer/filament presets — deliberately not
+  done. Checked in the BambuStudio sources (Plater.cpp at v02.08.02.61 / v02.08.04.57).
 - **The api container is capped at 4 GB** (`mem_limit`), so a runaway OCC boolean kills the
   container instead of rebooting the Codespace.
 - **OCP/CadQuery is not thread safe** — the service serialises builds behind a lock.

@@ -319,10 +319,30 @@ def compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
 
 
 @lru_cache(maxsize=4096)
+def label_parts(key: str, text: str) -> tuple[tuple[Polygon, ...], float, tuple[Polygon, ...], float]:
+    """The label's two blocks at natural size, in plate units, each centred on y = 0:
+    (icons, icons_w, text, text_w). The icons' layout box spans x = 0..icons_w; the text ink
+    starts at x = 0. Text is at full cap height, never shrunk (the printed labels scale the
+    whole label; see generator: label_scales)."""
+    icons = list(icon_polygons(key))
+    ix0, _iy0, ix1, _iy1 = _bounds(icons)
+    half = ix1 if part(key)['category'] == 'bolt' else max(-ix0, ix1)   # layout box, see _compose
+    icons = tuple(_disjoint(_translate(p, half, 0) for p in icons))
+    text = (text or '').strip()
+    glyphs = text_polygons(text) if text else []
+    if not glyphs:
+        return icons, 2 * half, (), 0.0
+    tx0, ty0, tx1, ty1 = _bounds(glyphs)
+    s = TEXT_CAP_H / ty1
+    y_mid = (ty0 + ty1) / 2 * s
+    glyphs = [_translate(_scale(g, s, s, origin=(0, 0)), -tx0 * s, -y_mid) for g in glyphs]
+    return icons, 2 * half, tuple(_disjoint(glyphs)), (tx1 - tx0) * s
+
+
 def natural_width(key: str, text: str) -> float:
-    """Width of the natural layout (site_layout=False), in plate units."""
-    x0, _y0, x1, _y1 = _bounds(compose(key, text, site_layout=False))
-    return x1 - x0
+    """Width the label needs at natural size: icons, gap, text (plate units)."""
+    _icons, icons_w, _text, text_w = label_parts(key, text)
+    return icons_w + (ICON_TEXT_GAP + text_w if text_w else 0.0)
 
 
 def _compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
