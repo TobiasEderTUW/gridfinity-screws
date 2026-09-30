@@ -189,8 +189,12 @@ def build_screw(kind, d, L):
     return mesh
 
 # -------- parse generated box set --------
-# SK_M6x80_2x3_8U[_LBACK]_BODY.stl -- files carry no position or quantity
+# allen-countersunk_M6x80_2x3_8U[_LBACK]_BODY.stl -- part type + label text, no position or quantity.
+# This drawer model knows the four head kinds of the original order (zones, screw stand-ins);
+# the generator names them by their label.alch.shop part type since 2026-09-29.
 RX = re.compile(r'^([^_]+)_M(\d+)x(\d+)_([0-9]+)x([0-9]+)_([0-9]+)U(_LBACK)?_(BODY|LABEL_INLAY)\.stl$')
+PART_KIND = {'allen-countersunk': 'SK', 'allen-socket': 'ZK', 'phillips-pan': 'LK', 'hex-hex': '6kt',
+             'SK': 'SK', 'ZK': 'ZK', 'LK': 'LK', '6kt': '6kt'}   # older file names
 
 
 def load_items(source_zip: Path, work: Path) -> list[dict]:
@@ -204,7 +208,11 @@ def load_items(source_zip: Path, work: Path) -> list[dict]:
             m = RX.match(fn)
             if not m:
                 continue
-            kind, dia, length, w, h, u, back, _suffix = m.groups()
+            part, dia, length, w, h, u, back, _suffix = m.groups()
+            if part not in PART_KIND:
+                raise SystemExit(f'{fn}: part type {part!r} is not one of the four kinds this drawer '
+                                 f'model knows ({", ".join(sorted(k for k in PART_KIND if "-" in k))})')
+            kind = PART_KIND[part]
             name = f'{kind}_M{dia}x{length}'
             bucket[name] = {
                 'name': name, 'kind': kind, 'dia': int(dia), 'length': int(length),

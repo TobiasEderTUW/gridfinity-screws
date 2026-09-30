@@ -1,12 +1,14 @@
-"""Build service for the Schraubenschublade planner.
+"""Build service for the drawer planner.
 
-Wraps the existing CadQuery pipeline so the editor can ask for the real thing:
-a body with the label pocket cut out, plus the Chappel label inlay, exported as a
-two-part 3MF. Scraped label artwork is cached under CACHE_DIR and reused.
+Wraps the CadQuery pipeline so the editor can ask for the real thing: a body with the
+label pocket cut out plus the label inlay as a two-part 3MF, or bins and label plates for
+the removable styles. Built files are cached under CACHE_DIR and reused.
 
+Fully offline: the label artwork is composed from generator/assets (icon exports + font).
+A box is described by its part type, thread, length and optional label text, so any part
+type of the catalogue can be built, not only the 116 positions of the default set.
 The editor's 3MF export and viewer depend on this service: there is no browser-built
-fallback, because that could only produce a body without its label. Label artwork is
-fetched on demand, for exactly the positions a build asks for.
+fallback, because that could only produce a body without its label.
 """
 from __future__ import annotations
 
@@ -30,7 +32,10 @@ from pydantic import BaseModel, Field
 
 CACHE = Path(os.environ.get("CACHE_DIR", "/data/cache"))
 OUT = Path(os.environ.get("OUT_DIR", "/data/out"))
+STATE = Path(os.environ.get("STATE_DIR", "/data/state"))   # shared editor state (the default drawer)
 GENERATOR = Path("/app/generator/generate_gridfinity_chappel_bins.py")
+LABEL_ART = GENERATOR.with_name("label_art.py")
+ASSETS = GENERATOR.parent / "assets"
 BUILT = CACHE / "built_3mf"            # finished 3MFs, reused while their inputs are unchanged
 BUILD_LOCK = threading.Lock()          # CadQuery/OCP is not thread safe
 
@@ -61,26 +66,16 @@ def generator():
     return _gen
 
 
-def cached_labels() -> set[int]:
-    folder = CACHE / "chappel_raw_labels"
-    if not folder.exists():
-        return set()
-    out = set()
-    for f in folder.glob("P*_CHAPPEL_ORIGINAL.stl"):
-        try:
-            out.add(int(f.name[1:4]))
-        except ValueError:
-            continue
-    return out
-
-
 # Editor vocabulary, as the drawer is drawn (front at the bottom): "bot" = label shelf on
 # the front edge (the original design), "top" = on the back edge.
 LABEL_SIDE = {"bot": "front", "top": "back"}
 
 
 class Item(BaseModel):
-    pos: int
+    part: str = Field(min_length=1, max_length=64)            # catalogue key, e.g. allen__countersunk
+    thread: str = Field(min_length=1, max_length=16)          # M6, #8, 1/4" ...
+    length: float | None = Field(default=None, gt=0, le=1000)  # None for nuts and washers
+    text: str | None = Field(default=None, max_length=40)     # label text; default thread×length
     w: int = Field(ge=1, le=6)
     d: int = Field(ge=1, le=6)
     label: Literal["bot", "top"] = "bot"
@@ -90,7 +85,6 @@ class BuildRequest(BaseModel):
     items: list[Item]
     height_u: int = Field(default=8, ge=3, le=12)
     keep: bool = True                 # also write the files into OUT_DIR
-    fetch_missing: bool = True        # scrape label artwork we do not have yet
     # "integrated": label inlaid in each bin, one 3MF per screw.
     # "removable": snap-rim bins deduplicated per size/edge/depth + one label plate per screw.
     # "makerworld": lipped bins deduplicated per size + one clip-on label tray per screw.
@@ -100,72 +94,56 @@ class BuildRequest(BaseModel):
     label_detent: bool = False        # makerworld: detent bumps on the side lips + dimples
 
 
-class FetchRequest(BaseModel):
-    positions: list[int] | None = None
-    headed: bool = False
-
-
 @app.get("/api/health")
 def health():
     cad = True
     detail = None
     try:
-        generator()
+        gen = generator()
     except HTTPException as exc:
         cad, detail = False, exc.detail
-    specs = len(_gen.SPECS) if cad else 0
-    return {"cad": cad, "detail": detail, "labels": len(cached_labels()),
-            "positions": specs, "cache": str(CACHE), "out": str(OUT)}
-
-
-@app.get("/api/labels")
-def labels():
-    return {"cached": sorted(cached_labels())}
-
-
-@app.post("/api/labels/fetch")
-def fetch_labels(req: FetchRequest):
-    gen = generator()
-    CACHE.mkdir(parents=True, exist_ok=True)
-    wanted = set(req.positions) if req.positions else {s["pos"] for s in gen.SPECS}
-    missing = wanted - cached_labels()
-    if missing:
-        with BUILD_LOCK:
-            try:
-                gen.fetch_chappel_labels(CACHE, positions=missing, headed=req.headed)
-            except Exception as exc:              # noqa: BLE001
-                raise HTTPException(502, f"label fetch failed: {exc}") from exc
-    have = cached_labels()
-    return {"cached": len(have), "total": len(wanted), "fetched": sorted(missing & have)}
+    parts = len(gen.label_art.parts()) if cad else 0
+    return {"cad": cad, "detail": detail, "parts": parts, "cache": str(CACHE), "out": str(OUT)}
 
 
 def _spec_for(gen, item: Item, height_u: int) -> dict:
-    base = next((s for s in gen.SPECS if s["pos"] == item.pos), None)
-    if base is None:
-        raise HTTPException(404, f"position {item.pos} is not in the inventory")
-    spec = dict(base)
-    spec["grid_w"], spec["grid_d"], spec["height_u"] = item.w, item.d, height_u
-    spec["label_side"] = LABEL_SIDE[item.label]
+    length = item.length
+    if length is not None and float(length).is_integer():
+        length = int(length)
+    spec = {"pos": 0, "part": item.part, "thread": item.thread.strip(), "length": length,
+            "text": (item.text or "").strip() or None, "norm": "",
+            "grid_w": item.w, "grid_d": item.d, "height_u": height_u,
+            "label_side": LABEL_SIDE[item.label]}
+    try:
+        gen.validate_spec(spec)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return spec
 
 
-def _cached(path: Path, label: Path | None, needs_label: bool) -> bool:
+def _label_inputs(gen, spec: dict) -> list[Path]:
+    """Files a label's artwork is made from; a newer one invalidates the cached build."""
+    icon = ASSETS / gen.label_art.part(spec["part"])["icon_file"]
+    return [LABEL_ART, ASSETS / "label_catalogue.json", ASSETS / "fonts" / "HarmonyOS_Sans_SC_Regular.ttf", icon]
+
+
+def _cached(path: Path, extra: list[Path]) -> bool:
     """Is this cached build newer than everything it was made from?
 
-    The name encodes screw, footprint, height, side and style, so any of those changing is a
-    miss by construction; a newer generator script, app.py or label artwork invalidates it.
+    The name encodes part, text, footprint, height, side and style, so any of those changing
+    is a miss by construction; a newer generator, app.py or label asset invalidates it.
     """
-    if not path.is_file() or (needs_label and label is None):
+    if not path.is_file():
         return False
-    inputs = [GENERATOR, Path(__file__)] + ([label] if label is not None else [])
+    inputs = [GENERATOR, Path(__file__)] + extra
     newest = max(p.stat().st_mtime for p in inputs if p.exists())
     return path.stat().st_mtime >= newest
 
 
-def _cached_build(stem: str, label: Path | None, needs_label: bool, build) -> bytes:
+def _cached_build(stem: str, extra: list[Path], build) -> bytes:
     """Return BUILT/<stem>.3mf, building it with build(path) first if it is stale."""
     path = BUILT / f"{stem}.3mf"
-    if not _cached(path, label, needs_label):
+    if not _cached(path, extra):
         work = BUILT / ".partial"             # same file system, so replace() is atomic
         work.mkdir(parents=True, exist_ok=True)
         tmp = work / f"{stem}.3mf"            # the builders name the 3MF object after the file
@@ -176,14 +154,13 @@ def _cached_build(stem: str, label: Path | None, needs_label: bool, build) -> by
 
 def _build_integrated(gen, spec: dict) -> tuple[str, bytes]:
     stem = gen.filename_stem(spec)
-    label = gen.find_chappel_cache_path(CACHE, spec)
-    data = _cached_build(stem, label, True, lambda p: gen.build_integrated_3mf(spec, CACHE, p))
+    data = _cached_build(stem, _label_inputs(gen, spec), lambda p: gen.build_integrated_3mf(spec, p))
     return f"{stem}.3mf", data
 
 
 def _build_snap_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
     w, d, u, side, depth = key
-    data = _cached_build(gen.snap_bin_stem(w, d, u, side, depth), None, False,
+    data = _cached_build(gen.snap_bin_stem(w, d, u, side, depth), [],
                          lambda p: gen.build_snap_bin_3mf(w, d, u, p, side, depth))
     return f"bins/{gen.snap_bin_stem(w, d, u, side, depth, count)}.3mf", data
 
@@ -191,20 +168,19 @@ def _build_snap_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
 def _build_mw_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
     w, d, u = key[:3]
     det = len(key) == 4                                      # (w, d, u, 'det'): with detent ribs
-    data = _cached_build(gen.mw_bin_stem(w, d, u, detent=det), None, False,
+    data = _cached_build(gen.mw_bin_stem(w, d, u, detent=det), [],
                          lambda p: gen.build_mw_bin_3mf(w, d, u, p, det))
     return f"bins/{gen.mw_bin_stem(w, d, u, count, det)}.3mf", data
 
 
 def _build_label_plate(gen, spec: dict) -> tuple[str, bytes]:
     stem = gen.label_plate_stem(spec)
-    label = gen.find_chappel_cache_path(CACHE, spec)
-    data = _cached_build(stem, label, True, lambda p: gen.build_label_plate_3mf(spec, CACHE, p))
+    data = _cached_build(stem, _label_inputs(gen, spec), lambda p: gen.build_label_plate_3mf(spec, p))
     return f"labels/{stem}.3mf", data
 
 
 def _check_request(gen, req: BuildRequest) -> None:
-    """Reject bad input up front, before anything is queued or scraped."""
+    """Reject bad input up front, before anything is queued."""
     if not req.items:
         raise HTTPException(400, "no items requested")
     for item in req.items:
@@ -216,32 +192,11 @@ def _check_request(gen, req: BuildRequest) -> None:
                 raise HTTPException(422, f"{gen.screw_name(spec)}: {exc}") from exc
 
 
-def _fetch_missing(gen, items: list[Item]) -> None:
-    """Scrape label artwork for exactly the requested positions that lack it. Caller holds BUILD_LOCK."""
-    wanted = {i.pos for i in items}
-    missing = sorted(wanted - cached_labels())
-    if missing:
-        try:
-            gen.fetch_chappel_labels(CACHE, positions=set(missing))
-        except Exception as exc:                  # noqa: BLE001
-            got = len(set(missing) & cached_labels())
-            raise RuntimeError(
-                f"label scrape stopped after {got} of {len(missing)} labels: {exc} "
-                "— fetched labels are kept, so retrying continues from there"
-            ) from exc
-    missing = sorted(wanted - cached_labels())
-    if missing:
-        raise RuntimeError(
-            f"no label artwork for position(s) {missing[:10]}"
-            f"{' …' if len(missing) > 10 else ''} — the scrape finished but produced no file; "
-            "no box is built without its label."
-        )
-
-
 def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "integrated",
                label_depth: float = 10.0, on_box=lambda done, name, total: None,
                label_fit: float = 0.05, label_detent: bool = False) -> tuple[str, str, bytes]:
-    """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK."""
+    """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK.
+    Two boxes with the same part, text and footprint share one file."""
     specs = [_spec_for(gen, item, height_u) for item in items]
     for spec in specs:
         spec["label_style"] = style
@@ -258,9 +213,13 @@ def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "
             bin_jobs = [(gen.snap_bin_stem(*key, count=count), lambda k=key, c=count: _build_snap_bin(gen, k, c))
                         for key, count in bins]
         jobs = (bin_jobs
-                + [(gen.label_plate_stem(sp), lambda sp=sp: _build_label_plate(gen, sp)) for sp in labels])
+                + [(stem, lambda sp=sp: _build_label_plate(gen, sp))
+                   for stem, sp in {gen.label_plate_stem(sp): sp for sp in labels}.items()])
     else:
-        jobs = [(gen.filename_stem(sp), lambda sp=sp: _build_integrated(gen, sp)) for sp in specs]
+        seen: dict[str, dict] = {}
+        for sp in specs:
+            seen.setdefault(gen.filename_stem(sp), sp)
+        jobs = [(stem, lambda sp=sp: _build_integrated(gen, sp)) for stem, sp in seen.items()]
 
     built: list[tuple[str, bytes]] = []
     for n, (name, job) in enumerate(jobs):
@@ -297,10 +256,6 @@ def generate(req: BuildRequest):
     _check_request(gen, req)
     with BUILD_LOCK:
         try:
-            if req.fetch_missing:
-                _fetch_missing(gen, req.items)
-            elif not {i.pos for i in req.items} <= cached_labels():
-                raise RuntimeError("label artwork missing and fetch_missing is false")
             name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth,
                                            label_fit=req.label_fit, label_detent=req.label_detent)
         except RuntimeError as exc:
@@ -322,29 +277,18 @@ JOB_QUEUE: "queue.Queue[str]" = queue.Queue()
 
 def _job_key(req: BuildRequest) -> str:
     return json.dumps([req.height_u, req.keep, req.style, req.label_depth, req.label_fit, req.label_detent,
-                       [[i.pos, i.w, i.d, i.label] for i in req.items]])
+                       [[i.part, i.thread, i.length, i.text, i.w, i.d, i.label] for i in req.items]])
 
 
 def _job_public(job: dict) -> dict:
     job = job.copy()                    # the worker thread adds keys while we read
-    out = {k: v for k, v in job.items() if not k.startswith("_")}
-    wanted = job["_wanted"]
-    if job["phase"] == "labels":        # the scrape reports nothing; count its files instead
-        out["done"] = len(wanted & cached_labels()) - job["_had"]
-    return out
+    return {k: v for k, v in job.items() if not k.startswith("_")}
 
 
 def _run_job(job: dict) -> None:
     gen = generator()
     req: BuildRequest = job["_req"]
     with BUILD_LOCK:
-        have = cached_labels()
-        missing = job["_wanted"] - have
-        if missing:
-            job.update(phase="labels", done=0, total=len(missing), current="label.alch.shop",
-                       _had=len(job["_wanted"] & have))
-            _fetch_missing(gen, req.items)
-
         def on_box(done: int, name: str, total: int) -> None:
             job.update(done=done, current=name, total=total)
 
@@ -390,7 +334,6 @@ threading.Thread(target=_worker, name="build-worker", daemon=True).start()
 def create_job(req: BuildRequest):
     gen = generator()
     _check_request(gen, req)
-    req.fetch_missing = True
     key = _job_key(req)
     with JOBS_LOCK:
         # Same request again (a second click, a reload) -> attach to that job rather than
@@ -403,7 +346,7 @@ def create_job(req: BuildRequest):
         job = {"id": job_id, "phase": "queued", "done": 0, "total": len(req.items),
                "current": "", "items": len(req.items), "created": time.time(),
                "queued_ahead": JOB_QUEUE.qsize(),
-               "_key": key, "_req": req, "_wanted": {i.pos for i in req.items}, "_had": 0}
+               "_key": key, "_req": req}
         JOBS[job_id] = job
     JOB_QUEUE.put(job_id)
     return _job_public(job)
@@ -436,3 +379,86 @@ def job_file(job_id: str):
 def space():
     usage = shutil.disk_usage(str(CACHE if CACHE.exists() else Path("/")))
     return {"free_mb": usage.free // 1048576}
+
+
+# ---------------------------------------------------------------------------------------
+# The shared default drawer. One per installation: "Set as default" in the editor stores
+# the current design here, and every browser without its own layout (and "Load default")
+# starts from it. Each replaced default is kept in STATE/default_history/.
+# ---------------------------------------------------------------------------------------
+DEFAULT_FILE = STATE / "default_layout.json"
+DEFAULT_HISTORY = STATE / "default_history"
+DEFAULT_LOCK = threading.Lock()
+GRID_W, GRID_D = 25, 14
+
+
+def _known_parts() -> set[str]:
+    catalogue = json.loads((ASSETS / "label_catalogue.json").read_text(encoding="utf-8"))
+    return {p["key"] for p in catalogue["parts"]}
+
+
+class LayoutBin(BaseModel):
+    pos: int = Field(ge=1)
+    part: str = Field(min_length=1, max_length=64)
+    thread: str = Field(max_length=16)
+    len: float | None = Field(default=None, gt=0, le=1000)
+    text: str | None = Field(default=None, max_length=40)
+    w: int = Field(ge=1, le=6)
+    d: int = Field(ge=1, le=6)
+    x: int | None = Field(default=None, ge=0, lt=GRID_W)
+    y: int | None = Field(default=None, ge=0, lt=GRID_D)
+    label: Literal["bot", "top"] = "bot"
+
+
+class Layout(BaseModel):
+    """The editor's snapshot (local storage format v3)."""
+    v: Literal[3] = 3
+    u: int = Field(default=8, ge=3, le=10)
+    style: Literal["integrated", "removable", "makerworld"] = "integrated"
+    labelDepth: float = Field(default=10.0, ge=6.0, le=30.0)
+    labelFit: float = Field(default=0.05, ge=-0.30, le=0.30)
+    detent: bool = False
+    bins: list[LayoutBin] = Field(min_length=1, max_length=GRID_W * GRID_D)   # an empty default is a mistake
+
+
+def _check_layout(layout: Layout) -> None:
+    unknown = sorted({b.part for b in layout.bins} - _known_parts())
+    if unknown:
+        raise HTTPException(422, f"unknown part type(s): {', '.join(unknown[:5])}")
+    cells: dict[tuple[int, int], int] = {}
+    for b in layout.bins:
+        if (b.x is None) != (b.y is None):
+            raise HTTPException(422, f"box {b.pos}: x and y must both be set or both be empty")
+        if b.x is None:
+            continue
+        if b.x + b.w > GRID_W or b.y + b.d > GRID_D:
+            raise HTTPException(422, f"box {b.pos} sticks out of the drawer")
+        for i in range(b.w):
+            for j in range(b.d):
+                other = cells.setdefault((b.x + i, b.y + j), b.pos)
+                if other != b.pos:
+                    raise HTTPException(422, f"boxes {other} and {b.pos} overlap")
+
+
+@app.get("/api/default")
+def get_default():
+    if not DEFAULT_FILE.is_file():
+        raise HTTPException(404, "no default drawer saved yet")
+    return json.loads(DEFAULT_FILE.read_text(encoding="utf-8"))
+
+
+@app.put("/api/default")
+def set_default(layout: Layout):
+    _check_layout(layout)
+    record = {"saved_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "layout": layout.model_dump()}
+    with DEFAULT_LOCK:
+        STATE.mkdir(parents=True, exist_ok=True)
+        if DEFAULT_FILE.is_file():               # keep what it replaces
+            DEFAULT_HISTORY.mkdir(exist_ok=True)
+            stamp = time.strftime('%Y%m%d-%H%M%S') + f"-{time.time_ns() % 1_000_000_000:09d}"
+            shutil.copy2(DEFAULT_FILE, DEFAULT_HISTORY / f"default_{stamp}.json")
+        tmp = DEFAULT_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
+        tmp.replace(DEFAULT_FILE)                # readers never see a half-written file
+    return {"saved_at": record["saved_at"], "boxes": len(layout.bins)}
+

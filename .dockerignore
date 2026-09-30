@@ -1,3 +1,4 @@
-cache/
-out/
-**/__pycache__/
+# Only the web image uses the repo root as build context; it needs web/ and the fonts.
+*
+!web/
+!generator/assets/fonts/

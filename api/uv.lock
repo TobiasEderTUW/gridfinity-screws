@@ -1579,25 +1579,33 @@ source = { virtual = "." }
 dependencies = [
     { name = "cadquery" },
     { name = "fastapi" },
+    { name = "fonttools" },
     { name = "networkx" },
     { name = "numpy" },
-    { name = "playwright" },
     { name = "shapely" },
     { name = "trimesh" },
     { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "playwright" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cadquery", specifier = "==2.8.0" },
     { name = "fastapi", specifier = "==0.115.6" },
+    { name = "fonttools", specifier = "==4.65.0" },
     { name = "networkx", specifier = "==3.4.2" },
     { name = "numpy", specifier = ">=2.1" },
-    { name = "playwright", specifier = "==1.49.1" },
     { name = "shapely", specifier = "==2.0.6" },
     { name = "trimesh", specifier = "==4.5.3" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.34.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "playwright", specifier = "==1.49.1" }]
 
 [[package]]
 name = "scipy"

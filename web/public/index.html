@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Label text font: HarmonyOS Sans SC Regular, (c) Huawei Device Co., Ltd., used unmodified under the
+   HarmonyOS Sans Fonts License (fonts/HarmonyOS_Sans_LICENSE.txt). The generator sets the printed
+   label text in the same file, so the tiles show what gets printed. */
+@font-face{font-family:"HOS Label";src:url("fonts/HarmonyOS_Sans_SC_Regular.ttf") format("truetype");font-display:swap}
+</style>
 <title>Fami Screw Drawer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +21,7 @@
   --accent:#256c93; --accent-soft:#e2eef5;
   --ok:#2e7d52; --ok-soft:#e0f0e6; --alert:#c1372b; --alert-soft:#fbe5e2;
   --sk:#7fb6e0; --lk:#e6c878; --zk:#8dcf8c; --kt:#e59a8c;
+  --fp:#e8b27c; --sh:#b9a3dc; --fh:#dc8fa6; --nut:#8ccfc7; --wsh:#b8c0c7; --lab-ink:#15191c;
   --shadow:0 1px 2px rgba(20,30,35,.10),0 6px 18px rgba(20,30,35,.06);
   --cell:36px;
 }
@@ -25,6 +32,7 @@
     --accent:#6fb3d9; --accent-soft:#1d2c36;
     --ok:#63c48d; --ok-soft:#172a21; --alert:#f0705f; --alert-soft:#32191a;
     --sk:#4d7ea6; --lk:#a68a44; --zk:#4f9060; --kt:#a66253;
+    --fp:#a6723f; --sh:#7a66a0; --fh:#a35a72; --nut:#4a8f88; --wsh:#6c757d; --lab-ink:#0d1012;
     --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.35);
   }
 }
@@ -34,6 +42,7 @@
   --accent:#6fb3d9; --accent-soft:#1d2c36;
   --ok:#63c48d; --ok-soft:#172a21; --alert:#f0705f; --alert-soft:#32191a;
   --sk:#4d7ea6; --lk:#a68a44; --zk:#4f9060; --kt:#a66253;
+  --fp:#a6723f; --sh:#7a66a0; --fh:#a35a72; --nut:#4a8f88; --wsh:#6c757d; --lab-ink:#0d1012;
   --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
@@ -54,6 +63,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:18px;align-items
 @media (max-width:1080px){main{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
 .stage{padding:14px;overflow-x:auto}
+/* dragging a box must never select page text: the drawer and tray are not text, and during a
+   drag nothing on the page is selectable (the pointer can wander over the sidebar) */
+.drawer-shell,.tray{-webkit-user-select:none;user-select:none}
+body.drag-active{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .rail{display:flex;flex-direction:column;gap:14px}
 .card{padding:13px 14px}
 .card h2{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
@@ -86,17 +99,21 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .frontline{position:absolute;left:10px;right:10px;bottom:22px;height:3px;background:var(--accent);border-radius:2px}
 .frontlabel{position:absolute;left:10px;bottom:6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--accent);font-family:"IBM Plex Mono",ui-monospace,monospace}
-.bin{position:absolute;border-radius:4px;border:1px solid rgba(0,0,0,.28);padding:3px 4px 6px;overflow:hidden;
+.bin{position:absolute;border-radius:4px;border:1px solid rgba(0,0,0,.28);padding:0;overflow:hidden;
   cursor:grab;touch-action:none;display:flex;flex-direction:column;justify-content:center;align-items:center;
   transition:box-shadow .12s ease,border-color .12s ease}
+/* the tile is a top view of the printed box: body, floor, label strip with the real artwork */
+.bin svg.top{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .bin:active{cursor:grabbing}
 .bin .t{font-size:11px;font-weight:600;line-height:1.1;color:#10161a;text-align:center;
   font-family:"IBM Plex Mono",ui-monospace,monospace;pointer-events:none}
-/* which edge carries the label shelf (drawer front is at the bottom of the grid) */
-.bin .lab{position:absolute;left:3px;right:3px;height:3px;border-radius:2px;background:rgba(0,0,0,.42);pointer-events:none}
-.bin .lab.bot{bottom:2px}
-.bin .lab.top{top:2px}
-.tray .items .bin .lab{display:none}
+.bin .t{position:relative;font-size:10.5px;opacity:.8;white-space:nowrap}
+.bin .art{display:contents}
+.bin .ico{display:none}
+.tray .items .bin svg.top{display:none}
+.tray .items .bin{flex-direction:row;gap:6px}
+.tray .items .bin .ico{display:block;height:16px;width:40px;pointer-events:none;color:var(--lab-ink)}
+.tray .items .bin{padding:5px 8px!important}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
 .seg button{border:0;border-radius:0;padding:5px 12px}
 .seg button + button{border-left:1px solid var(--line)}
@@ -115,9 +132,29 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .tray h3{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--alert)}
 .tray .items{display:flex;flex-wrap:wrap;gap:7px}
 .tray .items .bin{position:static;width:auto;height:auto;padding:5px 8px}
+/* ---- part picker (box menu) ---- */
+.picker{display:grid;gap:6px}
+.picker .grp{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.picker .icons{display:flex;flex-wrap:wrap;gap:5px}
+.picker .icons button{width:46px;height:34px;padding:3px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.picker .icons button svg{width:100%;height:100%}
+.picker .icons button.on{background:var(--accent-soft);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.picker .icons button[disabled]{opacity:.22}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fields label{display:grid;gap:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fields label.full{grid-column:1 / -1}
+.fields input{font:inherit;font-size:13px;font-family:"IBM Plex Mono",ui-monospace,monospace;text-transform:none;letter-spacing:0;
+  color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:6px 8px;width:100%}
+.fields input.bad{border-color:var(--alert);background:var(--alert-soft)}
+.lprev{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:6px}
+.lprev svg{display:block;width:100%;height:auto}
+.fontnote{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.4}
+.fontnote a{color:inherit}
 /* ---- modal ---- */
 dialog{border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);
   box-shadow:0 18px 50px rgba(0,0,0,.28);max-width:min(420px,92vw);width:100%}
+#modal{max-width:min(560px,94vw)}
+#modal .mbody{max-height:min(72vh,720px);overflow:auto}
 dialog::backdrop{background:rgba(10,14,16,.5)}
 .mhead{padding:15px 16px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
 .mhead h3{margin:0;font-size:16px;font-weight:600}
@@ -195,7 +232,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
   <header class="top">
     <div>
       <h1>Fami Screw Drawer</h1>
-      <div class="sub">1077 &times; 602 &times; 75 mm &middot; 25 &times; 14 Gridfinity cells &middot; 116 positions</div>
+      <div class="sub">1077 &times; 602 &times; 75 mm &middot; 25 &times; 14 Gridfinity cells &middot; <span id="nBoxes">116</span> boxes</div>
     </div>
     <div class="statusbar" id="statusbar">
       <span class="chip">cells <b id="cellsUsed">300</b>/350</span>
@@ -223,8 +260,13 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
         <h2>Layout</h2>
         <div class="btnrow">
           <button class="primary" id="btnAuto">Auto-arrange</button>
-          <button class="ghost" id="btnReset">Reset</button>
+          <button id="btnAdd" title="Add a box; pick its part type, size and label in the box menu">Add box</button>
         </div>
+        <div class="btnrow" style="margin-top:7px">
+          <button id="btnReset" title="Replace this browser's drawer with the shared default">Load default</button>
+          <button id="btnSetDefault" title="Store this drawer on the server as the default everyone starts from">Set as default</button>
+        </div>
+        <div class="note" id="defaultNote" style="margin-top:7px">shared default: checking &hellip;</div>
         <div class="btnrow" style="margin-top:7px">
           <button id="btnSelectMode">Select bins</button>
           <button class="ghost" id="btnSelClear">Clear selection</button>
@@ -267,7 +309,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <button class="primary" id="btnGen3mfAll">All as 3MF</button>
           <button id="btnGen3mfSel">Selected 3MF</button>
         </div>
-        <div class="note" id="genNote" style="margin-top:9px">Every 3MF is built by generate_gridfinity_chappel_bins.py: BODY with the label pocket cut + Chappel LABEL_INLAY on filament 2. Label artwork that is not cached yet is fetched for exactly the boxes being built.</div>
+        <div class="note" id="genNote" style="margin-top:9px">Every 3MF is built by generate_gridfinity_chappel_bins.py: BODY with the label pocket cut + LABEL_INLAY on filament 2. The label artwork is composed offline from the stored icon exports and font.</div>
       </div>
 
       <div class="panel card">
@@ -287,17 +329,16 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <button id="btnImport">Import CSV&hellip;</button>
         </div>
         <input type="file" id="csvInput" accept=".csv,text/csv" class="hide">
-        <div class="note" id="saveNote" style="margin-top:9px">The working layout is kept in this browser. Export it as CSV to keep a copy; import restores positions, box sizes, quantities and height.</div>
+        <div class="note" id="saveNote" style="margin-top:9px">The working layout is kept in this browser. Export it as CSV to keep a copy; import replaces all boxes with the file's: part types, sizes, label texts, positions and height.</div>
       </div>
 
       <div class="panel card">
         <h2>Reading the drawer</h2>
-        <div class="legend">
-          <div><span class="sw" style="background:var(--sk)"></span> SK &middot; Senkkopf</div>
-          <div><span class="sw" style="background:var(--lk)"></span> LK &middot; Linsenkopf PH</div>
-          <div><span class="sw" style="background:var(--zk)"></span> ZK &middot; Zylinderkopf</div>
-          <div><span class="sw" style="background:var(--kt)"></span> 6kt &middot; Sechskant</div>
-        </div>
+        <div class="legend" id="legend"></div>
+        <div class="note" style="margin-top:9px">Each box is drawn from above: body tinted by head type (darker = larger thread), floor, and the label strip on its edge with the artwork as it will be printed.</div>
+        <div class="fontnote">Label text is set in <b>HarmonyOS Sans</b> &copy; Huawei Device Co., Ltd., used under the
+          <a href="fonts/HarmonyOS_Sans_LICENSE.txt" target="_blank" rel="noopener">HarmonyOS Sans Fonts License</a>.
+          Icons are label exports from <a href="https://label.alch.shop/" target="_blank" rel="noopener">label.alch.shop</a> (ModuBOX Label Generator, ALCH AS).</div>
       </div>
     </aside>
   </main>
@@ -307,11 +348,26 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
   <div class="mhead">
     <div>
       <h3 id="mTitle">M6 &times; 16</h3>
-      <div class="sub" id="mSub">SK &middot; ISO 10642 &middot; 50 pcs</div>
+      <div class="sub" id="mSub">Allen / Hex socket &middot; Countersunk</div>
     </div>
     <button class="ghost" id="mClose" aria-label="Close">&times;</button>
   </div>
   <div class="mbody">
+    <div class="lprev" id="mPreview" aria-label="Label preview"></div>
+    <div class="picker">
+      <span class="seg wide" role="group" aria-label="Part category"><button id="mCatBolt">Screws &amp; bolts</button><button id="mCatNut">Nuts &amp; washers</button></span>
+      <div id="mBoltPick">
+        <div class="grp">Drive</div><div class="icons" id="mDrives"></div>
+        <div class="grp">Head</div><div class="icons" id="mHeads"></div>
+      </div>
+      <div id="mNutPick"><div class="icons" id="mNuts"></div></div>
+    </div>
+    <div class="fields">
+      <label>Thread<input id="mThread" list="threadList" autocomplete="off" spellcheck="false"></label>
+      <label id="mLenWrap">Length (mm)<input id="mLen" type="number" min="1" max="1000" step="1" inputmode="numeric"></label>
+      <label class="full">Label text<input id="mText" maxlength="40" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <datalist id="threadList"><option>M2</option><option>M2.5</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M8</option><option>M10</option><option>M12</option><option>M14</option><option>M16</option></datalist>
     <div class="steppers">
       <div class="stepper">
         <span>Width (cells)</span>
@@ -328,15 +384,15 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
     </div>
     <div class="facts">
       <div><span>Interior</span><span class="v" id="fInner">0 &times; 0 mm</span></div>
-      <div><span>Screw length</span><span class="v" id="fLen">0 mm</span></div>
       <div><span>Box</span><span class="v" id="fBox">2&times;1 &middot; 8U</span></div>
-      <div><span>Label</span><span class="v" id="fLabel">generated text</span></div>
+      <div><span>Build</span><span class="v" id="fLabel">&hellip;</span></div>
     </div>
-
   </div>
   <div class="mfoot">
     <span class="btnrow" style="display:flex;gap:7px">
       <button id="mRotate">Rotate</button>
+      <button id="mDup" title="Add a copy of this box">Duplicate</button>
+      <button id="mDel" title="Remove this box from the drawer plan">Delete</button>
       <button id="m3mf">3MF</button>
     </span>
     <button class="primary" id="mDone">Done</button>
@@ -390,7 +446,9 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
 </dialog>
 
 <script>
-const BINS=[{"pos":1,"kind":"SK","thread":"M6","dia":6,"len":16,"norm":"ISO 10642","art":"P001367","v":552.4,"outer":16,"w":2,"d":1,"x":2,"y":7},{"pos":2,"kind":"SK","thread":"M6","dia":6,"len":20,"norm":"ISO 10642","art":"P001368","v":644.7,"outer":20,"w":2,"d":1,"x":2,"y":8},{"pos":3,"kind":"SK","thread":"M6","dia":6,"len":25,"norm":"ISO 10642","art":"P001369","v":760.1,"outer":25,"w":2,"d":1,"x":2,"y":9},{"pos":4,"kind":"SK","thread":"M6","dia":6,"len":30,"norm":"ISO 10642","art":"P001370","v":875.6,"outer":30,"w":2,"d":1,"x":2,"y":10},{"pos":5,"kind":"SK","thread":"M6","dia":6,"len":40,"norm":"ISO 10642","art":"P001371","v":1106.4,"outer":40,"w":1,"d":3,"x":2,"y":11},{"pos":6,"kind":"SK","thread":"M6","dia":6,"len":80,"norm":"ISO 10642","art":"P001374","v":2029.7,"outer":80,"w":1,"d":3,"x":3,"y":11},{"pos":7,"kind":"SK","thread":"M3","dia":3,"len":6,"norm":"ISO 10642","art":"P005009","v":57.7,"outer":6,"w":2,"d":1,"x":0,"y":0},{"pos":8,"kind":"SK","thread":"M3","dia":3,"len":8,"norm":"ISO 10642","art":"P000332","v":69.2,"outer":8,"w":2,"d":1,"x":0,"y":1},{"pos":9,"kind":"SK","thread":"M3","dia":3,"len":10,"norm":"ISO 10642","art":"P001577","v":80.8,"outer":10,"w":2,"d":1,"x":0,"y":2},{"pos":10,"kind":"SK","thread":"M3","dia":3,"len":12,"norm":"ISO 10642","art":"P002506","v":92.3,"outer":12,"w":2,"d":1,"x":0,"y":3},{"pos":11,"kind":"SK","thread":"M3","dia":3,"len":16,"norm":"ISO 10642","art":"P002443","v":115.4,"outer":16,"w":2,"d":1,"x":0,"y":4},{"pos":12,"kind":"SK","thread":"M3","dia":3,"len":20,"norm":"ISO 10642","art":"P003632","v":138.5,"outer":20,"w":2,"d":1,"x":0,"y":5},{"pos":13,"kind":"SK","thread":"M4","dia":4,"len":8,"norm":"ISO 10642","art":"P000363","v":135.9,"outer":8,"w":2,"d":1,"x":2,"y":0},{"pos":14,"kind":"SK","thread":"M4","dia":4,"len":10,"norm":"ISO 10642","art":"P000369","v":156.2,"outer":10,"w":2,"d":1,"x":2,"y":1},{"pos":15,"kind":"SK","thread":"M4","dia":4,"len":12,"norm":"ISO 10642","art":"P001351","v":176.5,"outer":12,"w":2,"d":1,"x":2,"y":2},{"pos":16,"kind":"SK","thread":"M4","dia":4,"len":16,"norm":"ISO 10642","art":"P001353","v":217.1,"outer":16,"w":2,"d":1,"x":2,"y":3},{"pos":17,"kind":"SK","thread":"M4","dia":4,"len":20,"norm":"ISO 10642","art":"P001354","v":257.8,"outer":20,"w":2,"d":1,"x":2,"y":4},{"pos":18,"kind":"SK","thread":"M4","dia":4,"len":25,"norm":"ISO 10642","art":"P001355","v":308.6,"outer":25,"w":2,"d":1,"x":2,"y":5},{"pos":19,"kind":"SK","thread":"M4","dia":4,"len":30,"norm":"ISO 10642","art":"P003633","v":359.3,"outer":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"kind":"SK","thread":"M5","dia":5,"len":10,"norm":"ISO 10642","art":"P001356","v":268.3,"outer":10,"w":2,"d":1,"x":0,"y":7},{"pos":21,"kind":"SK","thread":"M5","dia":5,"len":12,"norm":"ISO 10642","art":"P001357","v":300.6,"outer":12,"w":2,"d":1,"x":0,"y":8},{"pos":22,"kind":"SK","thread":"M5","dia":5,"len":16,"norm":"ISO 10642","art":"P001358","v":365.2,"outer":16,"w":2,"d":1,"x":0,"y":9},{"pos":23,"kind":"SK","thread":"M5","dia":5,"len":20,"norm":"ISO 10642","art":"P001359","v":429.9,"outer":20,"w":2,"d":1,"x":0,"y":10},{"pos":24,"kind":"SK","thread":"M5","dia":5,"len":25,"norm":"ISO 10642","art":"P001360","v":510.7,"outer":25,"w":2,"d":1,"x":0,"y":11},{"pos":25,"kind":"SK","thread":"M5","dia":5,"len":30,"norm":"ISO 10642","art":"P001361","v":591.5,"outer":30,"w":2,"d":1,"x":0,"y":12},{"pos":26,"kind":"SK","thread":"M5","dia":5,"len":40,"norm":"ISO 10642","art":"P001362","v":753.1,"outer":40,"w":2,"d":1,"x":0,"y":13},{"pos":27,"kind":"ZK","thread":"M3","dia":3,"len":6,"norm":"DIN 912","art":"P003958","v":97.1,"outer":9.0,"w":2,"d":1,"x":8,"y":0},{"pos":28,"kind":"ZK","thread":"M3","dia":3,"len":8,"norm":"DIN 912","art":"P002607","v":108.6,"outer":11.0,"w":2,"d":1,"x":8,"y":1},{"pos":29,"kind":"ZK","thread":"M3","dia":3,"len":10,"norm":"DIN 912","art":"P003066","v":120.2,"outer":13.0,"w":2,"d":1,"x":8,"y":2},{"pos":30,"kind":"ZK","thread":"M3","dia":3,"len":12,"norm":"DIN 912","art":"P003067","v":131.7,"outer":15.0,"w":2,"d":1,"x":8,"y":3},{"pos":31,"kind":"ZK","thread":"M3","dia":3,"len":16,"norm":"DIN 912","art":"P003069","v":154.8,"outer":19.0,"w":2,"d":1,"x":8,"y":4},{"pos":32,"kind":"ZK","thread":"M3","dia":3,"len":20,"norm":"DIN 912","art":"P000571","v":177.9,"outer":23.0,"w":2,"d":1,"x":8,"y":5},{"pos":33,"kind":"ZK","thread":"M3","dia":3,"len":25,"norm":"DIN 912","art":"P000572","v":206.7,"outer":28.0,"w":2,"d":1,"x":8,"y":6},{"pos":34,"kind":"ZK","thread":"M3","dia":3,"len":30,"norm":"DIN 912","art":"P000573","v":235.6,"outer":33.0,"w":2,"d":1,"x":8,"y":7},{"pos":35,"kind":"ZK","thread":"M4","dia":4,"len":8,"norm":"DIN 912","art":"P003953","v":218.2,"outer":12.0,"w":2,"d":1,"x":10,"y":0},{"pos":36,"kind":"ZK","thread":"M4","dia":4,"len":10,"norm":"DIN 912","art":"P003029","v":238.5,"outer":14.0,"w":2,"d":1,"x":10,"y":1},{"pos":37,"kind":"ZK","thread":"M4","dia":4,"len":12,"norm":"DIN 912","art":"P004260","v":258.9,"outer":16.0,"w":2,"d":1,"x":10,"y":2},{"pos":38,"kind":"ZK","thread":"M4","dia":4,"len":16,"norm":"DIN 912","art":"P002244","v":299.5,"outer":20.0,"w":2,"d":1,"x":10,"y":3},{"pos":39,"kind":"ZK","thread":"M4","dia":4,"len":20,"norm":"DIN 912","art":"P000340","v":340.1,"outer":24.0,"w":2,"d":1,"x":10,"y":4},{"pos":40,"kind":"ZK","thread":"M4","dia":4,"len":25,"norm":"DIN 912","art":"P002242","v":390.9,"outer":29.0,"w":2,"d":1,"x":10,"y":5},{"pos":41,"kind":"ZK","thread":"M4","dia":4,"len":30,"norm":"DIN 912","art":"P000341","v":441.7,"outer":34.0,"w":2,"d":1,"x":10,"y":6},{"pos":42,"kind":"ZK","thread":"M4","dia":4,"len":40,"norm":"DIN 912","art":"P000342","v":543.3,"outer":44.0,"w":2,"d":1,"x":10,"y":7},{"pos":43,"kind":"ZK","thread":"M5","dia":5,"len":10,"norm":"DIN 912","art":"P003974","v":407.6,"outer":15.0,"w":2,"d":1,"x":12,"y":0},{"pos":44,"kind":"ZK","thread":"M5","dia":5,"len":12,"norm":"DIN 912","art":"P003557","v":440.0,"outer":17.0,"w":2,"d":1,"x":12,"y":1},{"pos":45,"kind":"ZK","thread":"M5","dia":5,"len":16,"norm":"DIN 912","art":"P002578","v":504.6,"outer":21.0,"w":2,"d":1,"x":12,"y":2},{"pos":46,"kind":"ZK","thread":"M5","dia":5,"len":20,"norm":"DIN 912","art":"P001564","v":569.2,"outer":25.0,"w":2,"d":2,"x":12,"y":3},{"pos":47,"kind":"ZK","thread":"M5","dia":5,"len":25,"norm":"DIN 912","art":"P003558","v":650.0,"outer":30.0,"w":2,"d":2,"x":12,"y":5},{"pos":48,"kind":"ZK","thread":"M5","dia":5,"len":30,"norm":"DIN 912","art":"P001565","v":730.8,"outer":35.0,"w":2,"d":2,"x":12,"y":7},{"pos":49,"kind":"ZK","thread":"M5","dia":5,"len":40,"norm":"DIN 912","art":"P001566","v":892.4,"outer":45.0,"w":2,"d":2,"x":12,"y":9},{"pos":50,"kind":"ZK","thread":"M5","dia":5,"len":50,"norm":"DIN 912","art":"P002579","v":1054.1,"outer":55.0,"w":2,"d":2,"x":12,"y":11},{"pos":51,"kind":"ZK","thread":"M6","dia":6,"len":16,"norm":"DIN 912","art":"P002587","v":769.9,"outer":22.0,"w":2,"d":1,"x":14,"y":0},{"pos":52,"kind":"ZK","thread":"M6","dia":6,"len":20,"norm":"DIN 912","art":"P001567","v":862.2,"outer":26.0,"w":2,"d":2,"x":14,"y":1},{"pos":53,"kind":"ZK","thread":"M6","dia":6,"len":25,"norm":"DIN 912","art":"P002562","v":977.6,"outer":31.0,"w":2,"d":2,"x":14,"y":3},{"pos":54,"kind":"ZK","thread":"M6","dia":6,"len":30,"norm":"DIN 912","art":"P000343","v":1093.1,"outer":36.0,"w":2,"d":2,"x":14,"y":5},{"pos":55,"kind":"ZK","thread":"M6","dia":6,"len":40,"norm":"DIN 912","art":"P000344","v":1323.9,"outer":46.0,"w":2,"d":2,"x":14,"y":7},{"pos":56,"kind":"ZK","thread":"M6","dia":6,"len":50,"norm":"DIN 912","art":"P000345","v":1554.7,"outer":56.0,"w":2,"d":2,"x":14,"y":9},{"pos":57,"kind":"ZK","thread":"M6","dia":6,"len":60,"norm":"DIN 912","art":"P002838","v":1785.6,"outer":66.0,"w":2,"d":2,"x":14,"y":11},{"pos":58,"kind":"ZK","thread":"M8","dia":8,"len":20,"norm":"DIN 912","art":"P001570","v":1757.2,"outer":28.0,"w":2,"d":2,"x":10,"y":8},{"pos":59,"kind":"ZK","thread":"M8","dia":8,"len":30,"norm":"DIN 912","art":"P001571","v":2172.7,"outer":38.0,"w":2,"d":2,"x":10,"y":10},{"pos":60,"kind":"ZK","thread":"M8","dia":8,"len":50,"norm":"DIN 912","art":"P000347","v":3003.7,"outer":58.0,"w":2,"d":2,"x":10,"y":12},{"pos":61,"kind":"ZK","thread":"M10","dia":10,"len":30,"norm":"DIN 912","art":"P002154","v":3671.6,"outer":40.0,"w":2,"d":2,"x":8,"y":9},{"pos":62,"kind":"ZK","thread":"M10","dia":10,"len":50,"norm":"DIN 912","art":"P003680","v":4979.9,"outer":60.0,"w":2,"d":3,"x":8,"y":11},{"pos":63,"kind":"LK","thread":"M3","dia":3,"len":6,"norm":"DIN 7985","art":"P004218","v":83.5,"outer":8.4,"w":2,"d":1,"x":4,"y":0},{"pos":64,"kind":"LK","thread":"M3","dia":3,"len":8,"norm":"DIN 7985","art":"P003438","v":95.0,"outer":10.4,"w":2,"d":1,"x":4,"y":1},{"pos":65,"kind":"LK","thread":"M3","dia":3,"len":10,"norm":"DIN 7985","art":"P003439","v":106.6,"outer":12.4,"w":2,"d":1,"x":4,"y":2},{"pos":66,"kind":"LK","thread":"M3","dia":3,"len":12,"norm":"DIN 7985","art":"P003564","v":118.1,"outer":14.4,"w":2,"d":1,"x":4,"y":3},{"pos":67,"kind":"LK","thread":"M3","dia":3,"len":16,"norm":"DIN 7985","art":"P004219","v":141.2,"outer":18.4,"w":2,"d":1,"x":4,"y":4},{"pos":68,"kind":"LK","thread":"M3","dia":3,"len":20,"norm":"DIN 7985","art":"P003440","v":164.3,"outer":22.4,"w":2,"d":1,"x":4,"y":5},{"pos":69,"kind":"LK","thread":"M4","dia":4,"len":8,"norm":"DIN 7985","art":"P003464","v":193.5,"outer":11.1,"w":2,"d":1,"x":6,"y":0},{"pos":70,"kind":"LK","thread":"M4","dia":4,"len":10,"norm":"DIN 7985","art":"P004216","v":213.8,"outer":13.1,"w":2,"d":1,"x":6,"y":1},{"pos":71,"kind":"LK","thread":"M4","dia":4,"len":12,"norm":"DIN 7985","art":"P003607","v":234.1,"outer":15.1,"w":2,"d":1,"x":6,"y":2},{"pos":72,"kind":"LK","thread":"M4","dia":4,"len":16,"norm":"DIN 7985","art":"P004220","v":274.7,"outer":19.1,"w":2,"d":1,"x":6,"y":3},{"pos":73,"kind":"LK","thread":"M4","dia":4,"len":20,"norm":"DIN 7985","art":"P003640","v":315.3,"outer":23.1,"w":2,"d":1,"x":6,"y":4},{"pos":74,"kind":"LK","thread":"M4","dia":4,"len":25,"norm":"DIN 7985","art":"P008847","v":366.1,"outer":28.1,"w":2,"d":1,"x":6,"y":5},{"pos":75,"kind":"LK","thread":"M5","dia":5,"len":10,"norm":"DIN 7985","art":"P003618","v":355.5,"outer":13.8,"w":2,"d":1,"x":4,"y":6},{"pos":76,"kind":"LK","thread":"M5","dia":5,"len":12,"norm":"DIN 7985","art":"P003646","v":387.9,"outer":15.8,"w":2,"d":1,"x":4,"y":7},{"pos":77,"kind":"LK","thread":"M5","dia":5,"len":16,"norm":"DIN 7985","art":"P003667","v":452.5,"outer":19.8,"w":2,"d":1,"x":4,"y":8},{"pos":78,"kind":"LK","thread":"M5","dia":5,"len":20,"norm":"DIN 7985","art":"P004217","v":517.1,"outer":23.8,"w":2,"d":1,"x":4,"y":9},{"pos":79,"kind":"LK","thread":"M5","dia":5,"len":25,"norm":"DIN 7985","art":"P003641","v":597.9,"outer":28.8,"w":2,"d":2,"x":4,"y":10},{"pos":80,"kind":"LK","thread":"M5","dia":5,"len":30,"norm":"DIN 7985","art":"P003642","v":678.7,"outer":33.8,"w":2,"d":2,"x":4,"y":12},{"pos":81,"kind":"LK","thread":"M6","dia":6,"len":16,"norm":"DIN 7985","art":"P004620","v":743.9,"outer":20.6,"w":2,"d":1,"x":6,"y":7},{"pos":82,"kind":"LK","thread":"M6","dia":6,"len":20,"norm":"DIN 7985","art":"P004079","v":836.2,"outer":24.6,"w":2,"d":2,"x":6,"y":8},{"pos":83,"kind":"LK","thread":"M6","dia":6,"len":25,"norm":"DIN 7985","art":"P004213","v":951.7,"outer":29.6,"w":2,"d":2,"x":6,"y":10},{"pos":84,"kind":"LK","thread":"M6","dia":6,"len":30,"norm":"DIN 7985","art":"P004239","v":1067.1,"outer":34.6,"w":2,"d":2,"x":6,"y":12},{"pos":85,"kind":"6kt","thread":"M3","dia":3,"len":8,"norm":"DIN 933","art":"P000141","v":98.6,"outer":10.0,"w":2,"d":1,"x":16,"y":0},{"pos":86,"kind":"6kt","thread":"M3","dia":3,"len":10,"norm":"DIN 933","art":"P002618","v":110.1,"outer":12.0,"w":2,"d":1,"x":16,"y":1},{"pos":87,"kind":"6kt","thread":"M3","dia":3,"len":12,"norm":"DIN 933","art":"P000151","v":121.7,"outer":14.0,"w":2,"d":1,"x":16,"y":2},{"pos":88,"kind":"6kt","thread":"M3","dia":3,"len":16,"norm":"DIN 933","art":"P002619","v":144.7,"outer":18.0,"w":2,"d":1,"x":16,"y":3},{"pos":89,"kind":"6kt","thread":"M3","dia":3,"len":20,"norm":"DIN 933","art":"P002620","v":167.8,"outer":22.0,"w":2,"d":1,"x":16,"y":4},{"pos":90,"kind":"6kt","thread":"M4","dia":4,"len":10,"norm":"DIN 933","art":"P001076","v":220.4,"outer":12.8,"w":2,"d":1,"x":18,"y":0},{"pos":91,"kind":"6kt","thread":"M4","dia":4,"len":12,"norm":"DIN 933","art":"P003547","v":240.7,"outer":14.8,"w":2,"d":1,"x":18,"y":1},{"pos":92,"kind":"6kt","thread":"M4","dia":4,"len":16,"norm":"DIN 933","art":"P003548","v":281.3,"outer":18.8,"w":2,"d":1,"x":18,"y":2},{"pos":93,"kind":"6kt","thread":"M4","dia":4,"len":20,"norm":"DIN 933","art":"P001079","v":322.0,"outer":22.8,"w":2,"d":1,"x":18,"y":3},{"pos":94,"kind":"6kt","thread":"M4","dia":4,"len":25,"norm":"DIN 933","art":"P001080","v":372.8,"outer":27.8,"w":2,"d":1,"x":18,"y":4},{"pos":95,"kind":"6kt","thread":"M4","dia":4,"len":30,"norm":"DIN 933","art":"P001081","v":423.5,"outer":32.8,"w":2,"d":1,"x":18,"y":5},{"pos":96,"kind":"6kt","thread":"M5","dia":5,"len":12,"norm":"DIN 933","art":"P003196","v":387.9,"outer":15.5,"w":2,"d":1,"x":20,"y":0},{"pos":97,"kind":"6kt","thread":"M5","dia":5,"len":16,"norm":"DIN 933","art":"P003197","v":452.6,"outer":19.5,"w":2,"d":1,"x":20,"y":1},{"pos":98,"kind":"6kt","thread":"M5","dia":5,"len":20,"norm":"DIN 933","art":"P001085","v":517.2,"outer":23.5,"w":2,"d":1,"x":20,"y":2},{"pos":99,"kind":"6kt","thread":"M5","dia":5,"len":25,"norm":"DIN 933","art":"P001086","v":598.0,"outer":28.5,"w":2,"d":1,"x":20,"y":3},{"pos":100,"kind":"6kt","thread":"M5","dia":5,"len":30,"norm":"DIN 933","art":"P001087","v":678.8,"outer":33.5,"w":2,"d":1,"x":20,"y":4},{"pos":101,"kind":"6kt","thread":"M5","dia":5,"len":40,"norm":"DIN 933","art":"P001089","v":840.4,"outer":43.5,"w":2,"d":1,"x":20,"y":5},{"pos":102,"kind":"6kt","thread":"M5","dia":5,"len":50,"norm":"DIN 933","art":"P003551","v":1002.0,"outer":53.5,"w":2,"d":1,"x":20,"y":6},{"pos":103,"kind":"6kt","thread":"M6","dia":6,"len":16,"norm":"DIN 933","art":"P001093","v":715.7,"outer":20.0,"w":2,"d":1,"x":22,"y":0},{"pos":104,"kind":"6kt","thread":"M6","dia":6,"len":20,"norm":"DIN 933","art":"P001095","v":808.1,"outer":24.0,"w":2,"d":1,"x":22,"y":1},{"pos":105,"kind":"6kt","thread":"M6","dia":6,"len":25,"norm":"DIN 933","art":"P001097","v":923.5,"outer":29.0,"w":2,"d":1,"x":22,"y":2},{"pos":106,"kind":"6kt","thread":"M6","dia":6,"len":30,"norm":"DIN 933","art":"P001098","v":1038.9,"outer":34.0,"w":2,"d":1,"x":22,"y":3},{"pos":107,"kind":"6kt","thread":"M6","dia":6,"len":40,"norm":"DIN 933","art":"P001100","v":1269.7,"outer":44.0,"w":2,"d":2,"x":22,"y":4},{"pos":108,"kind":"6kt","thread":"M6","dia":6,"len":50,"norm":"DIN 933","art":"P000015","v":1500.6,"outer":54.0,"w":2,"d":2,"x":22,"y":6},{"pos":109,"kind":"6kt","thread":"M6","dia":6,"len":60,"norm":"DIN 933","art":"P000266","v":1731.4,"outer":64.0,"w":2,"d":2,"x":22,"y":8},{"pos":110,"kind":"6kt","thread":"M8","dia":8,"len":20,"norm":"DIN 933","art":"P001105","v":1606.7,"outer":25.3,"w":2,"d":2,"x":20,"y":10},{"pos":111,"kind":"6kt","thread":"M8","dia":8,"len":30,"norm":"DIN 933","art":"P001112","v":2022.2,"outer":35.3,"w":2,"d":2,"x":20,"y":12},{"pos":112,"kind":"6kt","thread":"M8","dia":8,"len":50,"norm":"DIN 933","art":"P000268","v":2853.3,"outer":55.3,"w":2,"d":3,"x":18,"y":8},{"pos":113,"kind":"6kt","thread":"M8","dia":8,"len":80,"norm":"DIN 933","art":"P000271","v":4099.8,"outer":85.3,"w":2,"d":3,"x":18,"y":11},{"pos":114,"kind":"6kt","thread":"M10","dia":10,"len":30,"norm":"DIN 933","art":"P001133","v":3564.3,"outer":36.4,"w":2,"d":3,"x":16,"y":5},{"pos":115,"kind":"6kt","thread":"M10","dia":10,"len":50,"norm":"DIN 933","art":"P001137","v":4872.7,"outer":56.4,"w":2,"d":3,"x":16,"y":8},{"pos":116,"kind":"6kt","thread":"M10","dia":10,"len":80,"norm":"DIN 933","art":"P000275","v":6835.2,"outer":86.4,"w":2,"d":3,"x":16,"y":11}];
+// The default drawer: the 116 metal-screw positions of the 15.04.2026 order, hand-arranged.
+// pos is an internal id only; part is a label.alch.shop part type (parts.json).
+const BINS=[{"pos":1,"part":"allen__countersunk","thread":"M6","len":16,"w":2,"d":1,"x":2,"y":7},{"pos":2,"part":"allen__countersunk","thread":"M6","len":20,"w":2,"d":1,"x":2,"y":8},{"pos":3,"part":"allen__countersunk","thread":"M6","len":25,"w":2,"d":1,"x":2,"y":9},{"pos":4,"part":"allen__countersunk","thread":"M6","len":30,"w":2,"d":1,"x":2,"y":10},{"pos":5,"part":"allen__countersunk","thread":"M6","len":40,"w":1,"d":3,"x":2,"y":11},{"pos":6,"part":"allen__countersunk","thread":"M6","len":80,"w":1,"d":3,"x":3,"y":11},{"pos":7,"part":"allen__countersunk","thread":"M3","len":6,"w":2,"d":1,"x":0,"y":0},{"pos":8,"part":"allen__countersunk","thread":"M3","len":8,"w":2,"d":1,"x":0,"y":1},{"pos":9,"part":"allen__countersunk","thread":"M3","len":10,"w":2,"d":1,"x":0,"y":2},{"pos":10,"part":"allen__countersunk","thread":"M3","len":12,"w":2,"d":1,"x":0,"y":3},{"pos":11,"part":"allen__countersunk","thread":"M3","len":16,"w":2,"d":1,"x":0,"y":4},{"pos":12,"part":"allen__countersunk","thread":"M3","len":20,"w":2,"d":1,"x":0,"y":5},{"pos":13,"part":"allen__countersunk","thread":"M4","len":8,"w":2,"d":1,"x":2,"y":0},{"pos":14,"part":"allen__countersunk","thread":"M4","len":10,"w":2,"d":1,"x":2,"y":1},{"pos":15,"part":"allen__countersunk","thread":"M4","len":12,"w":2,"d":1,"x":2,"y":2},{"pos":16,"part":"allen__countersunk","thread":"M4","len":16,"w":2,"d":1,"x":2,"y":3},{"pos":17,"part":"allen__countersunk","thread":"M4","len":20,"w":2,"d":1,"x":2,"y":4},{"pos":18,"part":"allen__countersunk","thread":"M4","len":25,"w":2,"d":1,"x":2,"y":5},{"pos":19,"part":"allen__countersunk","thread":"M4","len":30,"w":2,"d":1,"x":2,"y":6},{"pos":20,"part":"allen__countersunk","thread":"M5","len":10,"w":2,"d":1,"x":0,"y":7},{"pos":21,"part":"allen__countersunk","thread":"M5","len":12,"w":2,"d":1,"x":0,"y":8},{"pos":22,"part":"allen__countersunk","thread":"M5","len":16,"w":2,"d":1,"x":0,"y":9},{"pos":23,"part":"allen__countersunk","thread":"M5","len":20,"w":2,"d":1,"x":0,"y":10},{"pos":24,"part":"allen__countersunk","thread":"M5","len":25,"w":2,"d":1,"x":0,"y":11},{"pos":25,"part":"allen__countersunk","thread":"M5","len":30,"w":2,"d":1,"x":0,"y":12},{"pos":26,"part":"allen__countersunk","thread":"M5","len":40,"w":2,"d":1,"x":0,"y":13},{"pos":27,"part":"allen__socket","thread":"M3","len":6,"w":2,"d":1,"x":8,"y":0},{"pos":28,"part":"allen__socket","thread":"M3","len":8,"w":2,"d":1,"x":8,"y":1},{"pos":29,"part":"allen__socket","thread":"M3","len":10,"w":2,"d":1,"x":8,"y":2},{"pos":30,"part":"allen__socket","thread":"M3","len":12,"w":2,"d":1,"x":8,"y":3},{"pos":31,"part":"allen__socket","thread":"M3","len":16,"w":2,"d":1,"x":8,"y":4},{"pos":32,"part":"allen__socket","thread":"M3","len":20,"w":2,"d":1,"x":8,"y":5},{"pos":33,"part":"allen__socket","thread":"M3","len":25,"w":2,"d":1,"x":8,"y":6},{"pos":34,"part":"allen__socket","thread":"M3","len":30,"w":2,"d":1,"x":8,"y":7},{"pos":35,"part":"allen__socket","thread":"M4","len":8,"w":2,"d":1,"x":10,"y":0},{"pos":36,"part":"allen__socket","thread":"M4","len":10,"w":2,"d":1,"x":10,"y":1},{"pos":37,"part":"allen__socket","thread":"M4","len":12,"w":2,"d":1,"x":10,"y":2},{"pos":38,"part":"allen__socket","thread":"M4","len":16,"w":2,"d":1,"x":10,"y":3},{"pos":39,"part":"allen__socket","thread":"M4","len":20,"w":2,"d":1,"x":10,"y":4},{"pos":40,"part":"allen__socket","thread":"M4","len":25,"w":2,"d":1,"x":10,"y":5},{"pos":41,"part":"allen__socket","thread":"M4","len":30,"w":2,"d":1,"x":10,"y":6},{"pos":42,"part":"allen__socket","thread":"M4","len":40,"w":2,"d":1,"x":10,"y":7},{"pos":43,"part":"allen__socket","thread":"M5","len":10,"w":2,"d":1,"x":12,"y":0},{"pos":44,"part":"allen__socket","thread":"M5","len":12,"w":2,"d":1,"x":12,"y":1},{"pos":45,"part":"allen__socket","thread":"M5","len":16,"w":2,"d":1,"x":12,"y":2},{"pos":46,"part":"allen__socket","thread":"M5","len":20,"w":2,"d":2,"x":12,"y":3},{"pos":47,"part":"allen__socket","thread":"M5","len":25,"w":2,"d":2,"x":12,"y":5},{"pos":48,"part":"allen__socket","thread":"M5","len":30,"w":2,"d":2,"x":12,"y":7},{"pos":49,"part":"allen__socket","thread":"M5","len":40,"w":2,"d":2,"x":12,"y":9},{"pos":50,"part":"allen__socket","thread":"M5","len":50,"w":2,"d":2,"x":12,"y":11},{"pos":51,"part":"allen__socket","thread":"M6","len":16,"w":2,"d":1,"x":14,"y":0},{"pos":52,"part":"allen__socket","thread":"M6","len":20,"w":2,"d":2,"x":14,"y":1},{"pos":53,"part":"allen__socket","thread":"M6","len":25,"w":2,"d":2,"x":14,"y":3},{"pos":54,"part":"allen__socket","thread":"M6","len":30,"w":2,"d":2,"x":14,"y":5},{"pos":55,"part":"allen__socket","thread":"M6","len":40,"w":2,"d":2,"x":14,"y":7},{"pos":56,"part":"allen__socket","thread":"M6","len":50,"w":2,"d":2,"x":14,"y":9},{"pos":57,"part":"allen__socket","thread":"M6","len":60,"w":2,"d":2,"x":14,"y":11},{"pos":58,"part":"allen__socket","thread":"M8","len":20,"w":2,"d":2,"x":10,"y":8},{"pos":59,"part":"allen__socket","thread":"M8","len":30,"w":2,"d":2,"x":10,"y":10},{"pos":60,"part":"allen__socket","thread":"M8","len":50,"w":2,"d":2,"x":10,"y":12},{"pos":61,"part":"allen__socket","thread":"M10","len":30,"w":2,"d":2,"x":8,"y":9},{"pos":62,"part":"allen__socket","thread":"M10","len":50,"w":2,"d":3,"x":8,"y":11},{"pos":63,"part":"phillips__pan","thread":"M3","len":6,"w":2,"d":1,"x":4,"y":0},{"pos":64,"part":"phillips__pan","thread":"M3","len":8,"w":2,"d":1,"x":4,"y":1},{"pos":65,"part":"phillips__pan","thread":"M3","len":10,"w":2,"d":1,"x":4,"y":2},{"pos":66,"part":"phillips__pan","thread":"M3","len":12,"w":2,"d":1,"x":4,"y":3},{"pos":67,"part":"phillips__pan","thread":"M3","len":16,"w":2,"d":1,"x":4,"y":4},{"pos":68,"part":"phillips__pan","thread":"M3","len":20,"w":2,"d":1,"x":4,"y":5},{"pos":69,"part":"phillips__pan","thread":"M4","len":8,"w":2,"d":1,"x":6,"y":0},{"pos":70,"part":"phillips__pan","thread":"M4","len":10,"w":2,"d":1,"x":6,"y":1},{"pos":71,"part":"phillips__pan","thread":"M4","len":12,"w":2,"d":1,"x":6,"y":2},{"pos":72,"part":"phillips__pan","thread":"M4","len":16,"w":2,"d":1,"x":6,"y":3},{"pos":73,"part":"phillips__pan","thread":"M4","len":20,"w":2,"d":1,"x":6,"y":4},{"pos":74,"part":"phillips__pan","thread":"M4","len":25,"w":2,"d":1,"x":6,"y":5},{"pos":75,"part":"phillips__pan","thread":"M5","len":10,"w":2,"d":1,"x":4,"y":6},{"pos":76,"part":"phillips__pan","thread":"M5","len":12,"w":2,"d":1,"x":4,"y":7},{"pos":77,"part":"phillips__pan","thread":"M5","len":16,"w":2,"d":1,"x":4,"y":8},{"pos":78,"part":"phillips__pan","thread":"M5","len":20,"w":2,"d":1,"x":4,"y":9},{"pos":79,"part":"phillips__pan","thread":"M5","len":25,"w":2,"d":2,"x":4,"y":10},{"pos":80,"part":"phillips__pan","thread":"M5","len":30,"w":2,"d":2,"x":4,"y":12},{"pos":81,"part":"phillips__pan","thread":"M6","len":16,"w":2,"d":1,"x":6,"y":7},{"pos":82,"part":"phillips__pan","thread":"M6","len":20,"w":2,"d":2,"x":6,"y":8},{"pos":83,"part":"phillips__pan","thread":"M6","len":25,"w":2,"d":2,"x":6,"y":10},{"pos":84,"part":"phillips__pan","thread":"M6","len":30,"w":2,"d":2,"x":6,"y":12},{"pos":85,"part":"hex__hex","thread":"M3","len":8,"w":2,"d":1,"x":16,"y":0},{"pos":86,"part":"hex__hex","thread":"M3","len":10,"w":2,"d":1,"x":16,"y":1},{"pos":87,"part":"hex__hex","thread":"M3","len":12,"w":2,"d":1,"x":16,"y":2},{"pos":88,"part":"hex__hex","thread":"M3","len":16,"w":2,"d":1,"x":16,"y":3},{"pos":89,"part":"hex__hex","thread":"M3","len":20,"w":2,"d":1,"x":16,"y":4},{"pos":90,"part":"hex__hex","thread":"M4","len":10,"w":2,"d":1,"x":18,"y":0},{"pos":91,"part":"hex__hex","thread":"M4","len":12,"w":2,"d":1,"x":18,"y":1},{"pos":92,"part":"hex__hex","thread":"M4","len":16,"w":2,"d":1,"x":18,"y":2},{"pos":93,"part":"hex__hex","thread":"M4","len":20,"w":2,"d":1,"x":18,"y":3},{"pos":94,"part":"hex__hex","thread":"M4","len":25,"w":2,"d":1,"x":18,"y":4},{"pos":95,"part":"hex__hex","thread":"M4","len":30,"w":2,"d":1,"x":18,"y":5},{"pos":96,"part":"hex__hex","thread":"M5","len":12,"w":2,"d":1,"x":20,"y":0},{"pos":97,"part":"hex__hex","thread":"M5","len":16,"w":2,"d":1,"x":20,"y":1},{"pos":98,"part":"hex__hex","thread":"M5","len":20,"w":2,"d":1,"x":20,"y":2},{"pos":99,"part":"hex__hex","thread":"M5","len":25,"w":2,"d":1,"x":20,"y":3},{"pos":100,"part":"hex__hex","thread":"M5","len":30,"w":2,"d":1,"x":20,"y":4},{"pos":101,"part":"hex__hex","thread":"M5","len":40,"w":2,"d":1,"x":20,"y":5},{"pos":102,"part":"hex__hex","thread":"M5","len":50,"w":2,"d":1,"x":20,"y":6},{"pos":103,"part":"hex__hex","thread":"M6","len":16,"w":2,"d":1,"x":22,"y":0},{"pos":104,"part":"hex__hex","thread":"M6","len":20,"w":2,"d":1,"x":22,"y":1},{"pos":105,"part":"hex__hex","thread":"M6","len":25,"w":2,"d":1,"x":22,"y":2},{"pos":106,"part":"hex__hex","thread":"M6","len":30,"w":2,"d":1,"x":22,"y":3},{"pos":107,"part":"hex__hex","thread":"M6","len":40,"w":2,"d":2,"x":22,"y":4},{"pos":108,"part":"hex__hex","thread":"M6","len":50,"w":2,"d":2,"x":22,"y":6},{"pos":109,"part":"hex__hex","thread":"M6","len":60,"w":2,"d":2,"x":22,"y":8},{"pos":110,"part":"hex__hex","thread":"M8","len":20,"w":2,"d":2,"x":20,"y":10},{"pos":111,"part":"hex__hex","thread":"M8","len":30,"w":2,"d":2,"x":20,"y":12},{"pos":112,"part":"hex__hex","thread":"M8","len":50,"w":2,"d":3,"x":18,"y":8},{"pos":113,"part":"hex__hex","thread":"M8","len":80,"w":2,"d":3,"x":18,"y":11},{"pos":114,"part":"hex__hex","thread":"M10","len":30,"w":2,"d":3,"x":16,"y":5},{"pos":115,"part":"hex__hex","thread":"M10","len":50,"w":2,"d":3,"x":16,"y":8},{"pos":116,"part":"hex__hex","thread":"M10","len":80,"w":2,"d":3,"x":16,"y":11}];
 /* ---------- mesh container (parseSTL output, viewer input) ---------- */
 function Mesh(){ return {tri: [], group: 0}; }
 function tri(m, a, b, c){
@@ -471,15 +529,117 @@ function parseSTL(buf){
 const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2,
       FLOOR_Z = 7.2, SHELF_T = 1.2, SHELF_D = 12, U_MM = 7,
       MAX_CELLS = GW * GD;
-const KIND_NAME = {SK:"Senkkopf", LK:"Linsenkopf PH", ZK:"Zylinderkopf", "6kt":"Sechskant"};
-const KIND_VAR  = {SK:"--sk", LK:"--lk", ZK:"--zk", "6kt":"--kt"};
-const KIND_ORDER = ["SK","LK","ZK","6kt"];
-const SHADE = {10:.66, 8:.78, 6:.9, 5:1, 4:1.07, 3:1.14};
+const BODY_R = 3.75, LABEL_MAX_UPSCALE = 1.35;
+// Tint per head type ("family"); wood heads share their machine family, a step darker.
+// Blocks in auto-arrange follow this order.
+const FAMILY = {countersunk:"--sk", pan:"--lk", socket:"--zk", hex:"--kt", flange_pan:"--fp",
+                shoulder:"--sh", flange_hex:"--fh", nut:"--nut", washer:"--wsh"};
+const FAMILY_NAME = {countersunk:"Countersunk", pan:"Pan", socket:"Socket cap", hex:"Hex", flange_pan:"Flange pan",
+                     shoulder:"Shoulder", flange_hex:"Flange hex", nut:"Nuts", washer:"Washers"};
+const FAMILY_ORDER = Object.keys(FAMILY);
+function shade(dia){ return dia <= 3 ? 1.14 : dia <= 4 ? 1.07 : dia <= 5 ? 1 : dia <= 6 ? .9 : dia <= 8 ? .78 : .66; }
+
+/* ---------- part types (parts.json, derived from the stored label exports) ---------- */
+let CAT = null;
+const partInfo = key => CAT?.parts.find(p => p.key === key) ?? null;
+const isBolt = key => key.includes("__");
+const headOf = key => isBolt(key) ? key.split("__")[1] : null;
+function family(b){
+  if (!isBolt(b.part)) return b.part.endsWith("_washer") ? "washer" : "nut";
+  return headOf(b.part).replace(/_wood$/, "");
+}
+const isWood = b => isBolt(b.part) && headOf(b.part).endsWith("_wood");
+function diaOf(b){ const m = /(\d+(?:[.,]\d+)?)/.exec(b.thread || ""); return m ? parseFloat(m[1].replace(",", ".")) : 0; }
+function defaultText(b){ return isBolt(b.part) && b.len ? `${b.thread}×${b.len}` : (b.thread || ""); }
+function labelText(b){ return (b.text || "").trim() || defaultText(b); }
+function partName(key){ return partInfo(key)?.name ?? key; }
+function binColor(b){ return tint(cssVar(FAMILY[family(b)]) || "#888888", shade(diaOf(b)) * (isWood(b) ? .88 : 1)); }
+const esc = t => String(t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- label artwork, laid out like generator/label_art.py ----------
+   Icons from the part's icons-only export, text in the same font (HarmonyOS Sans), 2.0 mm after
+   the icons, cap height 5.7 mm, the group centred on the 52.9 mm plate; the text shrinks only
+   when the group would come within 1.2 mm of the plate edge. Then scaled into the box's label
+   area exactly as the generator does. */
+const LABEL_FONT = `"HOS Label", "IBM Plex Sans", sans-serif`;
+let fontReady = false;
+const measureCtx = document.createElement("canvas").getContext("2d");
+function textInk(str){                   // ink box in em units, pen at x = 0 on the baseline, y up
+  measureCtx.font = `100px ${LABEL_FONT}`;
+  const m = measureCtx.measureText(str);
+  return {x0: -m.actualBoundingBoxLeft / 100, x1: m.actualBoundingBoxRight / 100,
+          top: m.actualBoundingBoxAscent / 100, bot: -m.actualBoundingBoxDescent / 100};
+}
+function labelArt(b){                    // SVG markup in plate mm (y down) + its bounding box
+  const L = CAT.layout, p = partInfo(b.part);
+  if (!p) return null;
+  const half = p.half, iconsW = 2 * half, ih = L.icon_h;
+  const text = labelText(b);
+  const icon = dx => `<path fill-rule="evenodd" transform="translate(${dx.toFixed(3)} 0)" d="${p.icon}"/>`;
+  if (!text) return {svg: icon(0), x0: -half, x1: half, y0: -ih / 2, y1: ih / 2};
+  const ink = textInk(text);
+  if (!(ink.top > 0)) return {svg: icon(0), x0: -half, x1: half, y0: -ih / 2, y1: ih / 2};
+  let sc = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
+  const budget = L.plate_w - 2 * L.edge - iconsW - L.gap;
+  if ((ink.x1 - ink.x0) * sc > budget) sc = budget / (ink.x1 - ink.x0);
+  const tw = (ink.x1 - ink.x0) * sc;
+  const gl = -(iconsW + L.gap + tw) / 2;
+  const penX = gl + iconsW + L.gap - ink.x0 * sc;
+  const base = (ink.top + ink.bot) / 2 * sc;       // ink centred vertically
+  return {svg: icon(gl + half)
+    + `<text x="${penX.toFixed(3)}" y="${base.toFixed(3)}" font-size="${sc.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(text)}</text>`,
+    x0: gl, x1: gl + iconsW + L.gap + tw, y0: -ih / 2, y1: ih / 2};
+}
+// The label's face as seen from above, and the safe area the artwork is fitted into
+// (generator: integrated shelf / _plate_area / _mw_label_area). Tile coordinates in mm,
+// y down, drawer front = bottom of the tile.
+function labelStrip(b){
+  const W = PITCH * b.w, D = PITCH * b.d, o = XY_CLR / 2, ox = W - 2 * o, ix = ox - 2 * WALL;
+  let x, w, from, h, mid, sw, sh;
+  if (state.style === "integrated"){
+    x = o; w = ox; from = o; h = WALL + SHELF_D; mid = o + WALL + SHELF_D / 2;
+    sw = Math.max(8, ox - 2 * (BODY_R + 2.5)); sh = SHELF_D - 3;
+  } else if (state.style === "removable"){
+    const depth = state.labelDepth, c = 0.15;
+    x = o + WALL + c; w = ix - 2 * c; from = o + WALL; h = depth; mid = o + WALL + (c + depth) / 2;
+    sw = ix - 2 * c - 6; sh = depth - c - 3.6;
+  } else {
+    const depth = state.labelDepth, c = Math.max(0, state.labelFit);
+    x = o + WALL; w = ix; from = o + WALL; h = depth; mid = o + WALL + (c + depth) / 2;
+    sw = ix - 2 * c - 3; sh = depth - c - 3;
+  }
+  const front = b.label !== "top";
+  return {W, D, x, w, h, y: front ? D - from - h : from, cy: front ? D - mid : mid, sw, sh};
+}
+function labelMarkup(b, st){
+  if (!CAT) return "";
+  const a = labelArt(b);
+  if (!a) return "";
+  const gw = a.x1 - a.x0, gh = a.y1 - a.y0;
+  const sc = Math.min(st.sw / gw, st.sh / gh, LABEL_MAX_UPSCALE);
+  return `<g fill="var(--lab-ink)" transform="translate(${(st.W / 2).toFixed(3)} ${st.cy.toFixed(3)}) scale(${sc.toFixed(4)}) `
+    + `translate(${(-(a.x0 + a.x1) / 2).toFixed(3)} ${(-(a.y0 + a.y1) / 2).toFixed(3)})">${a.svg}</g>`;
+}
+// The tile is the cell span minus 1 px each side, minus a 1 px border: its drawing area starts
+// 2 px into the span. Showing exactly those millimetres keeps one scale (cell px per 42 mm) on
+// both axes, so the label has the proportions of the printed one.
+function topSVG(b){                      // the tile: floor, label strip, artwork
+  const st = labelStrip(b), o = XY_CLR / 2, m = 2 * PITCH / state.cell;
+  return `<svg class="top" viewBox="${m} ${m} ${st.W - 2 * m} ${st.D - 2 * m}" preserveAspectRatio="none" aria-hidden="true">`
+    + `<rect x="${o + WALL}" y="${o + WALL}" width="${st.W - 2 * (o + WALL)}" height="${st.D - 2 * (o + WALL)}" rx="2.55" fill="rgba(0,0,0,.12)"/>`
+    + `<rect x="${st.x}" y="${st.y}" width="${st.w}" height="${st.h}" rx="1" fill="rgba(255,255,255,.34)"/>`
+    + labelMarkup(b, st) + `</svg>`;
+}
+function iconSVG(d, cls = "", vb = "-12.5 -5 25 10"){
+  return `<svg class="${cls}" viewBox="${vb}" aria-hidden="true"><path d="${d}" fill="currentColor" fill-rule="evenodd"/></svg>`;
+}
+// picker boxes: a drive icon is 8.1 mm round, heads up to 11.3 mm long, nuts up to ~17 mm
+const PICK_VB = {drive: "-5 -5 10 10", head: "-6.5 -5 13 10", nut: "-9.5 -5 19 10"};
 
 function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
 const state = {
   u: 8, cell: 36, style: "integrated", labelDepth: 10, labelFit: 0.05, detent: false,
-  bins: BINS.map(b => ({label: "bot", ...b})),
+  bins: BINS.map(b => ({label: "bot", text: null, ...b})),
   // sel holds positions, not one position — multi-select is the normal case now.
   // anchor is the last bin touched, so Shift-click knows where a range starts.
   sel: new Set(), anchor: null, selectMode: false, savedId: null
@@ -510,18 +670,29 @@ function binNode(b){
     el = document.createElement("div");
     el.className = "bin";
     el.dataset.pos = b.pos;
-    el.innerHTML = `<span class="t"></span><span class="lab"></span>`;
+    el.innerHTML = `<span class="art"></span><span class="t"></span>`;
     el.addEventListener("pointerdown", onPointerDown);
     nodes.set(b.pos, el);
   }
   return el;
 }
 function paint(b, el){
-  el.style.background = tint(cssVar(KIND_VAR[b.kind]) || "#888", SHADE[b.dia] ?? 1);
+  const col = binColor(b);
+  el.style.background = col;
   el.classList.toggle("sel", state.sel.has(b.pos));
-  el.querySelector(".t").textContent = `${b.thread}×${b.len}`;
-  el.querySelector(".lab").className = "lab " + b.label;
-  el.title = `${b.kind} ${b.thread}×${b.len} · ${b.w}×${b.d} · ${state.u}U · label ${EDGE_TEXT[b.label]}`;
+  el.querySelector(".t").textContent = labelText(b);
+  el.title = `${partName(b.part)} · ${labelText(b)} · ${b.w}×${b.d} · ${state.u}U · label ${EDGE_TEXT[b.label]}`;
+  // the caption sits in the open part of the box, clear of the label strip
+  const clear = (labelStrip(b).h + WALL) * state.cell / PITCH;
+  el.style.paddingTop = b.label === "top" ? clear + "px" : "";
+  el.style.paddingBottom = b.label === "top" ? "" : clear + "px";
+  // redraw the top view only when something it shows changed
+  const key = [b.part, labelText(b), b.w, b.d, b.label, state.style, state.labelDepth, state.labelFit, fontReady, !!CAT, state.cell].join("|");
+  if (el._key !== key){
+    el._key = key;
+    const p = partInfo(b.part);
+    el.querySelector(".art").innerHTML = topSVG(b) + (p ? iconSVG(p.icon, "ico") : "");
+  }
 }
 function render(){
   const inGrid = [], out = [];
@@ -562,7 +733,11 @@ function updateStatus(){
   $("detentBox").checked = state.detent;
   $("fitOut").textContent = `${state.labelFit.toFixed(2)} mm` + (state.labelFit < 0 ? " (press fit)" : "");
   for (const [id, edge] of [["allTop","top"],["allBot","bot"]])
-    $(id).classList.toggle("on", state.bins.every(b => b.label === edge));
+    $(id).classList.toggle("on", state.bins.length > 0 && state.bins.every(b => b.label === edge));
+  $("nBoxes").textContent = state.bins.length;
+  const present = new Set(state.bins.map(family));
+  $("legend").innerHTML = FAMILY_ORDER.filter(f => present.has(f)).map(f =>
+    `<div><span class="sw" style="background:var(${FAMILY[f]})"></span> ${FAMILY_NAME[f]}</div>`).join("");
   saveLocal();
 }
 
@@ -626,11 +801,29 @@ function onPointerDown(e){
   }
   if (!state.sel.has(pos)){ state.sel.clear(); state.sel.add(pos); }
   state.anchor = pos;
+  // The default action of the press is to start a text selection that grows with the drag.
+  // Cancel it; that also cancels focusing the grid, so focus it by hand for the arrow keys.
+  e.preventDefault();
+  window.getSelection()?.removeAllRanges();
+  grid.focus({preventScroll: true});
+  document.body.classList.add("drag-active");
   e.currentTarget.setPointerCapture(e.pointerId);
   drag = {b, el: e.currentTarget, sx: e.clientX, sy: e.clientY, moved: false, ok: false, tx: 0, ty: 0};
   render();
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp, {once:true});
+  window.addEventListener("pointercancel", onPointerCancel, {once:true});
+}
+// the browser took the pointer away (touch scroll, alt-tab): drop the drag, move nothing
+function onPointerCancel(){
+  window.removeEventListener("pointermove", onPointerMove);
+  window.removeEventListener("pointerup", onPointerUp);
+  document.body.classList.remove("drag-active");
+  if (!drag) return;
+  drag.el.classList.remove("dragging");
+  ghost?.remove(); ghost = null;
+  drag = null;
+  render();
 }
 function onPointerMove(e){
   if (!drag) return;
@@ -651,6 +844,8 @@ function onPointerMove(e){
 }
 function onPointerUp(e){
   window.removeEventListener("pointermove", onPointerMove);
+  window.removeEventListener("pointercancel", onPointerCancel);
+  document.body.classList.remove("drag-active");
   if (!drag) return;
   const d = drag; drag = null;
   d.el.classList.remove("dragging");
@@ -687,6 +882,8 @@ grid.addEventListener("keydown", e => {
     render();
   } else if (e.key === "Enter"){
     e.preventDefault(); openModal(list[0]);
+  } else if (e.key === "Delete" || e.key === "Backspace"){
+    e.preventDefault(); removeBins(selectionList());
   }
 });
 
@@ -718,23 +915,107 @@ function firstFree(b){
 }
 let modalBin = null;
 function openModal(b){
-  modalBin = b; syncModal();
+  modalBin = b;
+  // inputs are filled here, not in syncModal, so typing is never overwritten mid-word
+  $("mThread").value = b.thread ?? "";
+  $("mLen").value = b.len ?? "";
+  $("mText").value = b.text ?? "";
+  syncModal();
   if (!modal.open) modal.showModal();
 }
+function buildPickers(){
+  const btn = (attr, v, icon, title, group) =>
+    `<button type="button" data-${attr}="${esc(v)}" title="${esc(title)}${group ? " (" + esc(group) + ")" : ""}">${iconSVG(icon, "", PICK_VB[attr])}</button>`;
+  $("mDrives").innerHTML = CAT.drives.map(d => btn("drive", d.key, d.icon, d.name)).join("");
+  const groups = (list, attr) => [...new Set(list.map(x => x.group))].map(g =>
+    `<div class="grp" style="width:100%">${esc(g)}</div>` + list.filter(x => x.group === g).map(x => btn(attr, x.key, x.icon, x.name, g)).join("")).join("");
+  $("mHeads").innerHTML = groups(CAT.heads, "head");
+  $("mNuts").innerHTML = groups(CAT.nuts, "nut");
+}
+function setPart(key){
+  if (!partInfo(key)) return;
+  modalBin.part = key;
+  render(); syncModal();
+}
+$("mDrives").onclick = e => {
+  const d = e.target.closest("button")?.dataset.drive; if (!d) return;
+  const allowed = CAT.drive_heads[d] ?? [];
+  const head = allowed.includes(headOf(modalBin.part)) ? headOf(modalBin.part) : allowed[0];
+  setPart(`${d}__${head}`);
+};
+$("mHeads").onclick = e => {
+  const h = e.target.closest("button")?.dataset.head; if (!h) return;
+  setPart(`${modalBin.part.split("__")[0]}__${h}`);
+};
+$("mNuts").onclick = e => { const n = e.target.closest("button")?.dataset.nut; if (n) setPart(n); };
+$("mCatBolt").onclick = () => { if (!isBolt(modalBin.part)) setPart(modalBin._lastBolt ?? "allen__countersunk"); };
+$("mCatNut").onclick = () => { if (isBolt(modalBin.part)){ modalBin._lastBolt = modalBin.part; setPart("regular_nut"); } };
+$("mThread").oninput = e => { modalBin.thread = e.target.value.trim(); render(); syncModal(); };
+$("mLen").oninput = e => { const v = parseFloat(e.target.value); modalBin.len = Number.isFinite(v) && v > 0 ? v : null; render(); syncModal(); };
+$("mText").oninput = e => { modalBin.text = e.target.value.trim() ? e.target.value : null; render(); syncModal(); };
 function syncModal(){
   const b = modalBin; if (!b) return;
   const [ix, iy] = interior(b.w, b.d);
-  $("mTitle").textContent = `${b.thread} × ${b.len}`;
-  $("mSub").textContent = `${b.kind} · ${KIND_NAME[b.kind]} · ${b.norm}`;
+  const bolt = isBolt(b.part);
+  $("mTitle").textContent = labelText(b) || "(no label text)";
+  $("mSub").textContent = partName(b.part);
+  $("mCatBolt").classList.toggle("on", bolt);
+  $("mCatNut").classList.toggle("on", !bolt);
+  $("mBoltPick").classList.toggle("hide", !bolt);
+  $("mNutPick").classList.toggle("hide", bolt);
+  $("mLenWrap").classList.toggle("hide", !bolt);
+  if (CAT){
+    const [drive, head] = bolt ? b.part.split("__") : [null, null];
+    const allowed = new Set(bolt ? CAT.drive_heads[drive] ?? [] : []);
+    for (const el of $("mDrives").children) el.classList.toggle("on", el.dataset.drive === drive);
+    for (const el of $("mHeads").querySelectorAll("button")){
+      el.classList.toggle("on", el.dataset.head === head);
+      el.disabled = !allowed.has(el.dataset.head);
+    }
+    for (const el of $("mNuts").querySelectorAll("button")) el.classList.toggle("on", el.dataset.nut === b.part);
+  }
+  $("mText").placeholder = defaultText(b) || "label text";
+  $("mThread").classList.toggle("bad", !b.thread);
+  // the label as it will be printed on this box, cut out of the top view
+  const st = labelStrip(b);
+  $("mPreview").innerHTML = `<svg viewBox="${st.x - 1} ${st.y - 1} ${st.w + 2} ${st.h + 2}" style="background:${binColor(b)};border-radius:4px">`
+    + `<rect x="${st.x}" y="${st.y}" width="${st.w}" height="${st.h}" rx="1" fill="rgba(255,255,255,.34)"/>${labelMarkup(b, st)}</svg>`;
   $("wVal").textContent = b.w; $("dVal").textContent = b.d;
   $("fInner").textContent = `${ix.toFixed(1)} × ${iy.toFixed(1)} mm`;
-  $("fLen").textContent = `${b.outer.toFixed(1)} mm`;
   $("fBox").textContent = `${b.w}×${b.d} · ${state.u}U · ${state.u*U_MM} mm`;
   for (const [id, edge] of [["mLabTop","top"],["mLabBot","bot"]])
     $(id).classList.toggle("on", b.label === edge);
   $("fLabel").textContent = labelKind(b);
   $("fLabel").className = "v" + (server?.cad ? "" : " bad");
 }
+function newBin(fields){
+  const pos = state.bins.reduce((m, z) => Math.max(m, z.pos), 0) + 1;
+  const b = {part: "allen__countersunk", thread: "M6", len: 20, text: null, w: 2, d: 1, label: "bot",
+             ...fields, pos, x: null, y: null};
+  delete b._lastBolt;
+  const spot = firstFree(b);
+  if (spot) [b.x, b.y] = spot;
+  state.bins.push(b);
+  state.sel.clear(); state.sel.add(pos); state.anchor = pos;
+  render();
+  setGenNote(spot ? `Added ${labelText(b)} at the first free spot.` : `Added ${labelText(b)} — no free spot, it waits below the drawer.`);
+  return b;
+}
+function removeBins(list){
+  if (!list.length) return;
+  const what = list.length === 1 ? `“${labelText(list[0])}”` : `${list.length} boxes`;
+  if (!confirm(`Remove ${what} from the drawer plan?`)) return;
+  const gone = new Set(list);
+  state.bins = state.bins.filter(b => !gone.has(b));
+  for (const b of list){ nodes.get(b.pos)?.remove(); nodes.delete(b.pos); state.sel.delete(b.pos); }
+  if (gone.has(modalBin)) modal.close();
+  render();
+  setGenNote(`Removed ${what}.`);
+}
+$("btnAdd").onclick = () => openModal(newBin({}));
+$("mDup").onclick = () => openModal(newBin({part: modalBin.part, thread: modalBin.thread, len: modalBin.len,
+  text: modalBin.text, w: modalBin.w, d: modalBin.d, label: modalBin.label}));
+$("mDel").onclick = () => removeBins([modalBin]);
 $("mClose").onclick = $("mDone").onclick = () => modal.close();
 $("mRotate").onclick = () => rotate(modalBin);
 const EDGE_TEXT = {bot: "bot (front edge)", top: "top (back edge)"};
@@ -775,58 +1056,126 @@ $("uSlider").oninput = e => {
 };
 $("zoom").oninput = e => { state.cell = +e.target.value; $("zoomOut").textContent = state.cell + " px"; layoutGrid(); render(); };
 
-/* ---------- auto-arrange: size bands per type block ---------- */
+/* ---------- auto-arrange: size bands per head-type block ---------- */
+// One block of columns per family (countersunk, pan, socket, hex, …, nuts, washers), left to
+// right. A block is as many columns as its boxes need, each column as wide as its widest box.
+// Inside a block the size-sorted boxes are dealt into the shallowest column, so thread sizes
+// form bands across the drawer depth; every column is front-anchored.
 function autoArrange(){
-  const order = b => [-b.dia, -b.len, b.pos];
-  const byKind = Object.fromEntries(KIND_ORDER.map(k => [k, []]));
-  for (const b of state.bins) byKind[b.kind].push(b);
-  let colCursor = 0;
-  for (const kind of KIND_ORDER){
-    const list = byKind[kind].sort((a, z) => {
-      const [A, B] = [order(a), order(z)];
-      return A[0]-B[0] || A[1]-B[1] || A[2]-B[2];
-    });
-    const depth = list.reduce((s,b) => s + b.d, 0);
+  const groups = new Map(FAMILY_ORDER.map(f => [f, []]));
+  for (const b of state.bins) groups.get(family(b)).push(b);
+  let colCursor = 0, left = 0;
+  for (const f of FAMILY_ORDER){
+    const list = groups.get(f).sort((a, z) => diaOf(z) - diaOf(a) || (z.len ?? 0) - (a.len ?? 0)
+      || a.part.localeCompare(z.part) || labelText(a).localeCompare(labelText(z)) || a.pos - z.pos);
+    if (!list.length) continue;
+    const cw = Math.max(...list.map(b => b.w));
+    const depth = list.reduce((s, b) => s + b.d, 0);
     let cols = Math.max(1, Math.ceil(depth / GD));
-    while (cols > 0 && colCursor + cols*2 > GW){ cols--; }
-    const used = new Array(Math.max(cols,1)).fill(0);
-    const stacks = Array.from({length: Math.max(cols,1)}, () => []);
+    while (cols > 0 && colCursor + cols * cw > GW) cols--;
+    if (!cols){ for (const b of list){ b.x = b.y = null; left++; } continue; }
+    const used = new Array(cols).fill(0);
+    const stacks = Array.from({length: cols}, () => []);
     for (const b of list){
       let best = -1;
       for (let i = 0; i < cols; i++){
         if (used[i] + b.d > GD) continue;
         if (best < 0 || used[i] < used[best]) best = i;
       }
-      if (best < 0){ b.x = b.y = null; continue; }
+      if (best < 0){ b.x = b.y = null; left++; continue; }
       stacks[best].push(b); used[best] += b.d;
     }
     stacks.forEach((stack, i) => {
       let row = GD - used[i];                        // front-anchor the column
       for (const b of stack){
-        b.x = colCursor + i*2;
+        b.x = colCursor + i * cw;
         b.y = GD - (row + b.d);
         row += b.d;
       }
     });
-    colCursor += cols*2;
+    colCursor += cols * cw;
   }
   render();
+  setGenNote(left ? `Auto-arranged; ${left} box${left === 1 ? "" : "es"} did not fit and wait below the drawer.` : "Auto-arranged.");
 }
 $("btnAuto").onclick = autoArrange;
-$("btnReset").onclick = () => {
-  state.bins = BINS.map(b => ({label: "bot", ...b}));
-  state.u = 8; state.style = "integrated"; state.labelDepth = 10; state.labelFit = 0.05; state.detent = false;
+/* ---------- the shared default drawer ----------
+   One per installation, stored by the build service (state/default_layout.json). A browser
+   without its own layout starts from it, "Load default" returns to it, "Set as default"
+   replaces it for everyone. Without a saved default, or without the service, the built-in
+   116-box drawer (BINS) stands in. */
+let sharedDefault = null, defaultState = "unknown";     // "ok" | "none" | "down"
+function builtInLayout(){
+  return {v: 3, u: 8, style: "integrated", labelDepth: 10, labelFit: 0.05, detent: false,
+          bins: BINS.map(b => ({label: "bot", text: null, ...b}))};
+}
+async function fetchDefault(){
+  try {
+    const r = await fetch("api/default", {cache: "no-store", signal: AbortSignal.timeout(5000)});
+    if (r.ok){ sharedDefault = await r.json(); defaultState = "ok"; }
+    else if (r.status === 404){ sharedDefault = null; defaultState = "none"; }
+    else { sharedDefault = null; defaultState = "down"; }
+  } catch { sharedDefault = null; defaultState = "down"; }
+  const when = t => new Date(t).toLocaleString([], {dateStyle: "medium", timeStyle: "short"});
+  $("defaultNote").textContent = {
+    ok: `Shared default: ${sharedDefault?.layout.bins.length} boxes, saved ${when(sharedDefault?.saved_at)}.`,
+    none: "No shared default saved yet — Load default gives the built-in 116-box drawer.",
+    down: "Build service unreachable — the shared default cannot be loaded or saved.",
+  }[defaultState];
+  return sharedDefault;
+}
+function applyLayout(layout){
   state.sel.clear(); state.anchor = null;
-  $("uSlider").value = 8; $("uOut").textContent = "8U · 56 mm";
-  render();
+  if (modal.open) modal.close();
+  restore(layout);
+}
+$("btnReset").onclick = async () => {
+  await fetchDefault();
+  applyLayout(sharedDefault?.layout ?? builtInLayout());
+  setGenNote({ok: "Loaded the shared default drawer.",
+              none: "No shared default yet — loaded the built-in 116-box drawer.",
+              down: "Build service unreachable — loaded the built-in 116-box drawer instead of the shared default."}[defaultState]);
+};
+$("btnSetDefault").onclick = async () => {
+  const n = state.bins.length;
+  if (!n) return setGenNote("An empty drawer cannot be the default.");
+  if (!confirm(`Make this drawer (${n} box${n === 1 ? "" : "es"}) the shared default for everyone?\n\n`
+             + "Browsers that already have their own layout keep it until they use “Load default”. "
+             + "The previous default is kept as a backup on the server.")) return;
+  try {
+    const res = await jsonRequest("api/default", {method: "PUT", headers: {"Content-Type": "application/json"},
+                                                  body: JSON.stringify(snapshot())});
+    await fetchDefault();
+    setGenNote(`Saved as the shared default (${res.boxes} boxes).`);
+  } catch (err){
+    setGenNote(`Could not save the default: ${err.message}`);
+  }
 };
 
 /* ---------- persistence ---------- */
-// v2: the default layout changed (2026-09-16); a v1 layout in local storage would hide it.
-const LS_KEY = "schublade1077.v2";
+// v3 (2026-09-29): boxes carry their own part type, size and label text, and can be added or
+// removed. A v2 layout (positions of the fixed 116) is still read once and carried over.
+const LS_KEY = "schublade1077.v3", LS_V2 = "schublade1077.v2";
+function binData(b){
+  return {pos: b.pos, part: b.part, thread: b.thread, len: b.len ?? null, text: b.text ?? null,
+          w: b.w, d: b.d, x: b.x ?? null, y: b.y ?? null, label: b.label};
+}
 function snapshot(){
-  return {u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit, detent: state.detent,
-    bins: state.bins.map(b => ({pos:b.pos, w:b.w, d:b.d, x:b.x ?? null, y:b.y ?? null, label:b.label}))};
+  return {v: 3, u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit,
+          detent: state.detent, bins: state.bins.map(binData)};
+}
+// a stored or imported box, checked; null if it cannot be used
+function cleanBin(s, pos){
+  if (!s || typeof s.part !== "string" || (CAT && !partInfo(s.part))) return null;
+  const int = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi ? v : null;
+  const w = int(s.w, 1, 6), d = int(s.d, 1, 6);
+  if (w === null || d === null) return null;
+  let x = int(s.x, 0, GW - 1), y = int(s.y, 0, GD - 1);
+  if (x === null || y === null || x + w > GW || y + d > GD) x = y = null;
+  const len = Number.isFinite(s.len) && s.len > 0 ? s.len : null;
+  return {pos, part: s.part, thread: String(s.thread ?? "").trim().slice(0, 16), len,
+          text: typeof s.text === "string" && s.text.trim() ? s.text.slice(0, 40) : null,
+          w, d, x, y, label: s.label === "top" ? "top" : "bot"};
 }
 function restore(snap){
   if (!snap || !Array.isArray(snap.bins)) return;
@@ -835,70 +1184,117 @@ function restore(snap){
   if (Number.isFinite(snap.labelFit)) state.labelFit = Math.min(0.3, Math.max(-0.3, snap.labelFit));
   if (typeof snap.detent === "boolean") state.detent = snap.detent;
   if (Number.isFinite(snap.labelDepth)) state.labelDepth = Math.min(19, Math.max(6, snap.labelDepth));
-  const map = new Map(snap.bins.map(b => [b.pos, b]));
-  for (const b of state.bins){
-    const s = map.get(b.pos); if (!s) continue;
-    b.w = s.w; b.d = s.d; b.x = s.x; b.y = s.y;
-    b.label = s.label === "top" ? "top" : "bot";
+  for (const el of nodes.values()) el.remove();
+  nodes.clear();
+  if (snap.v === 3){
+    const bins = snap.bins.map((b, i) => cleanBin(b, i + 1)).filter(Boolean);
+    // overlapping boxes cannot both stay in the drawer: later ones wait below it
+    state.bins = [];
+    for (const b of bins){
+      if (placed(b) && collides(b, b.x, b.y)) b.x = b.y = null;
+      state.bins.push(b);
+    }
+  } else {
+    // v2: the fixed 116 positions; apply sizes, places and label edges onto the defaults
+    state.bins = BINS.map(b => ({label: "bot", text: null, ...b}));
+    const map = new Map(snap.bins.map(b => [b.pos, b]));
+    for (const b of state.bins){
+      const s = map.get(b.pos); if (!s) continue;
+      b.w = s.w; b.d = s.d; b.x = s.x; b.y = s.y;
+      b.label = s.label === "top" ? "top" : "bot";
+    }
   }
   $("uSlider").value = state.u; $("uOut").textContent = `${state.u}U · ${state.u*U_MM} mm`;
   render();
 }
 function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(snapshot())); } catch {} }
-function loadLocal(){ try { const raw = localStorage.getItem(LS_KEY); if (raw) restore(JSON.parse(raw)); } catch {} }
-
-function toCSV(){
-  const rows = [["type","thread","length_mm","box_w","box_d","height_u","grid_x","row_from_front","label"]];
-  for (const b of [...state.bins].sort((a,z) => a.pos - z.pos)){
-    rows.push([b.kind, b.thread, b.len, b.w, b.d, state.u,
-      placed(b) ? b.x : "", placed(b) ? b.y + 1 : "", b.label]);
-  }
-  return rows.map(r => r.join(",")).join("\n");
+function hasLocal(){
+  try { return !!(localStorage.getItem(LS_KEY) ?? localStorage.getItem(LS_V2)); } catch { return false; }
+}
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY) ?? localStorage.getItem(LS_V2);
+    if (raw) restore(JSON.parse(raw));
+  } catch {}
 }
 
+/* ---------- CSV ---------- */
+const CSV_COLS = ["part","thread","length_mm","text","box_w","box_d","height_u","grid_x","row_from_front","label"];
+const csvCell = v => /[",\n\r]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+function toCSV(){
+  const rows = [CSV_COLS];
+  for (const b of state.bins){
+    rows.push([b.part, b.thread, isBolt(b.part) ? b.len ?? "" : "", b.text ?? "", b.w, b.d, state.u,
+      placed(b) ? b.x : "", placed(b) ? b.y + 1 : "", b.label]);
+  }
+  return rows.map(r => r.map(csvCell).join(",")).join("\n");
+}
+function csvRows(text){                   // RFC 4180: quoted fields may hold commas, quotes, newlines
+  const rows = [];
+  let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (q){
+      if (c === '"' && text[i + 1] === '"'){ cell += '"'; i++; }
+      else if (c === '"') q = false;
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r"){
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+  }
+  if (cell !== "" || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+// The file defines the whole drawer: every row is a box. Files from before 2026-09-29 have a
+// "type" column (SK/LK/ZK/6kt) instead of "part"; those four map to their part types.
 function fromCSV(text){
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim());
+  const lines = csvRows(text.replace(/^\uFEFF/, ""));
   if (lines.length < 2) throw new Error("the file has no data rows");
-  const head = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const head = lines[0].map(h => h.trim().toLowerCase());
   const col = name => head.indexOf(name);
-  for (const need of ["type","thread","length_mm","box_w","box_d","grid_x","row_from_front"])
+  const legacy = col("part") < 0 && col("type") >= 0;
+  for (const need of [legacy ? "type" : "part", "thread", "box_w", "box_d", "grid_x", "row_from_front"])
     if (col(need) < 0) throw new Error(`missing column “${need}”`);
-  // boxes are identified by type + thread + length, which is unique in the inventory
-  const known = new Map(state.bins.map(b => [screwName(b).toLowerCase(), b]));
-  const rows = new Map();
+  const bins = [];
   let u = null;
-  lines.slice(1).forEach((line, n) => {
-    const c = line.split(",").map(v => v.trim());
+  lines.slice(1).forEach((c, n) => {
     const at = `row ${n + 2}`;
+    const get = name => col(name) < 0 ? "" : (c[col(name)] ?? "").trim();
     const int = (name, lo, hi, optional) => {
-      const raw = col(name) < 0 ? "" : c[col(name)] ?? "";
+      const raw = get(name);
       if (raw === "" && optional) return null;
       const v = Number(raw);
       if (!Number.isInteger(v) || v < lo || v > hi) throw new Error(`${at}: ${name} “${raw}” is not a whole number in ${lo}–${hi}`);
       return v;
     };
-    const key = `${c[col("type")] ?? ""}_${c[col("thread")] ?? ""}x${c[col("length_mm")] ?? ""}`.toLowerCase();
-    const bin = known.get(key);
-    if (!bin) throw new Error(`${at}: ${key.toUpperCase()} is not in the inventory`);
-    const pos = bin.pos, name = screwName(bin);
-    if (rows.has(pos)) throw new Error(`${at}: ${name} appears twice`);
+    let part = legacy ? CAT.legacy[get("type")] : get("part");
+    if (!part || !partInfo(part)) throw new Error(`${at}: “${legacy ? get("type") : get("part")}” is not a known part type`);
+    const thread = get("thread");
+    if (!thread) throw new Error(`${at}: thread is empty`);
+    const rawLen = get("length_mm");
+    const len = rawLen === "" ? null : Number(rawLen);
+    if (len !== null && !(len > 0 && len <= 1000)) throw new Error(`${at}: length_mm “${rawLen}” is not a length in mm`);
     const w = int("box_w", 1, 6), d = int("box_d", 1, 6);
     const x = int("grid_x", 0, GW - 1, true), front = int("row_from_front", 1, GD, true);
     if ((x === null) !== (front === null)) throw new Error(`${at}: grid_x and row_from_front must both be set or both be empty`);
     const y = front === null ? null : front - 1;
+    const text = get("text");
+    const name = text || `${thread}${len ? "×" + len : ""}`;
     if (x !== null && (x + w > GW || y + d > GD)) throw new Error(`${at}: ${name} (${w}×${d}) sticks out of the drawer`);
-    const rawLabel = col("label") < 0 ? "" : (c[col("label")] ?? "").toLowerCase();
+    const rawLabel = get("label").toLowerCase();
     if (!["", "top", "bot"].includes(rawLabel)) throw new Error(`${at}: label “${rawLabel}” must be top or bot`);
-    const label = rawLabel || "bot";
     const hu = int("height_u", 3, 10, true);
     if (hu !== null){
       if (u !== null && hu !== u) throw new Error(`${at}: height_u ${hu} differs from ${u} — all boxes share one height`);
       u = hu;
     }
-    rows.set(pos, {pos, name, w, d, x, y, label});
+    bins.push({pos: bins.length + 1, part, thread, len, text: text || null, w, d, x, y, label: rawLabel || "bot", name});
   });
   const cells = new Map();
-  for (const r of rows.values()){
+  for (const r of bins){
     if (r.x === null) continue;
     for (let i = 0; i < r.w; i++) for (let j = 0; j < r.d; j++){
       const k = `${r.x + i},${r.y + j}`;
@@ -906,10 +1302,8 @@ function fromCSV(text){
       cells.set(k, r.name);
     }
   }
-  // positions the file does not mention are taken out of the drawer rather than left
-  // where they were, where they could collide with the imported ones
-  const bins = state.bins.map(b => rows.get(b.pos) ?? {pos: b.pos, w: b.w, d: b.d, x: null, y: null, label: b.label});
-  return {snap: {u: u ?? state.u, bins}, missing: state.bins.length - rows.size};
+  for (const b of bins) delete b.name;
+  return {v: 3, u: u ?? state.u, bins};
 }
 
 /* ---------- layout file ---------- */
@@ -923,18 +1317,20 @@ $("csvInput").onchange = async e => {
   const f = e.target.files[0]; e.target.value = "";
   if (!f) return;
   try {
-    const {snap, missing} = fromCSV(await f.text());
+    const snap = fromCSV(await f.text());
     state.sel.clear(); state.anchor = null;
-    restore(snap);
-    setGenNote(`Imported ${f.name}` + (missing ? ` — ${missing} position${missing === 1 ? "" : "s"} not in the file, moved out of the drawer.` : "."));
+    restore({...snapshot(), ...snap});
+    const out = state.bins.filter(b => !placed(b)).length;
+    setGenNote(`Imported ${f.name}: ${state.bins.length} boxes` + (out ? `, ${out} without a place in the drawer.` : "."));
   } catch (err){
     setGenNote(`Import failed, layout unchanged: ${err.message}`);
   }
 };
 
 /* ---------- file generation ---------- */
-function screwName(b){ return `${b.kind}_${b.thread}x${b.len}`; }
-// same names as the generator's filename_stem(): no position, no quantity
+// same names as the generator's screw_name() / filename_stem(): part type + label text
+const slug = t => t.replace(/×/g, "x").normalize("NFKD").replace(/[^A-Za-z0-9.]+/g, "-").replace(/^-+|-+$/g, "") || "blank";
+function screwName(b){ return `${slug(b.part.replace("__", "-"))}_${slug(labelText(b))}`; }
 function baseName(b){
   return `${screwName(b)}_${b.w}x${b.d}_${state.u}U`
     + (b.label === "top" ? "_LBACK" : "");
@@ -983,9 +1379,8 @@ async function offer(filename, blob){
   setGenNote(`Built ${filename} (${size} MB) but this view refuses to hand files over. Run the local docker package for reliable downloads.`);
   return false;
 }
-function labelKind(b){
-  if (!server?.cad) return "build service unreachable";
-  return cachedLabels.has(b.pos) ? "Chappel · cached" : "Chappel · fetched on build";
+function labelKind(){
+  return server?.cad ? "build service ready · label composed offline" : "build service unreachable";
 }
 function guard(fn){
   return async (...args) => {
@@ -1007,24 +1402,32 @@ function singleName(b){
 function batchName(what){
   return `drawer_3mf_${what}_${state.u}U${state.style === "integrated" ? "" : "_" + state.style}.zip`;
 }
-const itemsOf = list => list.map(b => ({pos: b.pos, w: b.w, d: b.d, label: b.label}));
-$("btnGen3mfAll").onclick = guard(() =>
-  serverGenerate(itemsOf(state.bins), batchName("all")));
+const itemsOf = list => list.map(b => ({part: b.part, thread: b.thread, length: isBolt(b.part) ? b.len ?? null : null,
+  text: (b.text || "").trim() || null, w: b.w, d: b.d, label: b.label}));
+function checkItems(list){
+  const bad = list.find(b => !b.thread || !labelText(b));
+  if (bad) throw new Error(`${partName(bad.part)}: thread is empty — set it in the box menu.`);
+}
+$("btnGen3mfAll").onclick = guard(() => {
+  if (!state.bins.length) return setGenNote("There are no boxes to build.");
+  checkItems(state.bins);
+  return serverGenerate(itemsOf(state.bins), batchName("all"));
+});
 $("btnGen3mfSel").onclick = guard(async () => {
   const list = selected(); if (!list.length) return;
+  checkItems(list);
   return serverGenerate(itemsOf(list), list.length === 1 ? singleName(list[0]) : batchName(`selected_${list.length}`));
 });
 $("m3mf").onclick = guard(() => {
-  const b = modalBin; modal.close();
+  const b = modalBin; checkItems([b]); modal.close();
   return serverGenerate(itemsOf([b]), singleName(b));
 });
 
 /* ---------- build service ----------
    Every 3MF comes from generate_gridfinity_chappel_bins.py: body with the label pocket
-   cut plus the Chappel inlay. There is deliberately no browser-built fallback — it could
+   cut plus the label inlay. There is deliberately no browser-built fallback — it could
    only ever produce a bare body, and a box without its label is never a valid download. */
 let server = null;
-let cachedLabels = new Set();
 async function probeServer(){
   let health = null;
   try {
@@ -1032,16 +1435,10 @@ async function probeServer(){
     if (r.ok) health = await r.json();
   } catch {}
   server = health;
-  if (server?.cad){
-    try {
-      const r = await fetch("api/labels", {cache: "no-store"});
-      if (r.ok) cachedLabels = new Set((await r.json()).cached);
-    } catch {}
-  }
   const el = $("serverState");
   el.textContent = !server ? "build service unreachable — 3MF export needs it (docker compose up -d --build)"
     : !server.cad ? `build service up, but the generator did not load: ${server.detail || "unknown"}`
-    : `build service ready · ${cachedLabels.size} of ${server.positions} labels cached`;
+    : `build service ready · ${server.parts} part types, labels composed offline`;
   el.style.color = server?.cad ? "" : "var(--alert)";
   if (modal.open) syncModal();
   return !!server?.cad;
@@ -1076,8 +1473,7 @@ async function buildBuffer(items, filename, title){
   progress.start(title, {
     detail: "handing the job to the build service …",
     note: "Runs as a background job in the build service, so a long batch is not cut off by a "
-        + "proxy timeout. Labels not cached yet are fetched from label.alch.shop first; boxes "
-        + "built before come straight from the service's cache."
+        + "proxy timeout. Boxes built before come straight from the service's cache."
   });
   try {
     let job = await jsonRequest("api/jobs", {
@@ -1089,12 +1485,10 @@ async function buildBuffer(items, filename, title){
       if (job.phase === "error") throw new Error(job.error);
       if (job.phase !== phase){
         phase = job.phase;
-        const t = {queued: `Waiting for an earlier job`, labels: `Fetching ${job.total} label${job.total === 1 ? "" : "s"}`,
-                   build: `Building ${n} box${n === 1 ? "" : "es"}`}[phase] ?? title;
+        const t = {queued: `Waiting for an earlier job`, build: `Building ${n} box${n === 1 ? "" : "es"}`}[phase] ?? title;
         progress.phase(t, phase === "queued" ? 0 : job.total);
         setGenNote(`${t} …`);
       }
-      if (phase === "labels") progress.step(job.done, `${job.done} of ${job.total} labels from label.alch.shop`);
       if (phase === "build") progress.step(job.done, `${job.done} of ${job.total}` + (job.current ? ` — ${job.current}` : ""));
       if (phase === "queued") progress.note("the build service works one job at a time");
       await new Promise(r => setTimeout(r, 1000));
@@ -1110,7 +1504,6 @@ async function buildBuffer(items, filename, title){
     return buf;
   } finally {
     progress.close();
-    probeServer();                       // the build may have cached new labels
   }
 }
 async function jsonRequest(url, opts = {}){
@@ -1119,7 +1512,10 @@ async function jsonRequest(url, opts = {}){
   let body = null;
   try { body = JSON.parse(text); } catch {}
   if (!r.ok){
-    const err = new Error(String(body?.detail ?? text ?? "").slice(0, 300) || `HTTP ${r.status}`);
+    // FastAPI validation errors come as a list of {loc, msg}
+    const d = body?.detail;
+    const msg = Array.isArray(d) ? d.map(x => `${(x.loc ?? []).slice(1).join(".")}: ${x.msg}`).join("; ") : d;
+    const err = new Error(String(msg ?? text ?? "").slice(0, 300) || `HTTP ${r.status}`);
     err.status = r.status;
     throw err;
   }
@@ -1645,7 +2041,7 @@ async function viewSelected(){
     `Building ${list.length} box${many ? "es" : ""} to view`);
   await viewer.loadBuffer(buf, name);
   setGenNote(many
-    ? `Viewing ${list.length} boxes the generator script produced, with their Chappel labels.`
+    ? `Viewing ${list.length} boxes the generator script produced, with their labels.`
     : "Viewing the file the generator script produced.");
 }
 viewer.wire();
@@ -1661,11 +2057,27 @@ $("btnViewSel").onclick = guard(viewSelected);
 
 /* ---------- boot ---------- */
 layoutGrid();
-// Load before the first render: render() saves, and would overwrite the stored layout
-// with the defaults before it is read.
-loadLocal();
-render();
 (async () => {
+  // The part catalogue first: tiles, pickers and CSV import all need it.
+  try {
+    const r = await fetch("parts.json");
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    CAT = await r.json();
+    buildPickers();
+  } catch (err){
+    setGenNote(`Could not load parts.json (${err.message}); boxes are drawn without labels.`);
+  }
+  // Load before the first render: render() saves, and would overwrite the stored layout
+  // with the defaults before it is read. A browser with no layout of its own starts from
+  // the shared default; the note under "Load default" is filled either way.
+  if (hasLocal()){ loadLocal(); fetchDefault(); }
+  else if (await fetchDefault()) restore(sharedDefault.layout);
+  render();
+  // The label font is 8 MB; once it is there, redraw with the real text metrics.
+  document.fonts.load(`12px "HOS Label"`).then(fs => {
+    fontReady = fs.length > 0;
+    render(); if (modal.open) syncModal();
+  }).catch(() => {});
   try { dlNs = await window.claude?.use?.("downloads") ?? null; } catch { dlNs = null; }
   probeServer();
 })();

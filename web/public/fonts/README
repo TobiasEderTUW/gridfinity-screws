@@ -1,0 +1,1 @@
+Mount point: docker-compose mounts generator/assets/fonts here (the web image copies it).

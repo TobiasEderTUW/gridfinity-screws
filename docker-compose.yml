@@ -5,11 +5,14 @@
 #
 # Both services are in the default set. Exact CadQuery geometry is the point of this
 # tool, not an add-on, so it is never behind a profile. The api image is large
-# (~2.5 GB: CadQuery, trimesh, Playwright/Chromium) and the first build takes several
+# (CadQuery, trimesh; no browser since 2026-09-29) and the first build takes several
 # minutes; after that it is layer-cached and `up -d` is immediate.
 services:
   web:
-    build: ./web
+    # Built from the repo root: the image also carries the label font from generator/assets.
+    build:
+      context: .
+      dockerfile: web/Dockerfile
     image: schublade-web
     # Both containers sit on Docker's default bridge and nginx reaches the api through the
     # host's published port (host.docker.internal = the docker0 gateway). They never share
@@ -24,6 +27,7 @@ services:
       API_PORT: ${API_PORT:-8000}
     volumes:
       - ./web/public:/usr/share/nginx/html:ro   # the editor; host edits are live (served no-store)
+      - ./generator/assets/fonts:/usr/share/nginx/html/fonts:ro   # label font, same file the generator uses
       # nginx renders templates/*.template into conf.d at start, filling in ${API_PORT}
       - ./web/nginx.conf:/etc/nginx/templates/default.conf.template:ro
     depends_on:
@@ -35,8 +39,8 @@ services:
     image: schublade-api
     # Docker's default bridge, not a compose project network. Some hosts only forward
     # traffic for docker0 (GitHub Codespaces: legacy iptables FORWARD policy DROP); on a
-    # project network there, nginx got a 504 on /api/ and the label scrape could not
-    # resolve label.alch.shop. docker0 works on every normal Docker host as well.
+    # project network there, nginx got a 504 on /api/. docker0 works on every normal
+    # Docker host as well. The service itself needs no internet access.
     network_mode: bridge
     # A runaway CadQuery boolean once used all RAM and rebooted the Codespace; with a cap
     # only this container is killed.
@@ -47,9 +51,11 @@ services:
     volumes:
       - ./generator:/app/generator:ro   # the two pipeline scripts, edit them on the host
       - ./api/app.py:/app/app.py:ro     # the service itself; `docker compose restart api` applies edits
-      - ./cache:/data/cache             # scraped Chappel labels + generated bodies, reused
+      - ./cache:/data/cache             # built 3MF files and job results, reused
       - ./out:/data/out                 # anything the service writes for you
+      - ./state:/data/state             # the shared default drawer ("Set as default") + backups
     environment:
       CACHE_DIR: /data/cache
       OUT_DIR: /data/out
+      STATE_DIR: /data/state
     restart: unless-stopped

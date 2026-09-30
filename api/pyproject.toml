@@ -15,6 +15,13 @@ dependencies = [
     "numpy>=2.1",
     "shapely==2.0.6",
     "networkx==3.4.2",
+    "fonttools==4.65.0",   # label text: glyph outlines and GPOS kerning of the label font
+]
+
+[dependency-groups]
+# Only for tools/download_label_assets.py (one-off, refreshes generator/assets from the
+# label website). The image installs with --no-dev, so it carries no browser.
+dev = [
     "playwright==1.49.1",
 ]
 

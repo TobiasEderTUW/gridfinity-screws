@@ -1,0 +1,718 @@
+{
+ "source": "https://label.alch.shop/",
+ "site_version": "v1.2.1",
+ "downloaded": "2026-09-29",
+ "export_settings": {
+  "box_type": "regular",
+  "width": 1.0,
+  "style": "raised",
+  "show_icons": true,
+  "text": ""
+ },
+ "drives": [
+  {
+   "key": "allen",
+   "name": "Allen / Hex socket",
+   "group": null
+  },
+  {
+   "key": "torx",
+   "name": "Torx",
+   "group": null
+  },
+  {
+   "key": "security_torx",
+   "name": "Security Torx",
+   "group": null
+  },
+  {
+   "key": "phillips",
+   "name": "Phillips",
+   "group": null
+  },
+  {
+   "key": "pozidriv",
+   "name": "Pozidriv",
+   "group": null
+  },
+  {
+   "key": "robertson",
+   "name": "Robertson",
+   "group": null
+  },
+  {
+   "key": "slotted",
+   "name": "Slotted",
+   "group": null
+  },
+  {
+   "key": "hex",
+   "name": "External hex",
+   "group": null
+  },
+  {
+   "key": "flange_bolt",
+   "name": "Flange bolt",
+   "group": null
+  }
+ ],
+ "heads": [
+  {
+   "key": "countersunk",
+   "name": "Countersunk",
+   "group": "Machine screws"
+  },
+  {
+   "key": "socket",
+   "name": "Socket cap",
+   "group": "Machine screws"
+  },
+  {
+   "key": "pan",
+   "name": "Pan",
+   "group": "Machine screws"
+  },
+  {
+   "key": "flange_pan",
+   "name": "Flange pan",
+   "group": "Machine screws"
+  },
+  {
+   "key": "shoulder",
+   "name": "Shoulder",
+   "group": "Machine screws"
+  },
+  {
+   "key": "hex",
+   "name": "Hex",
+   "group": "Machine screws"
+  },
+  {
+   "key": "flange_hex",
+   "name": "Flange hex",
+   "group": "Machine screws"
+  },
+  {
+   "key": "countersunk_wood",
+   "name": "Countersunk",
+   "group": "Wood screws"
+  },
+  {
+   "key": "pan_wood",
+   "name": "Pan",
+   "group": "Wood screws"
+  },
+  {
+   "key": "hex_wood",
+   "name": "Hex",
+   "group": "Wood screws"
+  },
+  {
+   "key": "flange_hex_wood",
+   "name": "Flange hex",
+   "group": "Wood screws"
+  }
+ ],
+ "nuts": [
+  {
+   "key": "regular_nut",
+   "name": "Regular",
+   "group": "Nuts"
+  },
+  {
+   "key": "square_nut",
+   "name": "Square",
+   "group": "Nuts"
+  },
+  {
+   "key": "nyloc_nut",
+   "name": "Nyloc",
+   "group": "Nuts"
+  },
+  {
+   "key": "flange_nut",
+   "name": "Flange",
+   "group": "Nuts"
+  },
+  {
+   "key": "flange_nyloc_nut",
+   "name": "Flange nyloc",
+   "group": "Nuts"
+  },
+  {
+   "key": "dome_nut",
+   "name": "Dome",
+   "group": "Nuts"
+  },
+  {
+   "key": "wing_nut",
+   "name": "Wing",
+   "group": "Nuts"
+  },
+  {
+   "key": "heatset_nut",
+   "name": "Heat-set",
+   "group": "Nuts"
+  },
+  {
+   "key": "regular_washer",
+   "name": "Regular",
+   "group": "Washers"
+  },
+  {
+   "key": "square_washer",
+   "name": "Square",
+   "group": "Washers"
+  },
+  {
+   "key": "split_washer",
+   "name": "Split",
+   "group": "Washers"
+  },
+  {
+   "key": "boat_washer",
+   "name": "Boat",
+   "group": "Washers"
+  },
+  {
+   "key": "external_lock_washer",
+   "name": "External lock",
+   "group": "Washers"
+  },
+  {
+   "key": "internal_lock_washer",
+   "name": "Internal lock",
+   "group": "Washers"
+  }
+ ],
+ "drive_heads": {
+  "allen": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "torx": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "security_torx": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "phillips": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "pozidriv": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "robertson": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "slotted": [
+   "countersunk",
+   "socket",
+   "pan",
+   "flange_pan",
+   "shoulder",
+   "countersunk_wood",
+   "pan_wood"
+  ],
+  "hex": [
+   "hex",
+   "hex_wood"
+  ],
+  "flange_bolt": [
+   "flange_hex",
+   "flange_hex_wood"
+  ]
+ },
+ "parts": [
+  {
+   "key": "allen__countersunk",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "countersunk",
+   "icon_file": "label_icons/allen__countersunk.stl"
+  },
+  {
+   "key": "allen__socket",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "socket",
+   "icon_file": "label_icons/allen__socket.stl"
+  },
+  {
+   "key": "allen__pan",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "pan",
+   "icon_file": "label_icons/allen__pan.stl"
+  },
+  {
+   "key": "allen__flange_pan",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "flange_pan",
+   "icon_file": "label_icons/allen__flange_pan.stl"
+  },
+  {
+   "key": "allen__shoulder",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "shoulder",
+   "icon_file": "label_icons/allen__shoulder.stl"
+  },
+  {
+   "key": "allen__countersunk_wood",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/allen__countersunk_wood.stl"
+  },
+  {
+   "key": "allen__pan_wood",
+   "category": "bolt",
+   "drive": "allen",
+   "head": "pan_wood",
+   "icon_file": "label_icons/allen__pan_wood.stl"
+  },
+  {
+   "key": "torx__countersunk",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "countersunk",
+   "icon_file": "label_icons/torx__countersunk.stl"
+  },
+  {
+   "key": "torx__socket",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "socket",
+   "icon_file": "label_icons/torx__socket.stl"
+  },
+  {
+   "key": "torx__pan",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "pan",
+   "icon_file": "label_icons/torx__pan.stl"
+  },
+  {
+   "key": "torx__flange_pan",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "flange_pan",
+   "icon_file": "label_icons/torx__flange_pan.stl"
+  },
+  {
+   "key": "torx__shoulder",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "shoulder",
+   "icon_file": "label_icons/torx__shoulder.stl"
+  },
+  {
+   "key": "torx__countersunk_wood",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/torx__countersunk_wood.stl"
+  },
+  {
+   "key": "torx__pan_wood",
+   "category": "bolt",
+   "drive": "torx",
+   "head": "pan_wood",
+   "icon_file": "label_icons/torx__pan_wood.stl"
+  },
+  {
+   "key": "security_torx__countersunk",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "countersunk",
+   "icon_file": "label_icons/security_torx__countersunk.stl"
+  },
+  {
+   "key": "security_torx__socket",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "socket",
+   "icon_file": "label_icons/security_torx__socket.stl"
+  },
+  {
+   "key": "security_torx__pan",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "pan",
+   "icon_file": "label_icons/security_torx__pan.stl"
+  },
+  {
+   "key": "security_torx__flange_pan",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "flange_pan",
+   "icon_file": "label_icons/security_torx__flange_pan.stl"
+  },
+  {
+   "key": "security_torx__shoulder",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "shoulder",
+   "icon_file": "label_icons/security_torx__shoulder.stl"
+  },
+  {
+   "key": "security_torx__countersunk_wood",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/security_torx__countersunk_wood.stl"
+  },
+  {
+   "key": "security_torx__pan_wood",
+   "category": "bolt",
+   "drive": "security_torx",
+   "head": "pan_wood",
+   "icon_file": "label_icons/security_torx__pan_wood.stl"
+  },
+  {
+   "key": "phillips__countersunk",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "countersunk",
+   "icon_file": "label_icons/phillips__countersunk.stl"
+  },
+  {
+   "key": "phillips__socket",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "socket",
+   "icon_file": "label_icons/phillips__socket.stl"
+  },
+  {
+   "key": "phillips__pan",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "pan",
+   "icon_file": "label_icons/phillips__pan.stl"
+  },
+  {
+   "key": "phillips__flange_pan",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "flange_pan",
+   "icon_file": "label_icons/phillips__flange_pan.stl"
+  },
+  {
+   "key": "phillips__shoulder",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "shoulder",
+   "icon_file": "label_icons/phillips__shoulder.stl"
+  },
+  {
+   "key": "phillips__countersunk_wood",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/phillips__countersunk_wood.stl"
+  },
+  {
+   "key": "phillips__pan_wood",
+   "category": "bolt",
+   "drive": "phillips",
+   "head": "pan_wood",
+   "icon_file": "label_icons/phillips__pan_wood.stl"
+  },
+  {
+   "key": "pozidriv__countersunk",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "countersunk",
+   "icon_file": "label_icons/pozidriv__countersunk.stl"
+  },
+  {
+   "key": "pozidriv__socket",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "socket",
+   "icon_file": "label_icons/pozidriv__socket.stl"
+  },
+  {
+   "key": "pozidriv__pan",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "pan",
+   "icon_file": "label_icons/pozidriv__pan.stl"
+  },
+  {
+   "key": "pozidriv__flange_pan",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "flange_pan",
+   "icon_file": "label_icons/pozidriv__flange_pan.stl"
+  },
+  {
+   "key": "pozidriv__shoulder",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "shoulder",
+   "icon_file": "label_icons/pozidriv__shoulder.stl"
+  },
+  {
+   "key": "pozidriv__countersunk_wood",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/pozidriv__countersunk_wood.stl"
+  },
+  {
+   "key": "pozidriv__pan_wood",
+   "category": "bolt",
+   "drive": "pozidriv",
+   "head": "pan_wood",
+   "icon_file": "label_icons/pozidriv__pan_wood.stl"
+  },
+  {
+   "key": "robertson__countersunk",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "countersunk",
+   "icon_file": "label_icons/robertson__countersunk.stl"
+  },
+  {
+   "key": "robertson__socket",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "socket",
+   "icon_file": "label_icons/robertson__socket.stl"
+  },
+  {
+   "key": "robertson__pan",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "pan",
+   "icon_file": "label_icons/robertson__pan.stl"
+  },
+  {
+   "key": "robertson__flange_pan",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "flange_pan",
+   "icon_file": "label_icons/robertson__flange_pan.stl"
+  },
+  {
+   "key": "robertson__shoulder",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "shoulder",
+   "icon_file": "label_icons/robertson__shoulder.stl"
+  },
+  {
+   "key": "robertson__countersunk_wood",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/robertson__countersunk_wood.stl"
+  },
+  {
+   "key": "robertson__pan_wood",
+   "category": "bolt",
+   "drive": "robertson",
+   "head": "pan_wood",
+   "icon_file": "label_icons/robertson__pan_wood.stl"
+  },
+  {
+   "key": "slotted__countersunk",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "countersunk",
+   "icon_file": "label_icons/slotted__countersunk.stl"
+  },
+  {
+   "key": "slotted__socket",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "socket",
+   "icon_file": "label_icons/slotted__socket.stl"
+  },
+  {
+   "key": "slotted__pan",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "pan",
+   "icon_file": "label_icons/slotted__pan.stl"
+  },
+  {
+   "key": "slotted__flange_pan",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "flange_pan",
+   "icon_file": "label_icons/slotted__flange_pan.stl"
+  },
+  {
+   "key": "slotted__shoulder",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "shoulder",
+   "icon_file": "label_icons/slotted__shoulder.stl"
+  },
+  {
+   "key": "slotted__countersunk_wood",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "countersunk_wood",
+   "icon_file": "label_icons/slotted__countersunk_wood.stl"
+  },
+  {
+   "key": "slotted__pan_wood",
+   "category": "bolt",
+   "drive": "slotted",
+   "head": "pan_wood",
+   "icon_file": "label_icons/slotted__pan_wood.stl"
+  },
+  {
+   "key": "hex__hex",
+   "category": "bolt",
+   "drive": "hex",
+   "head": "hex",
+   "icon_file": "label_icons/hex__hex.stl"
+  },
+  {
+   "key": "hex__hex_wood",
+   "category": "bolt",
+   "drive": "hex",
+   "head": "hex_wood",
+   "icon_file": "label_icons/hex__hex_wood.stl"
+  },
+  {
+   "key": "flange_bolt__flange_hex",
+   "category": "bolt",
+   "drive": "flange_bolt",
+   "head": "flange_hex",
+   "icon_file": "label_icons/flange_bolt__flange_hex.stl"
+  },
+  {
+   "key": "flange_bolt__flange_hex_wood",
+   "category": "bolt",
+   "drive": "flange_bolt",
+   "head": "flange_hex_wood",
+   "icon_file": "label_icons/flange_bolt__flange_hex_wood.stl"
+  },
+  {
+   "key": "regular_nut",
+   "category": "nut",
+   "nut": "regular_nut",
+   "icon_file": "label_icons/regular_nut.stl"
+  },
+  {
+   "key": "square_nut",
+   "category": "nut",
+   "nut": "square_nut",
+   "icon_file": "label_icons/square_nut.stl"
+  },
+  {
+   "key": "nyloc_nut",
+   "category": "nut",
+   "nut": "nyloc_nut",
+   "icon_file": "label_icons/nyloc_nut.stl"
+  },
+  {
+   "key": "flange_nut",
+   "category": "nut",
+   "nut": "flange_nut",
+   "icon_file": "label_icons/flange_nut.stl"
+  },
+  {
+   "key": "flange_nyloc_nut",
+   "category": "nut",
+   "nut": "flange_nyloc_nut",
+   "icon_file": "label_icons/flange_nyloc_nut.stl"
+  },
+  {
+   "key": "dome_nut",
+   "category": "nut",
+   "nut": "dome_nut",
+   "icon_file": "label_icons/dome_nut.stl"
+  },
+  {
+   "key": "wing_nut",
+   "category": "nut",
+   "nut": "wing_nut",
+   "icon_file": "label_icons/wing_nut.stl"
+  },
+  {
+   "key": "heatset_nut",
+   "category": "nut",
+   "nut": "heatset_nut",
+   "icon_file": "label_icons/heatset_nut.stl"
+  },
+  {
+   "key": "regular_washer",
+   "category": "nut",
+   "nut": "regular_washer",
+   "icon_file": "label_icons/regular_washer.stl"
+  },
+  {
+   "key": "square_washer",
+   "category": "nut",
+   "nut": "square_washer",
+   "icon_file": "label_icons/square_washer.stl"
+  },
+  {
+   "key": "split_washer",
+   "category": "nut",
+   "nut": "split_washer",
+   "icon_file": "label_icons/split_washer.stl"
+  },
+  {
+   "key": "boat_washer",
+   "category": "nut",
+   "nut": "boat_washer",
+   "icon_file": "label_icons/boat_washer.stl"
+  },
+  {
+   "key": "external_lock_washer",
+   "category": "nut",
+   "nut": "external_lock_washer",
+   "icon_file": "label_icons/external_lock_washer.stl"
+  },
+  {
+   "key": "internal_lock_washer",
+   "category": "nut",
+   "nut": "internal_lock_washer",
+   "icon_file": "label_icons/internal_lock_washer.stl"
+  }
+ ]
+}
