@@ -52,7 +52,7 @@ Derived over many iterations; do not silently re-litigate them.
 
 1. **Every bin is exactly 2 cells wide.** Allowed footprints are `2x1`, `2x2`, `2x3` only.
    Uniform width means one bin per drawer column, which is what makes strict size ordering
-   possible, and every label shelf is the same wide 84 mm.
+   possible, and every label is the same wide 84 mm.
 2. **Portrait rule.** Anything deeper than one row stands upright so its label sits on the
    short side. `2x1` is the deliberate landscape exception (`LANDSCAPE_EXCEPTION`).
    (Rules 1 and 2 describe the original sizing; the user's own layout breaks rule 1 for
@@ -89,8 +89,15 @@ Derived over many iterations; do not silently re-litigate them.
      0.00006 % of the area (negative controls: wrong digit 15.8 %, wrong drive icon 3.4 %).
    - A canvas-rasterised text label was tried long ago and rejected; this is vector text in
      the site's font, which the user chose explicitly.
-   - Path: `label_art.compose(part, text)` → `_label_geometry()` → `make_label_inlay()` /
-     label plates → flush 0.6 mm inlay in a pocket cut by `make_finished_body()`.
+   - Path: `label_art.compose(part, text)` → `_label_geometry(spec, …, _mw_label_area(spec))`
+     → flush 0.6 mm inlay in a pocket cut into the clip-on label (`make_mw_label()`).
+7. **One label style: MakerWorld (2026-09-30).** The user removed the integrated shelf and
+   the removable snap plate ("remove the integrated and removable options. the makerworld is
+   the new default"): UI switch, API `style` field (still accepted, ignored), CLI `--style`
+   and all their generator code (`make_bin_body`, `make_finished_body`, `make_label_inlay`,
+   `make_snap_bin`, `_snap_ring`, `_support_ramp`, `make_label_plate`, …) are gone; git
+   history before 2026-09-30 has them. A box is always two files (bin + label), so every
+   download is a zip. File names kept their `_MW` tokens so earlier builds stay valid.
 
 ---
 
@@ -111,7 +118,7 @@ docker-compose.yml                              web + api, both on the default b
 ### generate_gridfinity_chappel_bins.py
 
 A spec (one box) is `{pos, part, thread, length (None for nuts/washers), text (optional
-override), grid_w, grid_d, height_u, norm}` plus label options (`label_style`, `label_side`,
+override), grid_w, grid_d, height_u, norm}` plus label options (`label_side`,
 `label_depth`, `label_fit`, `label_detent`). `SPECS` = the 116 default positions (qty,
 material, artnr and fill data were dropped with the fill model). Key entry points:
 
@@ -119,18 +126,19 @@ material, artnr and fill data were dropped with the fill model). Key entry point
 |---|---|
 | `label_text(spec)` | the spec's text, else `M6×20` (bolt) / `M6` (nut, washer) |
 | `_label_geometry(spec, base_z, thickness, area)` | composed artwork fitted into the label area |
-| `make_finished_body(spec)` / `make_label_inlay(spec)` | body with pocket / the inlay (no `out` arg any more) |
-| `make_label_plate(spec)`, `make_mw_label(spec)` | removable / MakerWorld labels |
+| `make_mw_bin(w, d, u, detent)` | bin with the lip (and detent pieces) |
+| `make_mw_label(spec)` | clip-on label: (tray with pocket, flush inlay) |
+| `file_plan(specs)` | distinct bins (w, d, u[, 'det']) with counts, and the labels |
 | `export_assembled_3mf(body, label, path, name)` | two-part 3MF |
 | `validate_spec(spec)` | known part, drawable text, footprint inside the drawer (422 in the api) |
 | `validate_specs()` | the default set: unique pos, each spec valid, uniform 8U |
-| `screw_name(spec)` / `filename_stem(spec)` | `allen-countersunk_M6x80` / `…_2x3_8U[_LBACK]` |
+| `screw_name(spec)` / `label_plate_stem(spec)` / `mw_bin_stem(…)` | `allen-countersunk_M6x80` / `LABEL_…_W2_D10_MW_FIT0.05[_DET][_LBACK]` / `BIN_2x1_8U_MW[_DET][_x83]` |
 
 `label_art.py`: `catalogue()`, `parts()`, `part_name(key)`, `icon_polygons(key)`,
 `text_polygons(text)`, `compose(key, text)`, `web_catalogue()`; `python label_art.py [path]`
 writes `web/public/parts.json`.
 
-CLI: `-o DIR`, `--positions 1,2,6`, `--style`, `--label-side`, `--label-depth`,
+CLI: `-o DIR`, `--positions 1,2,6`, `--label-side`, `--label-depth`,
 `--label-fit`, `--detents` (`--build` is accepted and ignored; `--fetch-labels` is gone).
 
 ### assemble_final_drawer_v9.py
@@ -162,7 +170,7 @@ head family (`FAMILY`, CSS vars `--sk --lk --zk --kt --fp --sh --fh --nut --wsh`
 ×0.88, darker for bigger threads), floor, the label strip at its real place and size for the
 current style/depth, and the artwork drawn like the generator: `labelArt()` mirrors
 `label_art.compose` (canvas `measureText` for the ink box, SVG `<text>` in the same font),
-`labelStrip()` mirrors the integrated shelf / `_plate_area` / `_mw_label_area`, scale
+`labelStrip()` mirrors `_mw_label_area`, scale
 capped at 1.35. A caption repeats the label text in the open floor (the printed text is a
 few pixels at normal zoom). Tiles redraw only when their key changes.
 
@@ -187,40 +195,22 @@ parts, bounds, overlaps and a single height, and rejects the whole file on any e
 claude.ai `db` "saved layouts" list was removed.
 
 **Label edge (2026-09-17).** Each box has `label: "bot" | "top"` (editor vocabulary: the
-grid is drawn with the drawer front at the bottom). `bot` = shelf on the front edge (the
-original design), `top` = on the back edge. Set in the box menu, with **L** on a selection,
+grid is drawn with the drawer front at the bottom). `bot` = label on the front edge,
+`top` = on the back edge. Set in the box menu, with **L** on a selection,
 or for all boxes in "Generate boxes"; stored in local storage and in the CSV `label` column
 (optional on import, default `bot`); the drawn label strip on each tile marks the edge. The api maps
-it to the generator's `label_side` (`front` / `back`). In the generator, `make_bin_body(...,
-side)` mirrors shelf + ramp through XZ; `_chappel_label_geometry` only moves the pocket and
-inlay to the back shelf, **it does not rotate the graphic**, so the text still reads from the
-drawer front (verified: identical centre-of-mass offset for both sides). Back files are
-named `…_8U_LBACK`; front names are unchanged. CLI: `--label-side front|back`.
+it to the generator's `label_side` (`front` / `back`). The label is mirrored to the back;
+the artwork is only moved, **never rotated**, so the text still reads from the drawer front.
+Back label files end in `_LBACK`; the bin is the same for both edges. CLI:
+`--label-side front|back`.
 `assemble_final_drawer_v9.py` parses the suffix and keeps its screw stand-in away from the
 label edge.
 
-**Label style (2026-09-17).** Global switch `state.style` = `integrated` | `removable`
-(local storage; not in the CSV). Removable, after MakerWorld model 431547 (reference files
-the user uploaded are in `./tmp/`, untracked): `make_snap_bin()` = `make_bin_shell()` + a
-snap rim (`_snap_ring`: rounded slab minus an hourglass of two 45° tapered extrusions;
-OCC's `chamfer` fails on that loop, and a cutter face coincident with the wall face made the
-union eat all RAM and reboot the Codespace, hence the 0.3 mm overshoot).
-`make_label_plate()` = plate with a V-groove (same ring, grown by the clearance) + flush
-inlay; `build_label_plate_3mf()` flips it face down. Verified in CadQuery for a 2×1, front
-and back: rim profile 0.6 deep / 45° / 0.1 land, zero plate-bin overlap, plate material
-above and below the rim tip. Not printed. Since 2026-09-17 (user request) the snap bin also
-has `_support_ramp()` under the label: 45° prism whose flat top sits PLATE_REST_GAP = 0.1 mm
-below the plate and reaches the full plate depth (checked: reach falls 1:1 with height, no
-material in the gap, no plate clash, both edges, 10/19 mm). The clip is unchanged. So the
-bin depends on label edge and depth: `bins/BIN_<w>x<d>_<u>U_D<depth>[_LBACK]_x<count>.3mf`
-(deduplicated in `removable_file_plan()` by (w, d, u, side, depth)) +
-`labels/LABEL_<type>_<thread>x<len>_W<w>_D<depth>[_LBACK].3mf`; a single box is a zip of both.
-Plate depth ("Label width" in the GUI) is `spec['label_depth']`, default 10 mm (was a fixed
-14), GUI 6–19 mm, API 6–30 mm but `plate_depth()` also refuses more than half the bin's inner
-depth (19.55 mm for a 1-deep bin). Artwork height = depth − 3.75 mm: 6.3 mm at 10, 2.3 mm
-at 6. Checked in CadQuery at 6/10/19 mm, both edges, 2×1 / 2×3 / 1×3: no plate-bin overlap.
+**Label width** ("Label width" in the GUI) is `spec['label_depth']`, default 10 mm, GUI 6–19 mm,
+API 6–30 mm, but `plate_depth()` also refuses more than half the bin's inner depth (19.55 mm
+for a 1-deep bin). Artwork height = depth − fit − 3 mm (6.95 mm at 10, 2.95 mm at 6).
 
-**MakerWorld style (2026-09-17)**, third `label_style` value `makerworld`: replica of model
+**The clip-on label (MakerWorld style, 2026-09-17; the only style since 2026-09-30)**: replica of model
 431547 measured from its STL. Label = `make_mw_label()`: face plate `MW_PLATE` 1.8, skirt
 `MW_SKIRT` 3.16 on both sides + wall side, down to `MW_DEPTH` 5.05, outer profile
 (inset, depth) (0,0)→(1.31,1.31)→(1.31,3.10)→(0.61,3.80)→(0.61,5.05), built as a stack of
@@ -261,6 +251,19 @@ copying the previous one to `state/default_history/default_<time>-<ns>.json`; `G
 (was Reset), note `#defaultNote`. Boot: a browser with a local layout loads it; one without
 restores the shared default; no default / service down → built-in `BINS`.
 
+**Clicks (2026-09-30, user request).** A click on an unselected box only selects it; a click
+on the already selected box (so also a double-click, or Enter) opens its menu.
+`onPointerDown` records `wasSelected` on the drag record; `onPointerUp` without movement
+opens the menu only if it was set. Ctrl/Shift-click and select mode are unchanged.
+
+**Group drag (2026-09-30, user request).** Pressing a box that is part of a multi-selection
+drags every selected box that is in the drawer (`drag.group`): the pressed box snaps to the
+cell under the pointer, the others keep their offsets, one drop preview per box, and the drop
+is all or nothing (every box must fit, collisions checked ignoring the group itself).
+Dropping outside the drawer sends the whole group to the tray. A tray box, or an unselected
+box, drags alone. Tested with real mouse input: move, blocked move (all previews red,
+nothing moves), single box, drop outside, no leftover previews.
+
 **Drag without text selection (2026-09-30).** `onPointerDown` calls `preventDefault()` (the
 press would otherwise start a text selection that grows with the drag), focuses the grid by
 hand (arrow keys), clears any selection and sets `body.drag-active` (`user-select:none`)
@@ -268,14 +271,14 @@ until `pointerup`/`pointercancel`; `.drawer-shell` and `.tray` are always unsele
 `onPointerCancel` drops a drag without moving anything.
 
 **No position or quantity anywhere visible** (2026-09-17): tiles, box menu, tooltips, file
-names (`filename_stem` = `allen-countersunk_M6x80_2x3_8U[_LBACK]`: part slug + label-text
+names (`LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05[_LBACK]`: part slug + label-text
 slug; the editor's `screwName()` must produce the same), the generator manifest, the
 assembly script's CSV and GLB node names, and the editor CSV. `pos` survives only as an
 internal id (editor boxes, `SPECS`, `--positions`); API items carry no id at all.
 
 **API items (2026-09-29):** `{part, thread, length?, text?, w, d, label}`; `_spec_for()`
 builds a spec and `validate_spec()` turns an unknown part or a glyph the font lacks into a
-422. Integrated boxes and label plates with the same stem are built once per request.
+422. Bins of one size and labels with the same stem are built once per request.
 `/api/labels`, `/api/labels/fetch`, `fetch_missing` and the job's `labels` phase are gone.
 
 **3MF caching, two layers:** the browser keeps built files in memory keyed by
@@ -363,7 +366,7 @@ of those changing rebuilds.
 
 - Offline labels (2026-09-29): composed artwork equals the site's own exports for all 116
   old labels (sym. diff 0.00006 %, Hausdorff < 0.001 mm; negative controls 15.8 % / 3.4 %).
-  All 67 part types build as integrated 2×1 bins: BODY + LABEL_INLAY, extruders 1/2, zero
+  All 67 part types built as (since removed) integrated 2×1 bins: BODY + LABEL_INLAY, extruders 1/2, zero
   edges not shared by exactly two triangles. A nut label builds in all three styles.
 - Shared default (2026-09-30), two browser contexts: A saves (confirm, cancel works), a fresh
   B starts from it, B's own edits survive a reload, Load default fetches A's newer default,
@@ -371,6 +374,10 @@ of those changing rebuilds.
   parts, overlaps, out-of-drawer boxes and empty drawers with 422. Set-as-default round trip
   0.11 s. Drag test with real mouse input: no selection even over the sidebar, drop lands,
   click still opens the menu, sidebar text still selectable.
+- Single style (2026-09-30): API ignores an old `"style": "integrated"` and returns the zip
+  of shared bins + labels; an old local layout with `style: integrated` loads (style dropped,
+  label depth kept); first click selects, second opens, double-click opens, drag of an
+  unselected box moves it without opening, the box menu's 3MF downloads `<name>.zip`.
 - **Tiles are to scale** (2026-09-30): the tile SVG shows exactly the millimetres the tile
   covers (`topSVG`, viewBox inset by 2 px of border/gap), so both axes share cell/42 px per mm.
   Measured by rendered ink at 240 px/cell against `_label_geometry` bounds for 6 cases (all

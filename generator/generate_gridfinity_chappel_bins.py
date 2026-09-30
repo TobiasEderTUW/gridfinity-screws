@@ -15,12 +15,13 @@ Dependencies: cadquery trimesh shapely networkx fonttools
 
 Design choices:
   * Standard 42 mm Gridfinity XY pitch and a standard-compatible 41.5 mm multi-step foot.
-  * No stacking lip: these are drawer bins, which gives more clearance and a clean top label shelf.
+  * No stacking lip: these are drawer bins, which gives more clearance.
   * 1.2 mm walls. EVERY bin is 8U = 56 mm high.
   * Footprints are chosen by the user; there is no fill or volume model.
-  * Horizontal top label shelf on the front (or back) edge, supported by a ~45 degree ramp.
-  * The label's icon + text outlines become a 0.6 mm deep, flush AMS inlay in the shelf
-    (integrated style) or in a separate label plate (removable / MakerWorld styles).
+  * One label style: the bin has a lip round its top inside (optionally with detents); a
+    separately printed clip-on label (replica of MakerWorld model 431547) sits on the front
+    or back edge. Its icon + text outlines are a 0.6 mm deep, flush two-colour inlay.
+  * Bins do not depend on their label, so one bin file serves every box of that size.
 """
 
 from __future__ import annotations
@@ -56,29 +57,19 @@ WALL = 1.2
 BODY_RADIUS = 3.75
 FOOT_H = 4.75
 FLOOR_Z = 7.2
-LABEL_SHELF_DEPTH = 12.0
-LABEL_SHELF_THICK = 1.2
-# Which edge carries the label shelf, in plan view: 'front' (the drawer-front side, the
-# original design) or 'back'. A back label is the front design mirrored in Y; the label
-# graphic itself is only moved, never rotated, so it still reads from the drawer front.
+# Which edge carries the label, in plan view: 'front' (the drawer-front side) or 'back'.
+# A back label is the front one mirrored in Y; the artwork itself is only moved, never
+# rotated, so it still reads from the drawer front.
 LABEL_SIDES = ('front', 'back')
 DEFAULT_LABEL_SIDE = 'front'
 
-# Label style. 'integrated': the original design, shelf + 45 degree ramp with the label inlay
-# cut into the bin. 'removable': a plain bin with a small snap rim around the inside of the
-# top, plus a separately printed two-colour label plate whose edge groove clicks over the rim
-# (after the MakerWorld "Removable Label - Gridfinity AddOn", model 431547).
-LABEL_STYLES = ('integrated', 'removable', 'makerworld')
-DEFAULT_LABEL_STYLE = 'integrated'
-SNAP_RIM_DEPTH = 0.60        # how far the rim stands in from the inner wall face
-SNAP_RIM_HEIGHT = 1.30       # rim height at the wall; both faces 45 deg -> supportless
-PLATE_THICK = 2.40           # label plate; its top is flush with the bin top
-DEFAULT_PLATE_DEPTH = 10.0   # label plate depth from the inner wall face; per request
+# The one label style since 2026-09-30 (the integrated shelf and the removable snap plate
+# were removed on request; see git history before that date): a separately printed
+# two-colour label that clips onto a lip round the bin's top inside.
+DEFAULT_PLATE_DEPTH = 10.0   # label depth from the inner wall face ("Label width" in the GUI)
 PLATE_DEPTH_RANGE = (6.0, 30.0)
-PLATE_CLEARANCE = 0.15       # plate edge to wall, and groove to rim
-PLATE_REST_GAP = 0.10        # plate underside to the top of the support ramp below it
 
-# 'makerworld': replica of the snap profile of MakerWorld model 431547 (measured from its
+# Replica of the snap profile of MakerWorld model 431547 (measured from its
 # STL, and the designer's 1.8 / 3.8 mm sketch). The label is an inverted tray: a 1.8 mm face
 # plate with a 3.16 mm skirt along both sides and the wall-side edge. Seen in section, the
 # skirt's outer face runs (inset from the label edge, depth below the face):
@@ -104,20 +95,13 @@ DETENT_OFFSET = 5.0          # piece centre from the adjacent wall face (edges 2
 DETENT_DROP = 4.0            # how far the piece runs below the bottom of the lip
 DETENT_CLEARANCE = 0.10      # label slot = piece section grown by this
 MW_SAFE = 1.5                # artwork margin to the face edges
-PLATE_SAFE_SIDE = 3.0        # graphic margin to the plate's side edges
-PLATE_SAFE_FRONT_BACK = 1.8  # graphic margin to the plate's wall and free edges
 LABEL_INLAY_DEPTH = 0.60        # 3 layers at 0.20 mm
-LABEL_INLAY_TOP_RECESS = 0.00    # exactly flush: inlay top plane == BODY label-shelf top plane
 LABEL_POCKET_BOTTOM_CLEARANCE = 0.02
 LABEL_POCKET_OVERTRAVEL = 0.08  # cutter continues above the top face for robust booleans
-LABEL_RAMP_ANGLE_DEG = 45.0     # underside ramp angle, measured from horizontal
 UNIFORM_HEIGHT_U = 8              # ALL bins are 56 mm high - uniform height is a hard requirement.
                                   # 7U/49 mm cannot hold the 15.04.2026 order at a sane fill level
                                   # without 1-cell-wide bins; 8U clears the 75 mm drawer easily.
-LABEL_SIDE_INSET = 0.00         # shelf is generated full-width, then clipped to the rounded outer envelope
-LABEL_SAFE_SIDE = 2.5            # minimum horizontal label-graphics margin from the box envelope
-LABEL_SAFE_FRONT_BACK = 1.5      # minimum label-graphics margin within the 12 mm shelf depth
-SCRIPT_VERSION = "2026-09-29.1-offline-labels"
+SCRIPT_VERSION = "2026-09-30.1-makerworld-only"
 LABEL_MAX_UPSCALE = 1.35         # the artwork may grow at most this much past its 1-wide size
 
 
@@ -251,17 +235,9 @@ for _spec in SPECS:
     _spec['height_u'] = BIN_HEIGHT_U
 
 
-
 # Filament (extruder) slots baked into the exported 3MF part settings.
 BODY_FILAMENT = 1
 LABEL_FILAMENT = 2
-
-
-def export_assembled_3mf(body_mesh: trimesh.Trimesh, label_mesh: trimesh.Trimesh,
-                         output_path: Path, assembly_name: str) -> None:
-    """Integrated bin: BODY on filament 1 + LABEL_INLAY on filament 2."""
-    export_parts_3mf([('BODY', body_mesh, BODY_FILAMENT), ('LABEL_INLAY', label_mesh, LABEL_FILAMENT)],
-                     output_path, assembly_name)
 
 
 def export_parts_3mf(parts: list[tuple[str, trimesh.Trimesh, int]],
@@ -378,7 +354,6 @@ def export_parts_3mf(parts: list[tuple[str, trimesh.Trimesh, int]],
         zout.writestr('Metadata/model_settings.config', model_settings_xml)
 
 
-
 def rounded_prism(width: float, depth: float, radius: float, height: float) -> cq.Workplane:
     radius = min(radius, width/2-0.01, depth/2-0.01)
     sketch = cq.Sketch().rect(width, depth).vertices().fillet(radius)
@@ -399,18 +374,6 @@ def label_side(spec: dict) -> str:
     if side not in LABEL_SIDES:
         raise ValueError(f"label_side must be one of {LABEL_SIDES}, got {side!r}")
     return side
-
-
-def _shelf_center_y(outer_y: float, side: str) -> float:
-    front = -outer_y/2 + WALL + LABEL_SHELF_DEPTH/2
-    return front if side == 'front' else -front
-
-
-def label_style(spec: dict) -> str:
-    style = spec.get('label_style', DEFAULT_LABEL_STYLE)
-    if style not in LABEL_STYLES:
-        raise ValueError(f"label_style must be one of {LABEL_STYLES}, got {style!r}")
-    return style
 
 
 def _polygon_to_cq_solid(poly, depth: float) -> cq.Shape:
@@ -435,22 +398,12 @@ def label_text(spec: dict) -> str:
 
 
 def _label_geometry(spec: dict, base_z: float, thickness: float,
-                    area: tuple[float, float, float] | None = None) -> cq.Workplane:
+                    area: tuple[float, float, float]) -> cq.Workplane:
     """The label artwork (icons + text), scaled into a safe area and extruded between
-    base_z and base_z + thickness.
-
-    area = (centre_y, safe_w, safe_h); default is the integrated shelf of this spec.
-    """
+    base_z and base_z + thickness. area = (centre_y, safe_w, safe_h)."""
     polygons = label_art.compose(part_key(spec), label_text(spec))
     graphic = cq.Workplane(obj=cq.Compound.makeCompound(
         [_polygon_to_cq_solid(p, thickness) for p in polygons]))
-
-    if area is None:
-        outer_y = GRID * spec['grid_d'] - XY_CLEARANCE
-        outer_x = GRID * spec['grid_w'] - XY_CLEARANCE
-        area = (_shelf_center_y(outer_y, label_side(spec)),
-                max(8.0, outer_x - 2*(BODY_RADIUS + LABEL_SAFE_SIDE)),
-                LABEL_SHELF_DEPTH - 2*LABEL_SAFE_FRONT_BACK)
     shelf_y, safe_w, safe_h = area
 
     shape = graphic.val()
@@ -475,18 +428,6 @@ def _label_geometry(spec: dict, base_z: float, thickness: float,
     assert bb.ymin >= shelf_y-safe_h/2-0.05 and bb.ymax <= shelf_y+safe_h/2+0.05, (spec, bb.ymin, bb.ymax, shelf_y, safe_h)
     return result
 
-
-def make_label_inlay(spec: dict) -> cq.Workplane:
-    top_z = spec['height_u'] * 7.0
-    base_z = top_z - LABEL_INLAY_DEPTH
-    return _label_geometry(spec, base_z, LABEL_INLAY_DEPTH)
-
-
-def make_label_pocket(spec: dict) -> cq.Workplane:
-    top_z = spec['height_u'] * 7.0
-    base_z = top_z - LABEL_INLAY_DEPTH - LABEL_POCKET_BOTTOM_CLEARANCE
-    thickness = LABEL_INLAY_DEPTH + LABEL_POCKET_BOTTOM_CLEARANCE + LABEL_POCKET_OVERTRAVEL
-    return _label_geometry(spec, base_z, thickness)
 
 def make_bin_shell(grid_w: int, grid_d: int, height_u: int) -> cq.Workplane:
     """Walls, floor and Gridfinity feet; no label feature."""
@@ -525,72 +466,8 @@ def _tapered_prism(width: float, depth: float, radius: float, z: float, height: 
             .toPending().extrude(height, taper=taper))
 
 
-def _snap_ring(grid_w: int, grid_d: int, top_z: float, depth: float, height: float,
-               into_wall: float) -> cq.Workplane:
-    """Ring along the inner wall, centred PLATE_THICK/2 below the top.
-
-    It stands `depth` in from the wall face, with 45 degree faces above and below and a
-    flat land of (height - 2*depth) at the tip, so it prints without support. Built as a
-    rounded slab minus an hourglass of two 45 degree tapered extrusions (OCC's chamfer
-    fails on this loop). `into_wall` extends the slab into the wall for a robust union.
-    """
-    ix, iy, ir = _inner_outline(grid_w, grid_d)
-    z0 = top_z - PLATE_THICK/2 - height/2
-    land = height - 2*depth
-    assert land > 0, (depth, height)
-    nx, ny, nr = ix - 2*depth, iy - 2*depth, max(0.2, ir - depth)
-    # The 45 degree faces continue e mm past the wall face (into the wall) so no cutter
-    # surface coincides with the shell's inner face; coincident faces made the union run
-    # away in OCC (it exhausted 8 GB of RAM).
-    e = 0.3
-    hourglass = (_tapered_prism(ix + 2*e, iy + 2*e, ir + e, z0 - e, depth + e, 45)
-                 .union(_tapered_prism(nx, ny, nr, z0 + depth, land, 0))
-                 .union(_tapered_prism(nx, ny, nr, z0 + depth + land, depth + e, -45)))
-    slab = rounded_prism(ix + 2*into_wall, iy + 2*into_wall, ir + into_wall, height).translate((0, 0, z0))
-    return slab.cut(hourglass)
-
-
-def _support_ramp(grid_w: int, grid_d: int, height_u: int, top_face_z: float, run: float,
-                  side: str) -> cq.Workplane:
-    """45 degree triangular prism on the inside of the label wall.
-
-    Its flat top at top_face_z reaches `run` mm in from the wall face; below that it falls
-    away at 45 degrees back to the wall, so it prints without support. Clipped to the rounded
-    outer envelope and unioned into the side walls, like the integrated shelf ramp.
-    """
-    outer_x = GRID * grid_w - XY_CLEARANCE
-    outer_y = GRID * grid_d - XY_CLEARANCE
-    wall_y = -outer_y/2 + WALL
-    drop = min(run * math.tan(math.radians(LABEL_RAMP_ANGLE_DEG)),
-               max(2.0, top_face_z - FLOOR_Z - 2.0))
-    run = drop / math.tan(math.radians(LABEL_RAMP_ANGLE_DEG))
-    span = outer_x + 2.0
-    ramp = (cq.Workplane('YZ')
-            .polyline([(wall_y - 0.5, top_face_z - drop - 0.5),   # 0.5 mm into the wall
-                       (wall_y - 0.5, top_face_z),
-                       (wall_y + run, top_face_z),
-                       (wall_y, top_face_z - drop)])
-            .close()
-            .extrude(span/2, both=True))
-    if side == 'back':
-        ramp = ramp.mirror('XZ')
-    envelope = rounded_prism(outer_x, outer_y, BODY_RADIUS, height_u * 7.0 + 1.0)
-    return ramp.intersect(envelope)
-
-
-def make_snap_bin(grid_w: int, grid_d: int, height_u: int, side: str = DEFAULT_LABEL_SIDE,
-                  depth: float = DEFAULT_PLATE_DEPTH) -> cq.Workplane:
-    """Removable-label bin: shell, snap rim all round, and a 45 degree ramp under the label
-    for the plate to rest on. Depends on the label edge and the plate depth, not the label."""
-    top_z = height_u * 7.0
-    rim = _snap_ring(grid_w, grid_d, top_z, SNAP_RIM_DEPTH, SNAP_RIM_HEIGHT, 0.6)
-    ramp = _support_ramp(grid_w, grid_d, height_u, top_z - PLATE_THICK - PLATE_REST_GAP,
-                         depth, side)
-    return make_bin_shell(grid_w, grid_d, height_u).union(rim).union(ramp)
-
-
 def plate_depth(spec: dict) -> float:
-    """Depth of the removable label plate (the 'label width' in the editor), in mm."""
+    """Depth of the label from the inner wall (the 'label width' in the editor), in mm."""
     depth = float(spec.get('label_depth', DEFAULT_PLATE_DEPTH))
     lo, hi = PLATE_DEPTH_RANGE
     if not lo <= depth <= hi:
@@ -599,46 +476,6 @@ def plate_depth(spec: dict) -> float:
     if depth > iy / 2:
         raise ValueError(f"a {depth} mm label covers more than half of the bin's {iy:.1f} mm inside")
     return depth
-
-
-def _plate_area(spec: dict) -> tuple[float, float, float]:
-    ix, iy, _ = _inner_outline(spec['grid_w'], spec['grid_d'])
-    depth = plate_depth(spec)
-    centre = -iy/2 + (PLATE_CLEARANCE + depth)/2
-    if label_side(spec) == 'back':
-        centre = -centre
-    return (centre, ix - 2*PLATE_CLEARANCE - 2*PLATE_SAFE_SIDE,
-            depth - PLATE_CLEARANCE - 2*PLATE_SAFE_FRONT_BACK)
-
-
-def _plate_graphic(spec: dict, base_z: float, thickness: float) -> cq.Workplane:
-    return _label_geometry(spec, base_z, thickness, area=_plate_area(spec))
-
-
-def make_label_plate(spec: dict) -> tuple[cq.Workplane, cq.Workplane]:
-    """Removable label, in its installed position: (carrier with pocket, flush inlay).
-
-    The plate fills the inner width along the label edge, plate_depth() deep, and has a
-    groove matching the snap rim along the three edges that touch a wall. For a back label
-    the plate outline is mirrored, the graphic only moved, so it reads from the drawer front.
-    """
-    w, d, top_z = spec['grid_w'], spec['grid_d'], spec['height_u'] * 7.0
-    ix, iy, ir = _inner_outline(w, d)
-    z0 = top_z - PLATE_THICK
-    blank = rounded_prism(ix - 2*PLATE_CLEARANCE, iy - 2*PLATE_CLEARANCE,
-                          max(0.2, ir - PLATE_CLEARANCE), PLATE_THICK).translate((0, 0, z0))
-    band = (cq.Workplane('XY')
-            .box(ix + 2, plate_depth(spec) + 1, PLATE_THICK + 2, centered=(True, False, False))
-            .translate((0, -iy/2 - 1, z0 - 1)))
-    if label_side(spec) == 'back':
-        band = band.mirror('XZ')
-    groove = _snap_ring(w, d, top_z, SNAP_RIM_DEPTH + PLATE_CLEARANCE,
-                        SNAP_RIM_HEIGHT + 2*PLATE_CLEARANCE, 2.0)
-    plate = blank.intersect(band).cut(groove)
-    inlay = _plate_graphic(spec, top_z - LABEL_INLAY_DEPTH, LABEL_INLAY_DEPTH)
-    pocket = _plate_graphic(spec, top_z - LABEL_INLAY_DEPTH - LABEL_POCKET_BOTTOM_CLEARANCE,
-                            LABEL_INLAY_DEPTH + LABEL_POCKET_BOTTOM_CLEARANCE + LABEL_POCKET_OVERTRAVEL)
-    return plate.cut(pocket), inlay
 
 
 def _mw_offset_stack(ix: float, iy: float, ir: float, top_z: float, base: float,
@@ -804,76 +641,6 @@ def label_print_transform() -> np.ndarray:
     return trimesh.transformations.rotation_matrix(math.pi, [1, 0, 0])
 
 
-def make_bin_body(grid_w: int, grid_d: int, height_u: int,
-                  side: str = DEFAULT_LABEL_SIDE) -> cq.Workplane:
-    outer_x = GRID * grid_w - XY_CLEARANCE
-    outer_y = GRID * grid_d - XY_CLEARANCE
-    top_z = height_u * 7.0
-    body = make_bin_shell(grid_w, grid_d, height_u)
-
-    # -------------------------------------------------------------------------
-    # LABEL GEOMETRY
-    # The horizontal label surface stays exactly where it was before.
-    # Only its UNDERSIDE changes: instead of a 12 mm horizontal bridge/overhang,
-    # a triangular prism rises from the front wall into the bin at ~45 degrees.
-    # Printed upright, every new layer grows inward gradually, so the shelf needs
-    # no support material.
-    # -------------------------------------------------------------------------
-    # Span essentially the entire outer width. This intentionally overlaps the
-    # left/right side walls, eliminating the two narrow slots which were present in v1.
-    # A tiny inset keeps the shelf inside the external envelope while preserving a robust union.
-    shelf_w = outer_x + 2.0  # deliberately oversized; clipped to the true rounded envelope below
-    front_inner_y = -outer_y/2 + WALL
-    rear_shelf_y = front_inner_y + LABEL_SHELF_DEPTH
-    shelf_y = (front_inner_y + rear_shelf_y) / 2
-    shelf_under_z = top_z - LABEL_SHELF_THICK
-
-    # Horizontal label plate in the original top-front position.
-    raw_shelf = (cq.Workplane('XY')
-                 .box(shelf_w, LABEL_SHELF_DEPTH, LABEL_SHELF_THICK, centered=(True,True,False))
-                 .translate((0, shelf_y, shelf_under_z)))
-
-    # 45-degree underside ramp. At the front it is thickest; it tapers to zero inward.
-    angle = math.radians(LABEL_RAMP_ANGLE_DEG)
-    ramp_drop = LABEL_SHELF_DEPTH * math.tan(angle)
-    max_drop = max(2.0, shelf_under_z - FLOOR_Z - 2.0)
-    ramp_drop = min(ramp_drop, max_drop)
-    effective_run = ramp_drop / max(math.tan(angle), 1e-9)
-    ramp_rear_y = front_inner_y + effective_run
-    raw_ramp = (cq.Workplane('YZ')
-                .polyline([
-                    (front_inner_y, shelf_under_z - ramp_drop),
-                    (front_inner_y, shelf_under_z),
-                    (ramp_rear_y, shelf_under_z),
-                ])
-                .close()
-                .extrude(shelf_w/2, both=True))
-
-    # Back label: the same shelf and ramp, mirrored through the XZ plane (y -> -y).
-    # The body without them is symmetric in Y, so nothing else changes.
-    if side == 'back':
-        raw_shelf = raw_shelf.mirror('XZ')
-        raw_ramp = raw_ramp.mirror('XZ')
-    elif side != 'front':
-        raise ValueError(f"label side must be one of {LABEL_SIDES}, got {side!r}")
-
-    # CRITICAL: clip both shelf and ramp to the exact rounded outer footprint of the bin.
-    # This removes the rectangular 'ears' at the left/right rounded corners while still
-    # producing a continuous union into the side walls with no print-hostile side slots.
-    envelope = rounded_prism(outer_x, outer_y, BODY_RADIUS, top_z + 1.0)
-    shelf = raw_shelf.intersect(envelope)
-    ramp = raw_ramp.intersect(envelope)
-
-    return body.union(shelf).union(ramp)
-
-
-def make_finished_body(spec: dict, base_body: cq.Workplane | None = None) -> cq.Workplane:
-    """BODY with a pocket cut from the label artwork's outline."""
-    if base_body is None:
-        base_body = make_bin_body(spec['grid_w'], spec['grid_d'], spec['height_u'], label_side(spec))
-    return base_body.cut(make_label_pocket(spec))
-
-
 def _slug(text: str) -> str:
     text = unicodedata.normalize('NFKD', text.replace('×', 'x'))
     return re.sub(r'[^A-Za-z0-9.]+', '-', text).strip('-') or 'blank'
@@ -882,21 +649,6 @@ def _slug(text: str) -> str:
 def screw_name(spec: dict) -> str:
     """Part type + label text, e.g. allen-countersunk_M6x80 or nyloc-nut_M6."""
     return f"{_slug(part_key(spec).replace('__', '-'))}_{_slug(label_text(spec))}"
-
-
-def filename_stem(spec: dict) -> str:
-    """Integrated bin: allen-countersunk_M6x80_2x3_8U, plus _LBACK for a back label."""
-    suffix = '' if label_side(spec) == 'front' else '_LBACK'
-    return f"{screw_name(spec)}_{spec['grid_w']}x{spec['grid_d']}_{spec['height_u']}U{suffix}"
-
-
-def snap_bin_stem(grid_w: int, grid_d: int, height_u: int, side: str = DEFAULT_LABEL_SIDE,
-                  depth: float = DEFAULT_PLATE_DEPTH, count: int | None = None) -> str:
-    """Removable-style bin, shared by every screw with the same size, label edge and label
-    depth (the support ramp depends on both): BIN_2x1_8U_D10_x83, BIN_2x1_8U_D10_LBACK_x5."""
-    suffix = '' if side == 'front' else '_LBACK'
-    return (f"BIN_{grid_w}x{grid_d}_{height_u}U_D{depth:g}{suffix}"
-            + (f"_x{count}" if count is not None else ""))
 
 
 def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = None,
@@ -908,13 +660,12 @@ def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = Non
 
 
 def label_plate_stem(spec: dict) -> str:
-    """Removable label plate. It depends on bin width and plate depth:
-    LABEL_allen-countersunk_M6x80_W2_D10."""
+    """The label file. It depends on bin width, label depth, fit, detents and edge:
+    LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05[_DET][_LBACK] (names unchanged from when
+    there were three styles, so earlier builds stay valid)."""
     suffix = '' if label_side(spec) == 'front' else '_LBACK'
-    style = ''
-    if label_style(spec) == 'makerworld':
-        style = f"_MW_FIT{label_fit(spec):g}" + ('_DET' if label_detent(spec) else '')
-    return f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{style}{suffix}"
+    fit = f"_MW_FIT{label_fit(spec):g}" + ('_DET' if label_detent(spec) else '')
+    return f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{fit}{suffix}"
 
 
 DRAWER_GRID_W = 25
@@ -936,8 +687,7 @@ def validate_specs() -> None:
     for s in SPECS:
         validate_spec(s)
     assert {s['height_u'] for s in SPECS} == {UNIFORM_HEIGHT_U}   # hard requirement
-    assert 0 < LABEL_INLAY_DEPTH <= LABEL_SHELF_THICK
-    assert 0 < LABEL_RAMP_ANGLE_DEG <= 45.0
+    assert 0 < LABEL_INLAY_DEPTH < MW_PLATE
     assert UNIFORM_HEIGHT_U * 7.0 <= 75.0                # drawer inner height
 
 
@@ -948,41 +698,16 @@ def _to_mesh(shape: cq.Workplane, tolerance: float, angular: float) -> trimesh.T
         return trimesh.load_mesh(path, force='mesh')
 
 
-def build_integrated_3mf(spec: dict, path: Path,
-                         base_body: cq.Workplane | None = None,
-                         stl_dirs: tuple[Path, Path] | None = None) -> None:
-    """Integrated style: BODY (pocket cut) + LABEL_INLAY in one two-colour 3MF.
-
-    stl_dirs = (bodies, labels) also keeps the two STLs, which the drawer assembly reads.
-    """
-    body_shape = make_finished_body(spec, base_body)
-    inlay_shape = make_label_inlay(spec)
-    body = _to_mesh(body_shape, 0.09, 0.22)
-    inlay = _to_mesh(inlay_shape, 0.06, 0.18)
-    if stl_dirs is not None:
-        body.export(stl_dirs[0] / f"{path.stem}_BODY.stl")
-        inlay.export(stl_dirs[1] / f"{path.stem}_LABEL_INLAY.stl")
-    export_assembled_3mf(body, inlay, path, path.stem)
-
-
-def build_snap_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path,
-                       side: str = DEFAULT_LABEL_SIDE, depth: float = DEFAULT_PLATE_DEPTH) -> None:
-    """Removable style: the bin alone, one part on filament 1."""
-    bin_mesh = _to_mesh(make_snap_bin(grid_w, grid_d, height_u, side, depth), 0.09, 0.22)
-    export_parts_3mf([('BIN', bin_mesh, BODY_FILAMENT)], path, path.stem)
-
-
 def build_mw_bin_3mf(grid_w: int, grid_d: int, height_u: int, path: Path,
                      detent: bool = False) -> None:
-    """MakerWorld style: the bin with its lip (and detent pieces), one part on filament 1."""
+    """The bin with its lip (and detent pieces), one part on filament 1."""
     bin_mesh = _to_mesh(make_mw_bin(grid_w, grid_d, height_u, detent), 0.09, 0.22)
     export_parts_3mf([('BIN', bin_mesh, BODY_FILAMENT)], path, path.stem)
 
 
 def build_label_plate_3mf(spec: dict, path: Path) -> None:
-    """Removable / MakerWorld style: label + flush inlay, laid face down for printing."""
-    maker = make_mw_label if label_style(spec) == 'makerworld' else make_label_plate
-    plate, inlay = maker(spec)
+    """The clip-on label + flush inlay, laid face down for printing."""
+    plate, inlay = make_mw_label(spec)
     plate_mesh = _to_mesh(plate, 0.05, 0.18)
     inlay_mesh = _to_mesh(inlay, 0.05, 0.18)
     flip = label_print_transform()
@@ -996,19 +721,16 @@ def build_label_plate_3mf(spec: dict, path: Path) -> None:
                       ('LABEL_INLAY', inlay_mesh, LABEL_FILAMENT)], path, path.stem)
 
 
-def removable_file_plan(specs: list[dict]) -> tuple[list[tuple[tuple, int]], list[dict]]:
-    """Distinct bins with their use counts, and one label per screw.
+def file_plan(specs: list[dict]) -> tuple[list[tuple[tuple, int]], list[dict]]:
+    """Distinct bins with their use counts, and the labels.
 
-    Removable bins carry the support ramp, so their key is (w, d, u, side, depth);
-    MakerWorld bins are the same for every label, so theirs is (w, d, u), plus a 'det' marker
-    when they carry the detent pieces.
+    A bin does not depend on its label, so its key is (w, d, u), plus a 'det' marker when it
+    carries the detent pieces.
     """
     counts: dict[tuple, int] = {}
     for spec in specs:
         key = (spec['grid_w'], spec['grid_d'], spec['height_u'])
-        if label_style(spec) == 'removable':
-            key += (label_side(spec), plate_depth(spec))
-        elif label_detent(spec):
+        if label_detent(spec):
             key += ('det',)
         counts[key] = counts.get(key, 0) + 1
     return sorted(counts.items()), list(specs)
@@ -1027,88 +749,37 @@ def write_manifest(out: Path, specs: list[dict]) -> None:
 
 
 def generate(out: Path, positions: set[int] | None = None, side: str | None = None,
-             style: str = DEFAULT_LABEL_STYLE, label_depth: float = DEFAULT_PLATE_DEPTH,
-             fit: float = DEFAULT_MW_FIT, detent: bool = False) -> None:
+             label_depth: float = DEFAULT_PLATE_DEPTH, fit: float = DEFAULT_MW_FIT,
+             detent: bool = False) -> None:
     validate_specs()
     selected = [s for s in SPECS if positions is None or s['pos'] in positions]
     if side is not None:
         selected = [{**s, 'label_side': side} for s in selected]
-    selected = [{**s, 'label_style': style, 'label_depth': label_depth, 'label_fit': fit,
-                 'label_detent': detent} for s in selected]
+    selected = [{**s, 'label_depth': label_depth, 'label_fit': fit, 'label_detent': detent}
+                for s in selected]
     if not selected:
         raise ValueError('No matching positions selected')
 
-    if style in ('removable', 'makerworld'):
-        bin_dir, label_dir = out/'bins_3mf', out/'labels_3mf'
-        for p in (bin_dir, label_dir):
-            p.mkdir(parents=True, exist_ok=True)
-        bins, labels = removable_file_plan(selected)
-        for key, count in bins:
-            if style == 'makerworld':
-                det = len(key) == 4
-                path = bin_dir / f"{mw_bin_stem(*key[:3], count, det)}.3mf"
-                build_mw_bin_3mf(*key[:3], path, det)
-            else:
-                path = bin_dir / f"{snap_bin_stem(*key, count=count)}.3mf"
-                build_snap_bin_3mf(key[0], key[1], key[2], path, key[3], key[4])
-            print(f"bin   {path.name}")
-        for n, s in enumerate(labels, 1):
-            path = label_dir / f"{label_plate_stem(s)}.3mf"
-            build_label_plate_3mf(s, path)
-            print(f"[{n:03d}/{len(labels):03d}] {path.name}")
-        write_manifest(out, selected)
-        print(f"Generated {len(bins)} distinct bins and {len(labels)} label plates in {out}")
-        return
-
-    body_dir = out/'bodies_stl'
-    label_dir = out/'labels_inlay_stl'
-    mf_dir = out/'assemblies_3mf'
-    for p in (body_dir, label_dir, mf_dir):
+    bin_dir, label_dir = out/'bins_3mf', out/'labels_3mf'
+    for p in (bin_dir, label_dir):
         p.mkdir(parents=True, exist_ok=True)
-
-    # Cache the generic ramp-supported body before its label pocket is cut.
-    base_body_cache: dict[tuple[int,int,int,str], cq.Workplane] = {}
-
-    for n, s in enumerate(selected, 1):
-        key = (s['grid_w'], s['grid_d'], s['height_u'], label_side(s))
-        if key not in base_body_cache:
-            base_body_cache[key] = make_bin_body(*key)
-        stem = filename_stem(s)
-        build_integrated_3mf(s, mf_dir / f"{stem}.3mf", base_body_cache[key],
-                             stl_dirs=(body_dir, label_dir))
-        print(f"[{n:03d}/{len(selected):03d}] {stem}")
-
+    bins, labels = file_plan(selected)
+    for key, count in bins:
+        det = len(key) == 4
+        path = bin_dir / f"{mw_bin_stem(*key[:3], count, det)}.3mf"
+        build_mw_bin_3mf(*key[:3], path, det)
+        print(f"bin   {path.name}")
+    done: set[str] = set()
+    for n, s in enumerate(labels, 1):
+        stem = label_plate_stem(s)
+        if stem in done:
+            continue
+        done.add(stem)
+        path = label_dir / f"{stem}.3mf"
+        build_label_plate_3mf(s, path)
+        print(f"[{n:03d}/{len(labels):03d}] {path.name}")
     write_manifest(out, selected)
-    readme = f"""Gridfinity drawer bins — label.alch.shop artwork + 45° ramp + flush AMS inlay
-
-{len(selected)} bins for a 1077 x 602 x 75 mm drawer (25 x 14 cells), all exactly 8U = 56 mm high.
-
-LABEL DESIGN
-- The horizontal label surface sits at the top rim, on the front edge by default. Files
-  ending in _LBACK carry it on the back edge instead (shelf and ramp mirrored; the label
-  graphic is not rotated, so it still reads from the drawer front).
-- Directly underneath it, the former horizontal overhang is replaced by an approximately
-  {LABEL_RAMP_ANGLE_DEG:.0f} degree inward ramp. This makes the label support printable without supports.
-- The icons are the label.alch.shop icons-only exports of each part type; the text is set in
-  HarmonyOS Sans SC, the font the site uses, with the site's layout. The outlines are extruded
-  as a {LABEL_INLAY_DEPTH:.2f} mm AMS inlay whose top plane is exactly flush with the BODY shelf top.
-- Label text font: HarmonyOS Sans (c) Huawei Device Co., Ltd., HarmonyOS Sans Fonts License.
-- The label shelf/ramp is clipped to the exact rounded outer box contour. It joins the side walls
-  continuously, without rectangular ears outside the rounded corners and without side slots.
-- At 0.20 mm layer height the inlay is 3 layers deep, which gives robust AMS color separation.
-
-3MF / AMS
-Each 3MF is exported as ONE parent assembly with two aligned child parts:
-  BODY        -> base filament
-  LABEL_INLAY -> AMS contrast filament
-The assembly hierarchy prevents slicers from treating the label as a separate loose object.
-
-This drawer version intentionally has no stacking lip.
-Always test one small bin first before committing to the complete batch.
-"""
-    (out/'README.txt').write_text(readme, encoding='utf-8')
-    print(f"Generated {len(selected)} assemblies in {out}")
-    print(f"Unique generic ramp bodies: {len(base_body_cache)}")
+    print(f"Generated {len(bins)} distinct bins and {len(done)} labels in {out}")
 
 
 def parse_positions(value: str | None) -> set[int] | None:
@@ -1135,24 +806,20 @@ def main():
     ap.add_argument('--positions', help='Optional positions of the default set, e.g. 7,62,113-116. Default: all.')
     ap.add_argument('--build', action='store_true', help='Accepted for compatibility; building is the default.')
     ap.add_argument('--label-side', choices=LABEL_SIDES, default=None,
-                    help="Edge that carries the label shelf: 'front' (default, drawer-front side) or 'back'.")
-    ap.add_argument('--style', choices=LABEL_STYLES, default=DEFAULT_LABEL_STYLE,
-                    help="'integrated' (label inlaid in the bin), 'removable' (snap-rim bins with a "
-                         "support ramp, plus separate two-colour label plates) or 'makerworld' "
-                         "(replica of MakerWorld 431547: lipped bins plus clip-on label trays).")
+                    help="Edge that carries the label: 'front' (default, drawer-front side) or 'back'.")
     ap.add_argument('--label-depth', type=float, default=DEFAULT_PLATE_DEPTH,
-                    help=f"Removable style: label plate depth in mm (default {DEFAULT_PLATE_DEPTH:g}, "
+                    help=f"Label depth from the wall in mm (default {DEFAULT_PLATE_DEPTH:g}, "
                          f"{PLATE_DEPTH_RANGE[0]:g}-{PLATE_DEPTH_RANGE[1]:g}).")
     ap.add_argument('--label-fit', type=float, default=DEFAULT_MW_FIT,
-                    help=f"MakerWorld style: gap between label clip and bin lip per side in mm "
+                    help=f"Gap between label clip and bin lip per side in mm "
                          f"(default {DEFAULT_MW_FIT:g}, {MW_FIT_RANGE[0]:g} to {MW_FIT_RANGE[1]:g}; "
                          f"negative = press fit).")
     ap.add_argument('--detents', action='store_true',
-                    help="MakerWorld style: short vertical lip pieces near every corner + matching "
+                    help="Short vertical lip pieces near every corner + matching "
                          "slots in the label, so it cannot slide.")
     args = ap.parse_args()
     generate(Path(args.output), parse_positions(args.positions), side=args.label_side,
-             style=args.style, label_depth=args.label_depth, fit=args.label_fit, detent=args.detents)
+             label_depth=args.label_depth, fit=args.label_fit, detent=args.detents)
 
 
 if __name__ == '__main__':
