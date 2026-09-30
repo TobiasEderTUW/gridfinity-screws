@@ -42,7 +42,7 @@ show the arithmetic, name what has not been verified. They catch hand-waving.
 | editor default layout | the user's hand layout, 308 of 350 cells (differs in 7 bins, see §4) |
 | bin height | **8U = 56 mm, uniform — this is a hard, non-negotiable requirement** |
 | fill estimation | **removed on request (2026-09-29)** — no volume model anywhere; footprints are the user's choice |
-| script version | `2026-09-29.1-offline-labels` |
+| script version | `2026-09-30.2-uniform-label-size` |
 
 ---
 
@@ -87,6 +87,20 @@ Derived over many iterations; do not silently re-litigate them.
      plate, text shrinks only if the group gets within 1.2 mm of the edge; GPOS kerning.
      Verified against the 116 scraped labels of the old pipeline: symmetric difference
      0.00006 % of the area (negative controls: wrong digit 15.8 %, wrong drive icon 3.4 %).
+   - **Uniform size on the printed labels (2026-09-30, user request: "all of the text and
+     icons are the same height for all labels").** `_label_geometry` no longer fits each
+     label's bounding box into the safe area (that made width-limited labels smaller:
+     M3×20 on a 1×3 box was 8 % smaller than M3×8). Scale = `min(safe_h / ICON_H, 1.35)`,
+     depending only on label width/fit; `compose(key, text, max_width=safe_w/scale)` keeps
+     icons and text at full height and condenses a too-long text horizontally down to
+     `MIN_CONDENSE` 0.65, only then shrinks it; the icon line sits on the label centre (wing /
+     heat-set nut icons are 6.45 / 7.0 of 8.12 high and are no longer enlarged). The editor
+     mirrors it (`labelArt(b, maxWidth)`, `labelMarkup`). Verified: 3D and editor give icon
+     6.95 / text 4.95 mm for M3×8 and M3×20 on 1×3 and for M10×80 on 2×1 (label width 10),
+     editor within 0.37 mm of the 3D per edge. `compose()` without `max_width` is still the
+     site layout the 116-label verification used.
+     **Limit:** a 1-wide box with a wide label: at label width 19 the icons (28 of 36 mm)
+     leave no room, text drops to 1.6–2.4 mm. At the default 10 mm every default text fits.
    - A canvas-rasterised text label was tried long ago and rejected; this is vector text in
      the site's font, which the user chose explicitly.
    - Path: `label_art.compose(part, text)` → `_label_geometry(spec, …, _mw_label_area(spec))`
@@ -208,7 +222,9 @@ label edge.
 
 **Label width** ("Label width" in the GUI) is `spec['label_depth']`, default 10 mm, GUI 6–19 mm,
 API 6–30 mm, but `plate_depth()` also refuses more than half the bin's inner depth (19.55 mm
-for a 1-deep bin). Artwork height = depth − fit − 3 mm (6.95 mm at 10, 2.95 mm at 6).
+for a 1-deep bin). Icon height = min(depth − fit − 3 mm, 1.35 × 8.12) (6.95 mm at 10,
+2.95 mm at 6, capped at 10.96 from about 14 mm), text cap height 0.70 × that; the same on
+every label.
 
 **The clip-on label (MakerWorld style, 2026-09-17; the only style since 2026-09-30)**: replica of model
 431547 measured from its STL. Label = `make_mw_label()`: face plate `MW_PLATE` 1.8, skirt

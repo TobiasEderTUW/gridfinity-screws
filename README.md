@@ -71,10 +71,12 @@ removed on request):
   both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the
   bin lip and a 0.6 mm bump hooks under it. Label inlay flush in the face; exported
   face-down. `labels/LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05.3mf` per distinct label.
-- **Label width** (slider, 6–19 mm, default 10) is the label's depth from the wall. The
-  artwork keeps 1.5 mm to the face edges, so a shallow label means small lettering: at 10 mm
-  the artwork may be 6.95 mm tall, at 6 mm only 2.95 mm (depth − fit − 3 mm), which is
-  about the limit of what prints legibly.
+- **Label width** (slider, 6–19 mm, default 10) is the label's depth from the wall, and it
+  alone sets the size of the artwork: icons are depth − fit − 3 mm tall (6.95 mm at 10,
+  2.95 mm at 6, at most 10.96 mm), text 0.7 × that, **the same on every label**. A text that
+  is too long for its box is narrowed (down to 65 % width) rather than made smaller; only
+  beyond that does it shrink. Narrow boxes limit this: on a 1-wide box a label wider than
+  about 10 mm leaves little room for text next to the icons.
 - **Label fit** (default 0.05 mm all round the clip profile, −0.30 to 0.30, negative is a
   press fit): only the label changes, so a looser or tighter label fits bins you already
   printed. Checked in CAD only.

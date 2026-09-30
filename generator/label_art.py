@@ -37,6 +37,10 @@ TEXT_CAP_H = 5.7             # the site's default text height (cap height, basel
 ICON_TEXT_GAP = 2.0          # last icon ink to first text ink
 EDGE_MARGIN = 1.2            # closest the icon + text group gets to the plate edge
 CURVE_STEPS = 8              # line segments per font curve segment
+ICON_H = 8.12                # height of the site's icons (64 of 67 types; wing and heat-set
+                             # nut icons are shorter, 6.45 / 7.0) - the reference for label scale
+MIN_CONDENSE = 0.65          # a text that does not fit is first narrowed down to this width
+                             # factor at full height, and only then made smaller
 
 # The four kinds of the original invoice, as label.alch.shop part types.
 LEGACY_PART = {'SK': 'allen__countersunk', 'ZK': 'allen__socket',
@@ -303,12 +307,19 @@ def _disjoint(polys) -> list[Polygon]:
     return [g for g in geoms if g.geom_type == 'Polygon' and g.area > 1e-4]
 
 
-def compose(key: str, text: str) -> list[Polygon]:
-    """Icons + text on the 52.9 x 10.1 mm plate, centred at the origin, in mm."""
-    return _disjoint(_compose(key, text))
+def compose(key: str, text: str, max_width: float | None = None) -> list[Polygon]:
+    """Icons + text, centred at the origin, in the site's plate units (mm on a 1-wide label).
+
+    max_width None: the site's own layout on the 52.9 mm plate (text shrinks as a whole when
+    the group would come within 1.2 mm of the edge) - what the exports are checked against.
+    max_width given: every label keeps icons and text at full height; a text that is too wide
+    for max_width is condensed horizontally (down to MIN_CONDENSE), and only if that is not
+    enough also made smaller. Used for the printed labels, so all of them match.
+    """
+    return _disjoint(_compose(key, text, max_width))
 
 
-def _compose(key: str, text: str) -> list[Polygon]:
+def _compose(key: str, text: str, max_width: float | None = None) -> list[Polygon]:
     icons = list(icon_polygons(key))
     text = (text or '').strip()
     glyphs = text_polygons(text) if text else []
@@ -324,19 +335,29 @@ def _compose(key: str, text: str) -> list[Polygon]:
     ix0, icons_w = -half, 2 * half
 
     tx0, ty0, tx1, ty1 = _bounds(glyphs)
-    s = TEXT_CAP_H / ty1                      # cap height = ink top above the baseline
-    budget = PLATE_W - 2 * EDGE_MARGIN - icons_w - ICON_TEXT_GAP
-    if (tx1 - tx0) * s > budget:
-        s = budget / (tx1 - tx0)
-    text_w = (tx1 - tx0) * s
+    sx = sy = TEXT_CAP_H / ty1                # cap height = ink top above the baseline
+    if max_width is None:
+        budget = PLATE_W - 2 * EDGE_MARGIN - icons_w - ICON_TEXT_GAP
+        if (tx1 - tx0) * sx > budget:
+            sx = sy = budget / (tx1 - tx0)
+    else:
+        budget = max_width - icons_w - ICON_TEXT_GAP
+        if budget <= 0.5:
+            raise ValueError(f'the label is too narrow for the {part_name(key)} icons')
+        if (tx1 - tx0) * sx > budget:
+            sx *= max(budget / ((tx1 - tx0) * sx), MIN_CONDENSE)
+        if (tx1 - tx0) * sx > budget:         # narrowed as far as it goes: now smaller too
+            k = budget / ((tx1 - tx0) * sx)
+            sx, sy = sx * k, sy * k
+    text_w = (tx1 - tx0) * sx
     group_l = -(icons_w + ICON_TEXT_GAP + text_w) / 2
 
     out = [_translate(p, group_l - ix0, 0) for p in icons]
     x_off = group_l + icons_w + ICON_TEXT_GAP
-    y_mid = (ty0 + ty1) / 2 * s               # ink centred vertically, like the exports
+    y_mid = (ty0 + ty1) / 2 * sy              # ink centred vertically, like the exports
     for g in glyphs:
-        g = _scale(g, s, s, origin=(0, 0))
-        out.append(_translate(g, x_off - tx0 * s, -y_mid))
+        g = _scale(g, sx, sy, origin=(0, 0))
+        out.append(_translate(g, x_off - tx0 * sx, -y_mid))
     return out
 
 
@@ -397,7 +418,7 @@ def web_catalogue() -> dict:
     return {
         'source': cat['source'], 'site_version': cat['site_version'], 'downloaded': cat['downloaded'],
         'layout': {'plate_w': PLATE_W, 'plate_h': PLATE_H, 'cap_h': TEXT_CAP_H, 'gap': ICON_TEXT_GAP,
-                   'edge': EDGE_MARGIN, 'icon_h': round(_icon_box('allen__countersunk')[1], 3),
+                   'edge': EDGE_MARGIN, 'icon_h': ICON_H, 'min_condense': MIN_CONDENSE,
                    'font_cap_ratio': _font()['OS/2'].sCapHeight / _font()['head'].unitsPerEm},
         'drives': [{**d, 'icon': drive_icon.get(d['key'], '')} for d in cat['drives']],
         'heads': [{**h, 'icon': head_icon.get(h['key'], '')} for h in cat['heads']],

@@ -101,7 +101,7 @@ LABEL_POCKET_OVERTRAVEL = 0.08  # cutter continues above the top face for robust
 UNIFORM_HEIGHT_U = 8              # ALL bins are 56 mm high - uniform height is a hard requirement.
                                   # 7U/49 mm cannot hold the 15.04.2026 order at a sane fill level
                                   # without 1-cell-wide bins; 8U clears the 75 mm drawer easily.
-SCRIPT_VERSION = "2026-09-30.1-makerworld-only"
+SCRIPT_VERSION = "2026-09-30.2-uniform-label-size"
 LABEL_MAX_UPSCALE = 1.35         # the artwork may grow at most this much past its 1-wide size
 
 
@@ -399,16 +399,20 @@ def label_text(spec: dict) -> str:
 
 def _label_geometry(spec: dict, base_z: float, thickness: float,
                     area: tuple[float, float, float]) -> cq.Workplane:
-    """The label artwork (icons + text), scaled into a safe area and extruded between
-    base_z and base_z + thickness. area = (centre_y, safe_w, safe_h)."""
-    polygons = label_art.compose(part_key(spec), label_text(spec))
+    """The label artwork (icons + text), fitted into a safe area and extruded between
+    base_z and base_z + thickness. area = (centre_y, safe_w, safe_h).
+
+    The scale depends on the label height only (standard icon height into safe_h), never on
+    the text, so every label of one label width has the same icon and text size. A text too
+    long for the box is condensed (label_art.compose), not the whole label shrunk.
+    """
+    shelf_y, safe_w, safe_h = area
+    scale = min(safe_h / label_art.ICON_H, LABEL_MAX_UPSCALE)
+    polygons = label_art.compose(part_key(spec), label_text(spec), max_width=safe_w / scale)
     graphic = cq.Workplane(obj=cq.Compound.makeCompound(
         [_polygon_to_cq_solid(p, thickness) for p in polygons]))
-    shelf_y, safe_w, safe_h = area
 
     shape = graphic.val()
-    bb = shape.BoundingBox()
-    scale = min(safe_w/max(bb.xlen, 1e-6), safe_h/max(bb.ylen, 1e-6), LABEL_MAX_UPSCALE)
     # Scale only in XY. Z must remain exactly the requested inlay/pocket depth.
     shape = shape.transformGeometry(cq.Matrix([
         [scale, 0, 0, 0],
@@ -418,8 +422,8 @@ def _label_geometry(spec: dict, base_z: float, thickness: float,
     ]))
     bb = shape.BoundingBox()
     dx = -(bb.xmin + bb.xmax)/2
-    dy = shelf_y - (bb.ymin + bb.ymax)/2
-    dz = base_z - bb.zmin
+    dy = shelf_y                   # the icon line (plate y = 0) on the label's centre line, so a
+    dz = base_z - bb.zmin          # shorter icon (wing nut) sits centred like every other
     shape = shape.translate(cq.Vector(dx, dy, dz))
     result = cq.Workplane(obj=shape)
 
