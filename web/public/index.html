@@ -289,6 +289,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <div class="row"><label for="depthSlider">Label width</label><output id="depthOut">10 mm</output></div>
           <input type="range" id="depthSlider" min="6" max="19" step="0.5" value="10"
                  title="Depth of the clip-on label, measured from the wall into the box">
+          <div class="note" id="labelSizeNote"></div>
         </div>
         <div class="ctrl" id="fitCtrl">
           <div class="row"><label for="fitSlider">Label fit</label><output id="fitOut">0.05 mm</output></div>
@@ -565,10 +566,9 @@ function textInk(str){                   // ink box in em units, pen at x = 0 on
   return {x0: -m.actualBoundingBoxLeft / 100, x1: m.actualBoundingBoxRight / 100,
           top: m.actualBoundingBoxAscent / 100, bot: -m.actualBoundingBoxDescent / 100};
 }
-// Same rule as label_art.compose(..., max_width): icons and text at full height on every
-// label; a text too wide for maxWidth (plate units) is condensed horizontally down to
-// min_condense, and only then made smaller. The icons never change size.
-function labelArt(b, maxWidth){          // SVG markup in plate mm (y down) + its bounding box
+// The natural layout (label_art.compose(..., site_layout=False)): icons and text at full
+// relative size, text never condensed or shrunk. Only the whole label is scaled (labelScales).
+function labelArt(b){                    // SVG markup in plate mm (y down) + its bounding box
   const L = CAT.layout, p = partInfo(b.part);
   if (!p) return null;
   const half = p.half, iconsW = 2 * half, ih = L.icon_h;
@@ -578,19 +578,30 @@ function labelArt(b, maxWidth){          // SVG markup in plate mm (y down) + it
   if (!text) return only;
   const ink = textInk(text);
   if (!(ink.top > 0)) return only;
-  let sy = L.cap_h / ink.top, sx = sy;     // mm per em: cap height = ink top above the baseline
-  const budget = maxWidth - iconsW - L.gap, iw = ink.x1 - ink.x0;
-  if (budget <= 0.5) return only;
-  if (iw * sx > budget) sx *= Math.max(budget / (iw * sx), L.min_condense);
-  if (iw * sx > budget){ const k = budget / (iw * sx); sx *= k; sy *= k; }
-  const tw = iw * sx;
+  const sc = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
+  const tw = (ink.x1 - ink.x0) * sc;
   const gl = -(iconsW + L.gap + tw) / 2;
-  const penX = gl + iconsW + L.gap - ink.x0 * sx;
-  const base = (ink.top + ink.bot) / 2 * sy;       // ink centred vertically
+  const penX = gl + iconsW + L.gap - ink.x0 * sc;
+  const base = (ink.top + ink.bot) / 2 * sc;       // ink centred vertically
   return {svg: icon(gl + half)
-    + `<text transform="translate(${penX.toFixed(3)} ${base.toFixed(3)}) scale(${(sx / sy).toFixed(4)} 1)" `
-    + `font-size="${sy.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(text)}</text>`,
+    + `<text x="${penX.toFixed(3)}" y="${base.toFixed(3)}" font-size="${sc.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(text)}</text>`,
     x0: gl, x1: gl + iconsW + L.gap + tw, y0: -ih / 2, y1: ih / 2};
+}
+// One label size per box width across the drawer (generator: label_scales): the largest
+// scale at which every label of that width fits its box, as icon height rounded down to
+// 0.01 mm. Recomputed on every render, because any box can change it.
+let SCALES = {};
+function labelFit(b){
+  const st = labelStrip(b), a = CAT && labelArt(b);
+  const byWidth = a ? st.sw / (a.x1 - a.x0) : Infinity;
+  return Math.min(st.sh / (CAT?.layout.icon_h ?? 8.12), byWidth, LABEL_MAX_UPSCALE);
+}
+function labelScales(){
+  const out = {};
+  for (const b of state.bins) out[b.w] = Math.min(out[b.w] ?? Infinity, labelFit(b));
+  const ih = CAT?.layout.icon_h ?? 8.12;
+  for (const w in out) out[w] = Math.floor(out[w] * ih * 100 + 1e-6) / 100 / ih;
+  return out;
 }
 
 // The clip-on label's face as seen from above, and the safe area the artwork is fitted into
@@ -605,11 +616,10 @@ function labelStrip(b){
 }
 function labelMarkup(b, st){
   if (!CAT) return "";
-  // one scale for every label of this label width: the standard icon height fills the safe
-  // height (generator: _label_geometry); the icon line sits on the label's centre line
-  const sc = Math.min(st.sh / CAT.layout.icon_h, LABEL_MAX_UPSCALE);
-  const a = labelArt(b, st.sw / sc);
+  // the common size of this box width; the icon line sits on the label's centre line
+  const a = labelArt(b);
   if (!a) return "";
+  const sc = Math.min(SCALES[b.w] ?? Infinity, labelFit(b));
   return `<g fill="var(--lab-ink)" transform="translate(${(st.W / 2).toFixed(3)} ${st.cy.toFixed(3)}) scale(${sc.toFixed(4)}) `
     + `translate(${(-(a.x0 + a.x1) / 2).toFixed(3)} 0)">${a.svg}</g>`;
 }
@@ -680,7 +690,7 @@ function paint(b, el){
   el.style.paddingTop = b.label === "top" ? clear + "px" : "";
   el.style.paddingBottom = b.label === "top" ? "" : clear + "px";
   // redraw the top view only when something it shows changed
-  const key = [b.part, labelText(b), b.w, b.d, b.label, state.labelDepth, state.labelFit, fontReady, !!CAT, state.cell].join("|");
+  const key = [b.part, labelText(b), b.w, b.d, b.label, state.labelDepth, state.labelFit, fontReady, !!CAT, state.cell, SCALES[b.w]].join("|");
   if (el._key !== key){
     el._key = key;
     const p = partInfo(b.part);
@@ -688,6 +698,7 @@ function paint(b, el){
   }
 }
 function render(){
+  SCALES = labelScales();
   const inGrid = [], out = [];
   for (const b of state.bins) (placed(b) ? inGrid : out).push(b);
   for (const b of inGrid){
@@ -717,6 +728,10 @@ function updateStatus(){
   $("nSel").textContent = state.sel.size;
   $("depthSlider").value = state.labelDepth;
   $("depthOut").textContent = `${state.labelDepth} mm`;
+  // the resulting common label size per box width (all labels of a width are identical)
+  const ih = CAT?.layout.icon_h ?? 8.12, ratio = (CAT?.layout.cap_h ?? 5.7) / ih;
+  $("labelSizeNote").textContent = Object.keys(SCALES).sort((a, z) => z - a).map(w =>
+    `${w}-wide: icons ${(SCALES[w] * ih).toFixed(2)} mm, text ${(SCALES[w] * ih * ratio).toFixed(1)} mm`).join(" · ");
   $("fitSlider").value = state.labelFit;
   $("detentBox").checked = state.detent;
   $("fitOut").textContent = `${state.labelFit.toFixed(2)} mm` + (state.labelFit < 0 ? " (press fit)" : "");
@@ -1396,6 +1411,9 @@ function singleName(b){ return `${baseName(b)}.zip`; }
 function batchName(what){ return `drawer_3mf_${what}_${state.u}U.zip`; }
 const itemsOf = list => list.map(b => ({part: b.part, thread: b.thread, length: isBolt(b.part) ? b.len ?? null : null,
   text: (b.text || "").trim() || null, w: b.w, d: b.d, label: b.label}));
+// every box of the drawer, for the service's label sizes (one size per box width)
+const drawerRefs = () => state.bins.filter(b => b.thread && labelText(b)).map(b => ({part: b.part, thread: b.thread,
+  length: isBolt(b.part) ? b.len ?? null : null, text: (b.text || "").trim() || null, w: b.w}));
 function checkItems(list){
   const bad = list.find(b => !b.thread || !labelText(b));
   if (bad) throw new Error(`${partName(bad.part)}: thread is empty — set it in the box menu.`);
@@ -1441,7 +1459,7 @@ async function probeServer(){
 const buildCache = new Map();          // key -> Uint8Array, oldest first
 const BUILD_CACHE_MAX = 256 * 1048576;
 function cacheKey(items){
-  return JSON.stringify({u: state.u, depth: state.labelDepth, fit: state.labelFit, detent: state.detent, items});
+  return JSON.stringify({u: state.u, depth: state.labelDepth, fit: state.labelFit, detent: state.detent, items, sizes: SCALES});
 }
 function cachePut(key, bytes){
   buildCache.delete(key);
@@ -1470,7 +1488,8 @@ async function buildBuffer(items, filename, title){
   try {
     let job = await jsonRequest("api/jobs", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items, height_u: state.u, label_depth: state.labelDepth, label_fit: state.labelFit, label_detent: state.detent})
+      body: JSON.stringify({items, height_u: state.u, label_depth: state.labelDepth, label_fit: state.labelFit, label_detent: state.detent,
+                            drawer: drawerRefs()})
     });
     let failures = 0, phase = "";
     while (job.phase !== "done"){

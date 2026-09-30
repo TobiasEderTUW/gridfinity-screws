@@ -71,12 +71,13 @@ removed on request):
   both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the
   bin lip and a 0.6 mm bump hooks under it. Label inlay flush in the face; exported
   face-down. `labels/LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05.3mf` per distinct label.
-- **Label width** (slider, 6–19 mm, default 10) is the label's depth from the wall, and it
-  alone sets the size of the artwork: icons are depth − fit − 3 mm tall (6.95 mm at 10,
-  2.95 mm at 6, at most 10.96 mm), text 0.7 × that, **the same on every label**. A text that
-  is too long for its box is narrowed (down to 65 % width) rather than made smaller; only
-  beyond that does it shrink. Narrow boxes limit this: on a 1-wide box a label wider than
-  about 10 mm leaves little room for text next to the icons.
+- **Label width** (slider, 6–19 mm, default 10) is the label's depth from the wall.
+  **All labels of one box width are exactly the same size**, and text keeps its
+  proportions: the size is the largest at which every label of that width in the drawer fits
+  (icons at most depth − fit − 3 mm, 6.95 mm at 10, capped at 10.96 mm; text 0.7 × that).
+  The note under the slider shows the result per width; in the default drawer the two 1×3
+  boxes (M6×40, M6×80) make the 1-wide labels 6.35 mm. Adding a box with a long text can
+  make all labels of its width smaller. Label files carry the size (`_H6.95`).
 - **Label fit** (default 0.05 mm all round the clip profile, −0.30 to 0.30, negative is a
   press fit): only the label changes, so a looser or tighter label fits bins you already
   printed. Checked in CAD only.
@@ -174,7 +175,7 @@ It builds the default set (`--positions 1,2,6` for a subset) with the same
 | method | path | purpose |
 |---|---|---|
 | GET | `/api/health` | is CadQuery loadable, how many part types are known |
-| POST | `/api/jobs` | same body as `/api/generate` (items may add `"text"` and `"label": "top"`, the request `"label_depth"`, `"label_fit"`, `"label_detent"`; an old `"style"` field is ignored); queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
+| POST | `/api/jobs` | same body as `/api/generate` (items may add `"text"` and `"label": "top"`, the request `"label_depth"`, `"label_fit"`, `"label_detent"` and `"drawer"`: every box of the drawer as `{part, thread, length, text, w}`, which sets the label size per box width; an old `"style"` field is ignored); queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
 | GET | `/api/jobs/{id}` | status: `queued` → `build` (done/total = files) → `done` or `error` |
 | GET | `/api/jobs/{id}/file` | the 3MF (one box) or zip, once `done`; the last 8 finished jobs are kept in `cache/jobs/` |
 | GET | `/api/default` | the shared default drawer `{saved_at, layout}`, 404 if none |

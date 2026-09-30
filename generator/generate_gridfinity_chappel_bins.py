@@ -101,7 +101,7 @@ LABEL_POCKET_OVERTRAVEL = 0.08  # cutter continues above the top face for robust
 UNIFORM_HEIGHT_U = 8              # ALL bins are 56 mm high - uniform height is a hard requirement.
                                   # 7U/49 mm cannot hold the 15.04.2026 order at a sane fill level
                                   # without 1-cell-wide bins; 8U clears the 75 mm drawer easily.
-SCRIPT_VERSION = "2026-09-30.2-uniform-label-size"
+SCRIPT_VERSION = "2026-09-30.3-label-size-per-width"
 LABEL_MAX_UPSCALE = 1.35         # the artwork may grow at most this much past its 1-wide size
 
 
@@ -399,16 +399,16 @@ def label_text(spec: dict) -> str:
 
 def _label_geometry(spec: dict, base_z: float, thickness: float,
                     area: tuple[float, float, float]) -> cq.Workplane:
-    """The label artwork (icons + text), fitted into a safe area and extruded between
+    """The label artwork (icons + text), placed in a safe area and extruded between
     base_z and base_z + thickness. area = (centre_y, safe_w, safe_h).
 
-    The scale depends on the label height only (standard icon height into safe_h), never on
-    the text, so every label of one label width has the same icon and text size. A text too
-    long for the box is condensed (label_art.compose), not the whole label shrunk.
+    The artwork keeps its natural proportions and is scaled by label_scale(spec): the common
+    scale of all labels of this box width in the drawer (see label_scales), so they are all
+    exactly alike. It never exceeds what this label alone can take.
     """
     shelf_y, safe_w, safe_h = area
-    scale = min(safe_h / label_art.ICON_H, LABEL_MAX_UPSCALE)
-    polygons = label_art.compose(part_key(spec), label_text(spec), max_width=safe_w / scale)
+    scale = min(label_scale(spec), label_fit_scale(spec))
+    polygons = label_art.compose(part_key(spec), label_text(spec), site_layout=False)
     graphic = cq.Workplane(obj=cq.Compound.makeCompound(
         [_polygon_to_cq_solid(p, thickness) for p in polygons]))
 
@@ -663,13 +663,50 @@ def mw_bin_stem(grid_w: int, grid_d: int, height_u: int, count: int | None = Non
             + (f"_x{count}" if count is not None else ""))
 
 
+# --- label size ---------------------------------------------------------------------------
+# One size per box width (user's choice 2026-09-30): every label keeps the natural layout
+# (text never condensed or shrunk on its own), and all labels of a box width share the largest
+# scale at which each of them fits. The scale is stored as the icon height in 0.01 mm, rounded
+# down, and that height is in the label's file name, so a cached label is never reused at
+# another size.
+
+def label_fit_scale(spec: dict) -> float:
+    """Largest scale at which this label alone fits its area (and the upscale cap)."""
+    _cy, safe_w, safe_h = _mw_label_area(spec)
+    width = label_art.natural_width(part_key(spec), label_text(spec))
+    return min(safe_h / label_art.ICON_H, safe_w / width, LABEL_MAX_UPSCALE)
+
+
+def _snap_scale(scale: float) -> float:
+    return math.floor(scale * label_art.ICON_H * 100 + 1e-6) / 100 / label_art.ICON_H
+
+
+def label_scales(specs: list[dict]) -> dict[int, float]:
+    """{box width: common label scale} over a set of boxes (the whole drawer)."""
+    scales: dict[int, float] = {}
+    for sp in specs:
+        w = sp['grid_w']
+        scales[w] = min(scales.get(w, math.inf), label_fit_scale(sp))
+    return {w: _snap_scale(v) for w, v in scales.items()}
+
+
+def label_scale(spec: dict) -> float:
+    """The scale this label is built at: spec['label_scale'] (set from the drawer), else its own fit."""
+    return _snap_scale(spec.get('label_scale') or label_fit_scale(spec))
+
+
+def label_icon_height(spec: dict) -> float:
+    return round(min(label_scale(spec), label_fit_scale(spec)) * label_art.ICON_H, 2)
+
+
 def label_plate_stem(spec: dict) -> str:
-    """The label file. It depends on bin width, label depth, fit, detents and edge:
-    LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05[_DET][_LBACK] (names unchanged from when
-    there were three styles, so earlier builds stay valid)."""
+    """The label file. It depends on bin width, label depth, fit, detents, size and edge:
+    LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05[_DET]_H6.95[_LBACK]. _H is the icon
+    height in mm, i.e. the common label size of this box width in the drawer."""
     suffix = '' if label_side(spec) == 'front' else '_LBACK'
     fit = f"_MW_FIT{label_fit(spec):g}" + ('_DET' if label_detent(spec) else '')
-    return f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{fit}{suffix}"
+    return (f"LABEL_{screw_name(spec)}_W{spec['grid_w']}_D{plate_depth(spec):g}{fit}"
+            f"_H{label_icon_height(spec):.2f}{suffix}")
 
 
 DRAWER_GRID_W = 25
@@ -761,6 +798,8 @@ def generate(out: Path, positions: set[int] | None = None, side: str | None = No
         selected = [{**s, 'label_side': side} for s in selected]
     selected = [{**s, 'label_depth': label_depth, 'label_fit': fit, 'label_detent': detent}
                 for s in selected]
+    scales = label_scales(selected)             # one label size per box width
+    selected = [{**s, 'label_scale': scales[s['grid_w']]} for s in selected]
     if not selected:
         raise ValueError('No matching positions selected')
 

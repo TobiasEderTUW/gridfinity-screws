@@ -39,8 +39,7 @@ EDGE_MARGIN = 1.2            # closest the icon + text group gets to the plate e
 CURVE_STEPS = 8              # line segments per font curve segment
 ICON_H = 8.12                # height of the site's icons (64 of 67 types; wing and heat-set
                              # nut icons are shorter, 6.45 / 7.0) - the reference for label scale
-MIN_CONDENSE = 0.65          # a text that does not fit is first narrowed down to this width
-                             # factor at full height, and only then made smaller
+
 
 # The four kinds of the original invoice, as label.alch.shop part types.
 LEGACY_PART = {'SK': 'allen__countersunk', 'ZK': 'allen__socket',
@@ -307,19 +306,26 @@ def _disjoint(polys) -> list[Polygon]:
     return [g for g in geoms if g.geom_type == 'Polygon' and g.area > 1e-4]
 
 
-def compose(key: str, text: str, max_width: float | None = None) -> list[Polygon]:
+def compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
     """Icons + text, centred at the origin, in the site's plate units (mm on a 1-wide label).
 
-    max_width None: the site's own layout on the 52.9 mm plate (text shrinks as a whole when
-    the group would come within 1.2 mm of the edge) - what the exports are checked against.
-    max_width given: every label keeps icons and text at full height; a text that is too wide
-    for max_width is condensed horizontally (down to MIN_CONDENSE), and only if that is not
-    enough also made smaller. Used for the printed labels, so all of them match.
+    site_layout True: the site's own layout on the 52.9 mm plate (a very long text shrinks
+    when the group would come within 1.2 mm of the edge) - what the exports are checked against.
+    site_layout False: the natural layout, text always at full cap height, never shrunk or
+    condensed. The printed labels use this and scale the whole label instead
+    (generator: label_scales), so every label of a box width is exactly alike.
     """
-    return _disjoint(_compose(key, text, max_width))
+    return _disjoint(_compose(key, text, site_layout))
 
 
-def _compose(key: str, text: str, max_width: float | None = None) -> list[Polygon]:
+@lru_cache(maxsize=4096)
+def natural_width(key: str, text: str) -> float:
+    """Width of the natural layout (site_layout=False), in plate units."""
+    x0, _y0, x1, _y1 = _bounds(compose(key, text, site_layout=False))
+    return x1 - x0
+
+
+def _compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
     icons = list(icon_polygons(key))
     text = (text or '').strip()
     glyphs = text_polygons(text) if text else []
@@ -336,19 +342,10 @@ def _compose(key: str, text: str, max_width: float | None = None) -> list[Polygo
 
     tx0, ty0, tx1, ty1 = _bounds(glyphs)
     sx = sy = TEXT_CAP_H / ty1                # cap height = ink top above the baseline
-    if max_width is None:
+    if site_layout:
         budget = PLATE_W - 2 * EDGE_MARGIN - icons_w - ICON_TEXT_GAP
         if (tx1 - tx0) * sx > budget:
             sx = sy = budget / (tx1 - tx0)
-    else:
-        budget = max_width - icons_w - ICON_TEXT_GAP
-        if budget <= 0.5:
-            raise ValueError(f'the label is too narrow for the {part_name(key)} icons')
-        if (tx1 - tx0) * sx > budget:
-            sx *= max(budget / ((tx1 - tx0) * sx), MIN_CONDENSE)
-        if (tx1 - tx0) * sx > budget:         # narrowed as far as it goes: now smaller too
-            k = budget / ((tx1 - tx0) * sx)
-            sx, sy = sx * k, sy * k
     text_w = (tx1 - tx0) * sx
     group_l = -(icons_w + ICON_TEXT_GAP + text_w) / 2
 
@@ -418,7 +415,7 @@ def web_catalogue() -> dict:
     return {
         'source': cat['source'], 'site_version': cat['site_version'], 'downloaded': cat['downloaded'],
         'layout': {'plate_w': PLATE_W, 'plate_h': PLATE_H, 'cap_h': TEXT_CAP_H, 'gap': ICON_TEXT_GAP,
-                   'edge': EDGE_MARGIN, 'icon_h': ICON_H, 'min_condense': MIN_CONDENSE,
+                   'edge': EDGE_MARGIN, 'icon_h': ICON_H,
                    'font_cap_ratio': _font()['OS/2'].sCapHeight / _font()['head'].unitsPerEm},
         'drives': [{**d, 'icon': drive_icon.get(d['key'], '')} for d in cat['drives']],
         'heads': [{**h, 'icon': head_icon.get(h['key'], '')} for h in cat['heads']],

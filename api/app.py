@@ -81,8 +81,20 @@ class Item(BaseModel):
     label: Literal["bot", "top"] = "bot"
 
 
+class DrawerBox(BaseModel):
+    """A box of the whole drawer, as far as label size is concerned (see `drawer`)."""
+    part: str = Field(min_length=1, max_length=64)
+    thread: str = Field(max_length=16)
+    length: float | None = Field(default=None, gt=0, le=1000)
+    text: str | None = Field(default=None, max_length=40)
+    w: int = Field(ge=1, le=6)
+
+
 class BuildRequest(BaseModel):
     items: list[Item]
+    # All boxes of the drawer. Labels are one size per box width across the drawer, so a
+    # single box must know the others; without it the items themselves are the reference.
+    drawer: list[DrawerBox] | None = Field(default=None, max_length=350)
     height_u: int = Field(default=8, ge=3, le=12)
     keep: bool = True                 # also write the files into OUT_DIR
     # "makerworld": lipped bins deduplicated per size + one clip-on label tray per screw.
@@ -179,7 +191,8 @@ def _check_request(gen, req: BuildRequest) -> None:
 
 def _build_all(gen, items: list[Item], height_u: int, keep: bool,
                label_depth: float = 10.0, on_box=lambda done, name, total: None,
-               label_fit: float = 0.05, label_detent: bool = False) -> tuple[str, str, bytes]:
+               label_fit: float = 0.05, label_detent: bool = False,
+               drawer: list[DrawerBox] | None = None) -> tuple[str, str, bytes]:
     """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK.
     Boxes of one size share a bin file; boxes with the same label share a label file."""
     specs = [_spec_for(gen, item, height_u) for item in items]
@@ -187,6 +200,20 @@ def _build_all(gen, items: list[Item], height_u: int, keep: bool,
         spec["label_depth"] = label_depth
         spec["label_fit"] = label_fit
         spec["label_detent"] = label_detent
+    # one label size per box width, from the whole drawer (or the items if none was sent)
+    ref = [{"pos": 0, "part": b.part, "thread": b.thread.strip(), "text": (b.text or "").strip() or None,
+            "length": int(b.length) if b.length is not None and float(b.length).is_integer() else b.length,
+            "grid_w": b.w, "grid_d": 1, "height_u": height_u, "label_side": "front"}
+           for b in drawer] if drawer else [dict(sp) for sp in specs]
+    for sp in ref:
+        sp.update(label_depth=label_depth, label_fit=label_fit, label_detent=label_detent)
+    try:
+        scales = gen.label_scales(ref)
+        own = gen.label_scales(specs)                        # widths the drawer list lacks
+    except ValueError as exc:
+        raise RuntimeError(f"label size: {exc}") from exc
+    for spec in specs:
+        spec["label_scale"] = scales.get(spec["grid_w"], own[spec["grid_w"]])
     bins, labels = gen.file_plan(specs)
     jobs = ([(gen.mw_bin_stem(*key[:3], count, len(key) == 4), lambda k=key, c=count: _build_mw_bin(gen, k, c))
              for key, count in bins]
@@ -225,7 +252,8 @@ def generate(req: BuildRequest):
     with BUILD_LOCK:
         try:
             name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.label_depth,
-                                           label_fit=req.label_fit, label_detent=req.label_detent)
+                                           label_fit=req.label_fit, label_detent=req.label_detent,
+                                           drawer=req.drawer)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc)) from exc
     return Response(data, media_type=media,
@@ -245,7 +273,8 @@ JOB_QUEUE: "queue.Queue[str]" = queue.Queue()
 
 def _job_key(req: BuildRequest) -> str:
     return json.dumps([req.height_u, req.keep, req.label_depth, req.label_fit, req.label_detent,
-                       [[i.part, i.thread, i.length, i.text, i.w, i.d, i.label] for i in req.items]])
+                       [[i.part, i.thread, i.length, i.text, i.w, i.d, i.label] for i in req.items],
+                       [[b.part, b.thread, b.length, b.text, b.w] for b in req.drawer or []]])
 
 
 def _job_public(job: dict) -> dict:
@@ -262,7 +291,8 @@ def _run_job(job: dict) -> None:
 
         job.update(phase="build", done=0, total=len(req.items), current="")
         name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.label_depth, on_box,
-                                       label_fit=req.label_fit, label_detent=req.label_detent)
+                                       label_fit=req.label_fit, label_detent=req.label_detent,
+                                       drawer=req.drawer)
 
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
     path = JOBS_DIR / f"{job['id']}.bin"
