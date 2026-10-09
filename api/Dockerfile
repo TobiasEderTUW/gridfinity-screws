@@ -1,4 +1,6 @@
 # cadquery 2.8.0 requires Python >= 3.12.
+# Build context is the repo root (see docker-compose.yml), so the image carries generator/
+# itself and runs without bind mounts (registry image, Portainer).
 FROM python:3.12-slim
 
 # CadQuery/OCP need a few X and GL libraries even headless. No browser: the service works
@@ -18,7 +20,7 @@ ENV UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv
 
 WORKDIR /app
-COPY pyproject.toml uv.lock ./
+COPY api/pyproject.toml api/uv.lock ./
 # --frozen: fail loudly if the lock does not match pyproject.toml, rather than
 # silently re-resolving and producing a different image than the one we verified.
 # --no-cache: with UV_LINK_MODE=copy the uv cache would be a second full copy of every
@@ -27,8 +29,11 @@ RUN uv sync --frozen --no-dev --no-cache
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY app.py /app/app.py
+COPY api/app.py /app/app.py
+# docker-compose.yml bind-mounts ./generator over this for development; the copy is what
+# a deployed image uses.
+COPY generator/ /app/generator/
 
-ENV CACHE_DIR=/data/cache OUT_DIR=/data/out PYTHONUNBUFFERED=1
+ENV CACHE_DIR=/data/cache OUT_DIR=/data/out STATE_DIR=/data/state PYTHONUNBUFFERED=1
 EXPOSE 8000
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

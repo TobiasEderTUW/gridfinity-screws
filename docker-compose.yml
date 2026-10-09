@@ -24,6 +24,7 @@ services:
     ports:
       - "${WEB_PORT:-8080}:80"
     environment:
+      API_HOST: host.docker.internal
       API_PORT: ${API_PORT:-8000}
     volumes:
       - ./web/public:/usr/share/nginx/html:ro   # the editor; host edits are live (served no-store)
@@ -35,7 +36,11 @@ services:
     restart: unless-stopped
 
   api:
-    build: ./api
+    # Repo root as context so the image also carries generator/ (needed when it runs
+    # without the bind mounts below, e.g. from the registry; see deploy/).
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     image: schublade-api
     # Docker's default bridge, not a compose project network. Some hosts only forward
     # traffic for docker0 (GitHub Codespaces: legacy iptables FORWARD policy DROP); on a

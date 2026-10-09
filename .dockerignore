@@ -1,4 +1,7 @@
-# Only the web image uses the repo root as build context; it needs web/ and the fonts.
+# Both images build from the repo root: web needs web/ and the label font, api needs api/
+# and the whole generator/ (pipeline + label assets).
 *
 !web/
-!generator/assets/fonts/
+!api/
+!generator/
+**/__pycache__

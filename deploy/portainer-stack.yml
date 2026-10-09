@@ -1,0 +1,42 @@
+# Portainer stack: the published images from ghcr.io, no source checkout on the server.
+# Portainer -> Stacks -> Add stack -> Web editor: paste this file (or point "Repository" at
+# this repo with compose path deploy/portainer-stack.yml). Environment variables:
+#   OWNER     lower-case GitHub owner of the images   (default tobiasedertuw)
+#   TAG       image tag: latest, sha-abc1234, 1.2.3    (default latest)
+#   WEB_PORT  port of the editor on the host           (default 8080)
+#
+# Unlike docker-compose.yml (development) nothing is bind-mounted from a checkout: the
+# editor, the generator and the label assets are inside the images. Data lives in three
+# named volumes; back up `state` (the shared default drawer).
+#
+# The two containers talk over the stack's own network, and only the editor is published.
+# On a host that drops traffic on non-default bridges (seen in GitHub Codespaces) use
+# docker-compose.yml's arrangement instead: network_mode: bridge on both, api published,
+# web with API_HOST=host.docker.internal and API_PORT=<published api port>.
+services:
+  web:
+    image: ghcr.io/${OWNER:-tobiasedertuw}/gridfinity-screws-web:${TAG:-latest}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      API_HOST: api
+      API_PORT: "8000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/${OWNER:-tobiasedertuw}/gridfinity-screws-api:${TAG:-latest}
+    # a runaway CadQuery boolean kills this container, not the host
+    mem_limit: 4g
+    memswap_limit: 4g
+    volumes:
+      - cache:/data/cache   # built 3MF files and job results
+      - out:/data/out       # every server-built file
+      - state:/data/state   # the shared default drawer + its history: back this up
+    restart: unless-stopped
+
+volumes:
+  cache:
+  out:
+  state:

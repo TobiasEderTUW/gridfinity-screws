@@ -154,6 +154,15 @@ bind-mounted. Editor changes are live on
 reload; for the other two run `docker compose restart api`. No image rebuild is needed for
 any of them, which matters on a small Codespaces disk.
 
+## Deployment (registry images, Portainer)
+
+`.github/workflows/docker.yml` builds both images on every push to `main` (and `v*` tags)
+and pushes them to `ghcr.io/<owner>/gridfinity-screws-api` and `…-web` (`latest`,
+`sha-<short>`, semver for tags). The images are self-contained: both build from the repo
+root, the api image carries `generator/`. `deploy/portainer-stack.yml` runs them with named
+volumes for `cache`, `out` and `state`, only the editor published, and nginx reaching the
+api over the stack network (`API_HOST=api`).
+
 ## The original CLI still works
 
 ```

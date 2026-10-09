@@ -453,6 +453,13 @@ docker compose run --rm api \
   python /app/generator/generate_gridfinity_chappel_bins.py -o /data/out/cli
 ```
 
+**Registry deployment (2026-10-09).** `.github/workflows/docker.yml` pushes
+`ghcr.io/<owner>/gridfinity-screws-{api,web}` (linux/amd64); both images build from the
+repo root (whitelist `.dockerignore`), the api image now COPYs `generator/` (the compose bind
+mount still shadows it in development). nginx's upstream is `${API_HOST}:${API_PORT}`
+(default `host.docker.internal`). `deploy/portainer-stack.yml`: stack network, `API_HOST=api`,
+named volumes. Not yet run on GitHub or in Portainer.
+
 `./cache` holds built 3MFs and job results, `./out` receives built files, `./generator`
 is bind-mounted so host edits apply after `docker compose restart api`. Neither service
 needs internet access.
