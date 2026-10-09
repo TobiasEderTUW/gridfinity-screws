@@ -2,7 +2,7 @@
 
 Wraps the CadQuery pipeline so the editor can ask for the real thing: a body with the
 label pocket cut out plus the label inlay as a two-part 3MF, or bins and label plates for
-the removable styles. Built files are cached under CACHE_DIR and reused.
+Built files are cached under CACHE_DIR and reused.
 
 Fully offline: the label artwork is composed from generator/assets (icon exports + font).
 A box is described by its part type, thread, length and optional label text, so any part
@@ -81,15 +81,26 @@ class Item(BaseModel):
     label: Literal["bot", "top"] = "bot"
 
 
+class DrawerBox(BaseModel):
+    """A box of the whole drawer, as far as label size is concerned (see `drawer`)."""
+    part: str = Field(min_length=1, max_length=64)
+    thread: str = Field(max_length=16)
+    length: float | None = Field(default=None, gt=0, le=1000)
+    text: str | None = Field(default=None, max_length=40)
+    w: int = Field(ge=1, le=6)
+
+
 class BuildRequest(BaseModel):
     items: list[Item]
+    # All boxes of the drawer. Labels are one size per box width across the drawer, so a
+    # single box must know the others; without it the items themselves are the reference.
+    drawer: list[DrawerBox] | None = Field(default=None, max_length=350)
     height_u: int = Field(default=8, ge=3, le=12)
     keep: bool = True                 # also write the files into OUT_DIR
-    # "integrated": label inlaid in each bin, one 3MF per screw.
-    # "removable": snap-rim bins deduplicated per size/edge/depth + one label plate per screw.
     # "makerworld": lipped bins deduplicated per size + one clip-on label tray per screw.
-    style: Literal["integrated", "removable", "makerworld"] = "integrated"
-    label_depth: float = Field(default=10.0, ge=6.0, le=30.0)   # removable plate depth, mm
+    # One label style since 2026-09-30: lipped bins, deduplicated per size (and detents), plus
+    # one clip-on label per distinct part/text/width/edge. A "style" field is ignored.
+    label_depth: float = Field(default=10.0, ge=6.0, le=30.0)   # label depth from the wall, mm
     label_fit: float = Field(default=0.05, ge=-0.30, le=0.30)     # makerworld clip gap, mm
     label_detent: bool = False        # makerworld: detent bumps on the side lips + dimples
 
@@ -130,7 +141,7 @@ def _label_inputs(gen, spec: dict) -> list[Path]:
 def _cached(path: Path, extra: list[Path]) -> bool:
     """Is this cached build newer than everything it was made from?
 
-    The name encodes part, text, footprint, height, side and style, so any of those changing
+    The name encodes part, text, footprint, height, side and label options, so any of those changing
     is a miss by construction; a newer generator, app.py or label asset invalidates it.
     """
     if not path.is_file():
@@ -150,19 +161,6 @@ def _cached_build(stem: str, extra: list[Path], build) -> bytes:
         build(tmp)
         tmp.replace(path)                     # never a half-written cache entry
     return path.read_bytes()
-
-
-def _build_integrated(gen, spec: dict) -> tuple[str, bytes]:
-    stem = gen.filename_stem(spec)
-    data = _cached_build(stem, _label_inputs(gen, spec), lambda p: gen.build_integrated_3mf(spec, p))
-    return f"{stem}.3mf", data
-
-
-def _build_snap_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
-    w, d, u, side, depth = key
-    data = _cached_build(gen.snap_bin_stem(w, d, u, side, depth), [],
-                         lambda p: gen.build_snap_bin_3mf(w, d, u, p, side, depth))
-    return f"bins/{gen.snap_bin_stem(w, d, u, side, depth, count)}.3mf", data
 
 
 def _build_mw_bin(gen, key: tuple, count: int) -> tuple[str, bytes]:
@@ -185,41 +183,42 @@ def _check_request(gen, req: BuildRequest) -> None:
         raise HTTPException(400, "no items requested")
     for item in req.items:
         spec = _spec_for(gen, item, req.height_u)
-        if req.style in ("removable", "makerworld"):
-            try:
-                gen.plate_depth({**spec, "label_depth": req.label_depth})
-            except ValueError as exc:
-                raise HTTPException(422, f"{gen.screw_name(spec)}: {exc}") from exc
+        try:
+            gen.plate_depth({**spec, "label_depth": req.label_depth})
+        except ValueError as exc:
+            raise HTTPException(422, f"{gen.screw_name(spec)}: {exc}") from exc
 
 
-def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "integrated",
+def _build_all(gen, items: list[Item], height_u: int, keep: bool,
                label_depth: float = 10.0, on_box=lambda done, name, total: None,
-               label_fit: float = 0.05, label_detent: bool = False) -> tuple[str, str, bytes]:
+               label_fit: float = 0.05, label_detent: bool = False,
+               drawer: list[DrawerBox] | None = None) -> tuple[str, str, bytes]:
     """Build every file the request needs -> (filename, media type, bytes). Caller holds BUILD_LOCK.
-    Two boxes with the same part, text and footprint share one file."""
+    Boxes of one size share a bin file; boxes with the same label share a label file."""
     specs = [_spec_for(gen, item, height_u) for item in items]
     for spec in specs:
-        spec["label_style"] = style
         spec["label_depth"] = label_depth
         spec["label_fit"] = label_fit
         spec["label_detent"] = label_detent
-    if style in ("removable", "makerworld"):
-        bins, labels = gen.removable_file_plan(specs)
-        if style == "makerworld":
-            bin_jobs = [(gen.mw_bin_stem(*key[:3], count, len(key) == 4),
-                         lambda k=key, c=count: _build_mw_bin(gen, k, c))
-                        for key, count in bins]
-        else:
-            bin_jobs = [(gen.snap_bin_stem(*key, count=count), lambda k=key, c=count: _build_snap_bin(gen, k, c))
-                        for key, count in bins]
-        jobs = (bin_jobs
-                + [(stem, lambda sp=sp: _build_label_plate(gen, sp))
-                   for stem, sp in {gen.label_plate_stem(sp): sp for sp in labels}.items()])
-    else:
-        seen: dict[str, dict] = {}
-        for sp in specs:
-            seen.setdefault(gen.filename_stem(sp), sp)
-        jobs = [(stem, lambda sp=sp: _build_integrated(gen, sp)) for stem, sp in seen.items()]
+    # one label size per box width, from the whole drawer (or the items if none was sent)
+    ref = [{"pos": 0, "part": b.part, "thread": b.thread.strip(), "text": (b.text or "").strip() or None,
+            "length": int(b.length) if b.length is not None and float(b.length).is_integer() else b.length,
+            "grid_w": b.w, "grid_d": 1, "height_u": height_u, "label_side": "front"}
+           for b in drawer] if drawer else [dict(sp) for sp in specs]
+    for sp in ref:
+        sp.update(label_depth=label_depth, label_fit=label_fit, label_detent=label_detent)
+    try:
+        scales = gen.label_scales(ref)
+        own = gen.label_scales(specs)                        # widths the drawer list lacks
+    except ValueError as exc:
+        raise RuntimeError(f"label size: {exc}") from exc
+    for spec in specs:
+        spec["label_scale"] = scales.get(spec["grid_w"], own[spec["grid_w"]])
+    bins, labels = gen.file_plan(specs)
+    jobs = ([(gen.mw_bin_stem(*key[:3], count, len(key) == 4), lambda k=key, c=count: _build_mw_bin(gen, k, c))
+             for key, count in bins]
+            + [(stem, lambda sp=sp: _build_label_plate(gen, sp))
+               for stem, sp in {gen.label_plate_stem(sp): sp for sp in labels}.items()])
 
     built: list[tuple[str, bytes]] = []
     for n, (name, job) in enumerate(jobs):
@@ -232,20 +231,16 @@ def _build_all(gen, items: list[Item], height_u: int, keep: bool, style: str = "
 
     if keep:
         for name, data in built:
-            target = OUT / (f"{style}_{height_u}U" if style != "integrated" else "") / name
+            target = OUT / f"makerworld_{height_u}U" / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
 
-    # A removable box is always two files (bin + label), so it always comes as a zip.
-    if len(built) == 1:
-        name, data = built[0]
-        return name, "model/3mf", data
+    # A box is always two files (bin + label), so the result is always a zip.
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:   # 3MFs are already deflated
         for name, data in built:
             zf.writestr(name, data)
-    suffix = "" if style == "integrated" else f"_{style}"
-    return f"drawer_3mf_{height_u}U{suffix}.zip", "application/zip", buf.getvalue()
+    return f"drawer_3mf_{height_u}U.zip", "application/zip", buf.getvalue()
 
 
 @app.post("/api/generate")
@@ -256,8 +251,9 @@ def generate(req: BuildRequest):
     _check_request(gen, req)
     with BUILD_LOCK:
         try:
-            name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth,
-                                           label_fit=req.label_fit, label_detent=req.label_detent)
+            name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.label_depth,
+                                           label_fit=req.label_fit, label_detent=req.label_detent,
+                                           drawer=req.drawer)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc)) from exc
     return Response(data, media_type=media,
@@ -276,8 +272,9 @@ JOB_QUEUE: "queue.Queue[str]" = queue.Queue()
 
 
 def _job_key(req: BuildRequest) -> str:
-    return json.dumps([req.height_u, req.keep, req.style, req.label_depth, req.label_fit, req.label_detent,
-                       [[i.part, i.thread, i.length, i.text, i.w, i.d, i.label] for i in req.items]])
+    return json.dumps([req.height_u, req.keep, req.label_depth, req.label_fit, req.label_detent,
+                       [[i.part, i.thread, i.length, i.text, i.w, i.d, i.label] for i in req.items],
+                       [[b.part, b.thread, b.length, b.text, b.w] for b in req.drawer or []]])
 
 
 def _job_public(job: dict) -> dict:
@@ -293,8 +290,9 @@ def _run_job(job: dict) -> None:
             job.update(done=done, current=name, total=total)
 
         job.update(phase="build", done=0, total=len(req.items), current="")
-        name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.style, req.label_depth, on_box,
-                                       label_fit=req.label_fit, label_detent=req.label_detent)
+        name, media, data = _build_all(gen, req.items, req.height_u, req.keep, req.label_depth, on_box,
+                                       label_fit=req.label_fit, label_detent=req.label_detent,
+                                       drawer=req.drawer)
 
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
     path = JOBS_DIR / f"{job['id']}.bin"
@@ -414,7 +412,9 @@ class Layout(BaseModel):
     """The editor's snapshot (local storage format v3)."""
     v: Literal[3] = 3
     u: int = Field(default=8, ge=3, le=10)
-    style: Literal["integrated", "removable", "makerworld"] = "integrated"
+    # the only label style since 2026-09-30; older snapshots say "integrated" etc., which
+    # is accepted and stored as "makerworld"
+    style: str = "makerworld"
     labelDepth: float = Field(default=10.0, ge=6.0, le=30.0)
     labelFit: float = Field(default=0.05, ge=-0.30, le=0.30)
     detent: bool = False
@@ -450,6 +450,7 @@ def get_default():
 @app.put("/api/default")
 def set_default(layout: Layout):
     _check_layout(layout)
+    layout.style = "makerworld"
     record = {"saved_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "layout": layout.model_dump()}
     with DEFAULT_LOCK:
         STATE.mkdir(parents=True, exist_ok=True)

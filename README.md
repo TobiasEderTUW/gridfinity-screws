@@ -13,10 +13,10 @@ docker compose up -d --build          # editor on http://localhost:8080
 
 Both services start by default. The editor arranges bins; every 3MF it hands out — from
 the box menu, **Selected 3MF** or **All as 3MF** — is built by the build service with
-`generate_gridfinity_chappel_bins.py`: `make_finished_body()` (one booleaned solid with the
-label pocket cut) plus `make_label_inlay()` (the label artwork, flush 0.6 mm), as two
-parts (`BODY` on filament 1, `LABEL_INLAY` on filament 2) so Bambu Studio opens it as a
-two-colour object.
+`generate_gridfinity_chappel_bins.py`: a bin (`make_mw_bin()`, one part) and a clip-on
+label (`make_mw_label()`: `LABEL_PLATE` on filament 1, the flush 0.6 mm `LABEL_INLAY` on
+filament 2, so Bambu Studio opens it as a two-colour object). A box is always these two
+files, so every download is a zip.
 
 **No download is ever label-less.** There is no browser-built fallback and no STL body
 export. If the build service is unreachable, the editor reports an error and hands out
@@ -41,7 +41,9 @@ builds.
 
 ## Boxes and part types
 
-Click a box to edit it: part type (drive and head icons, or nut/washer), thread, length,
+Click a box to select it; click the selected box again (or double-click, or press Enter)
+to open its menu (dragging a box of a multi-selection moves the whole selection; it only
+lands if every box fits): part type (drive and head icons, or nut/washer), thread, length,
 label text (defaults to `M6×20` for screws, `M6` for nuts and washers; type anything to
 override, e.g. `M6×20 A2`), footprint and label edge. **Add box** (sidebar), **Duplicate** and
 **Delete** (box menu, or the Delete key on a selection) change the set. The drive/head
@@ -57,42 +59,50 @@ biggest thread at the back.
 
 There is no fill or volume estimate: you choose the footprint.
 
-## Label styles
+## Bins and labels
 
-A switch under *Generate boxes* chooses one of three designs for every box:
+One design since 2026-09-30 (the integrated shelf and the removable snap plate were
+removed on request):
 
-| | **Integrated** (default) | **Removable** | **MakerWorld** |
-|---|---|---|---|
-| bin | shelf + 45° ramp at the label edge, label inlay cut into it | plain walls with a 0.6 mm snap rim round the inside, 1.6 mm below the top (45° above and below, prints without support), and under the label a 45° ramp whose flat top the plate rests on (0.1 mm gap) | plain walls with a lip round the top inside, the counterpart of the label's clip profile (45° faces only) |
-| label | part of the bin, filament 2 | separate 2.4 mm plate that fills the inner width, **Label width** deep (slider, 6–19 mm, default 10); a V-groove on its wall-side edges clicks over the rim; label inlay flush on filament 2; exported face-down, ready to print | replica of MakerWorld model 431547: a 1.8 mm face plate with a 3.16 mm skirt along both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the bin lip and a 0.6 mm bump hooks under it. Label inlay flush in the face; **Label width** slider; exported face-down |
-| files | one `allen-countersunk_M6x80_2x3_8U.3mf` per box | `bins/BIN_2x1_8U_D10_x83.3mf`, one per distinct bin (size, label width, `_LBACK` for top-edge boxes), the count in the name, plus `labels/LABEL_allen-countersunk_M6x80_W2_D10.3mf` per label | `bins/BIN_2x1_8U_MW_x83.3mf`, one per size (the bin does not depend on the label), plus `labels/LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05.3mf` per label |
+- **Bin:** plain walls with a lip round the top inside, the counterpart of the label's clip
+  profile (45° faces only). It does not depend on the label, so every box of one size shares
+  one file: `bins/BIN_2x1_8U_MW_x83.3mf` (the count in the name).
+- **Label:** replica of MakerWorld model 431547: a 1.8 mm face plate with a 3.16 mm skirt along
+  both sides and the wall-side edge, reaching 5 mm down; the skirt's recess clips round the
+  bin lip and a 0.6 mm bump hooks under it. Label inlay flush in the face; exported
+  face-down. `labels/LABEL_allen-countersunk_M6x80_W2_D10_MW_FIT0.05.3mf` per distinct label.
+- **Label width** (slider, 6–19 mm, default 10) is the label's depth from the wall.
+  **All labels of one box width are exactly the same size**, and text keeps its
+  proportions: the size is the largest at which every label of that width in the drawer fits
+  (icons at most depth − fit − 3 mm, 6.95 mm at 10, capped at 10.96 mm; text 0.7 × that).
+  The note under the slider shows the result per width; in the default drawer the two 1×3
+  boxes (M6×40, M6×80) make the 1-wide labels 6.35 mm. Adding a box with a long text can
+  make all labels of its width smaller. Label files carry the size (`_H6.95`).
+- **Layout:** the icons sit at the left edge of the label, in the same place on every label of
+  a box width; the text is centred in the space right of them.
+- **Bambu Studio 02.08.02** says "The 3mf file has invalid config, load geometry data only"
+  for these files. That is a bug in that version (fixed in 02.08.03): the files carry no
+  printer settings on purpose. Geometry and the filament of each part load correctly.
+- **Label fit** (default 0.05 mm all round the clip profile, −0.30 to 0.30, negative is a
+  press fit): only the label changes, so a looser or tighter label fits bins you already
+  printed. Checked in CAD only.
+- **Detents** ticked: the bin's lip turns down at two places per wall (near each corner): a
+  short vertical piece with the lip's own cross-section runs from the lip 4 mm down the wall
+  (bottom end 45°, prints without support), and the label's skirt has matching slots, so it
+  cannot slide (`BIN_2x1_8U_MW_DET`). Lip and pieces run round all four walls, so a printed
+  bin can later take a new label on any wall; the tools generate front (bot) and back (top)
+  labels.
 
-The removable design follows the MakerWorld *Removable Label – Gridfinity AddOn*
-(model 431547) in spirit; the dimensions are ours. A removable bin does not depend on the
-label artwork, so every box with the same size, label edge and label width shares one file
-(the ramp sits under the label, so edge and width shape the bin). A single removable box
-downloads as a zip holding its bin and its label. CLI: `--style integrated|removable|makerworld`, `--label-fit 0.05`,
-`--label-depth 10`. The artwork keeps 1.8 mm to the plate's long edges, so a
-shallow plate means small lettering: at 10 mm the artwork is 6.3 mm tall, at 6 mm only
-2.3 mm, which is below what prints legibly.
-The fit is checked in CAD only (removable: 0.15 mm clearance, 0.45 mm snap engagement;
-MakerWorld: **Label fit** slider, default 0.05 mm all round the clip profile, −0.30 to
-0.30, negative is a press fit; only the label changes, so a looser or tighter label fits
-bins you already printed). With **Detents** ticked, the bin's lip turns down at two places per wall (near each corner):
-a short vertical piece with the lip's own cross-section runs from the lip 4 mm down the wall
-(bottom end 45°, prints without support), and the label's skirt has matching slots, so it
-cannot slide. The bin still fits any label width on any wall (`BIN_2x1_8U_MW_DET`), CLI
-`--detents`. Lip and ribs run round all four walls, so a printed bin can later take a new
-label on any wall; the tools generate front (bot) and back (top) labels:
-print one bin and one label before the batch.
+CLI: `--label-depth 10`, `--label-fit 0.05`, `--detents`, `--label-side front|back`. Print
+one bin and one label before the batch.
 
 The MakerWorld profile was measured from the model's STL (in `./tmp/`, untracked, licence
 CC BY-NC-SA). Its 0.5 mm raised sticker rim is left out: the label prints face down for the
 two-colour inlay, and the rim would leave the whole face as an unsupported bridge.
 
 Files carry no position number and no quantity: boxes are named by part type and label
-text (`allen-countersunk_M6x80`, `nyloc-nut_M6`). Boxes with the same part, text and
-footprint share one file.
+text (`allen-countersunk_M6x80`, `nyloc-nut_M6`). Boxes with the same label share one
+label file.
 
 ## Labels
 
@@ -170,7 +180,7 @@ docker compose run --rm api \
   python /app/generator/generate_gridfinity_chappel_bins.py -o /data/out/cli
 ```
 
-It builds the default set (`--positions 1,2,6` for a subset) with the same `--style`,
+It builds the default set (`--positions 1,2,6` for a subset) with the same
 `--label-side`, `--label-depth`, `--label-fit` and `--detents` options as the editor.
 ```
 
@@ -179,7 +189,7 @@ It builds the default set (`--positions 1,2,6` for a subset) with the same `--st
 | method | path | purpose |
 |---|---|---|
 | GET | `/api/health` | is CadQuery loadable, how many part types are known |
-| POST | `/api/jobs` | same body as `/api/generate` (items may add `"text"` and `"label": "top"`, the request `"style": "removable"` and `"label_depth": 10`); queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
+| POST | `/api/jobs` | same body as `/api/generate` (items may add `"text"` and `"label": "top"`, the request `"label_depth"`, `"label_fit"`, `"label_detent"` and `"drawer"`: every box of the drawer as `{part, thread, length, text, w}`, which sets the label size per box width; an old `"style"` field is ignored); queues a background build, returns `{id, phase, done, total, current}`. An identical running or finished request is reattached, not duplicated |
 | GET | `/api/jobs/{id}` | status: `queued` → `build` (done/total = files) → `done` or `error` |
 | GET | `/api/jobs/{id}/file` | the 3MF (one box) or zip, once `done`; the last 8 finished jobs are kept in `cache/jobs/` |
 | GET | `/api/default` | the shared default drawer `{saved_at, layout}`, 404 if none |
@@ -188,8 +198,9 @@ It builds the default set (`--positions 1,2,6` for a subset) with the same `--st
 
 ## Things worth knowing
 
-- **OCP is not thread safe**, so one worker thread runs jobs in order. A 116-box batch from
-  cold takes tens of minutes (5–40 s per box; the lock-washer icons are the slowest). The editor runs every build as a job and
+- **OCP is not thread safe**, so one worker thread runs jobs in order. Labels are cut as
+  meshes (manifold3d, 0.1–0.5 s each) on a tray built once per size and setting; bins take
+  1–2 s and are built once per size, so a whole drawer takes about a minute from cold. The editor runs every build as a job and
   polls it once a second, because a single long request gets cut off by proxies: GitHub
   Codespaces port forwarding dropped the old synchronous "All as 3MF" after about a minute
   (nginx logged `499`) while the build carried on server-side. If the page is closed, the
@@ -205,12 +216,12 @@ It builds the default set (`--positions 1,2,6` for a subset) with the same `--st
   `./cache/built_3mf/` and reuses them until the generator, `label_art.py` or a label asset
   changes.
   Changing a box's size or the height is always a fresh build.
-- **Label edge.** Every box has its label shelf on the front edge (**Bot**, the drawer-front
+- **Label edge.** Every box has its label on the front edge (**Bot**, the drawer-front
   side, default) or the back edge (**Top**, as the drawer is drawn). Choose per box in its
   menu, with **L** on a selection, or for all boxes under *Generate boxes*. The label strip on
-  each tile shows the edge. A top label is the same shelf and ramp mirrored to the back; the
-  label artwork is moved, not rotated, so it still reads from the drawer front. Those files
-  end in `_LBACK`. From the CLI: `--label-side front|back`.
+  each tile shows the edge. A top label is the same label mirrored to the back; the
+  artwork is moved, not rotated, so it still reads from the drawer front. Those label files
+  end in `_LBACK`; the bin is the same for both edges. From the CLI: `--label-side front|back`.
 - **Layout file.** **Export CSV** / **Import CSV…** use the same columns
   (`part, thread, length_mm, text, box_w, box_d, height_u, grid_x, row_from_front, label`).
   The file is the whole drawer: import replaces every box. `text` and `label` are optional

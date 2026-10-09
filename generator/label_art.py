@@ -37,6 +37,9 @@ TEXT_CAP_H = 5.7             # the site's default text height (cap height, basel
 ICON_TEXT_GAP = 2.0          # last icon ink to first text ink
 EDGE_MARGIN = 1.2            # closest the icon + text group gets to the plate edge
 CURVE_STEPS = 8              # line segments per font curve segment
+ICON_H = 8.12                # height of the site's icons (64 of 67 types; wing and heat-set
+                             # nut icons are shorter, 6.45 / 7.0) - the reference for label scale
+
 
 # The four kinds of the original invoice, as label.alch.shop part types.
 LEGACY_PART = {'SK': 'allen__countersunk', 'ZK': 'allen__socket',
@@ -303,12 +306,46 @@ def _disjoint(polys) -> list[Polygon]:
     return [g for g in geoms if g.geom_type == 'Polygon' and g.area > 1e-4]
 
 
-def compose(key: str, text: str) -> list[Polygon]:
-    """Icons + text on the 52.9 x 10.1 mm plate, centred at the origin, in mm."""
-    return _disjoint(_compose(key, text))
+def compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
+    """Icons + text, centred at the origin, in the site's plate units (mm on a 1-wide label).
+
+    site_layout True: the site's own layout on the 52.9 mm plate (a very long text shrinks
+    when the group would come within 1.2 mm of the edge) - what the exports are checked against.
+    site_layout False: the natural layout, text always at full cap height, never shrunk or
+    condensed. The printed labels use this and scale the whole label instead
+    (generator: label_scales), so every label of a box width is exactly alike.
+    """
+    return _disjoint(_compose(key, text, site_layout))
 
 
-def _compose(key: str, text: str) -> list[Polygon]:
+@lru_cache(maxsize=4096)
+def label_parts(key: str, text: str) -> tuple[tuple[Polygon, ...], float, tuple[Polygon, ...], float]:
+    """The label's two blocks at natural size, in plate units, each centred on y = 0:
+    (icons, icons_w, text, text_w). The icons' layout box spans x = 0..icons_w; the text ink
+    starts at x = 0. Text is at full cap height, never shrunk (the printed labels scale the
+    whole label; see generator: label_scales)."""
+    icons = list(icon_polygons(key))
+    ix0, _iy0, ix1, _iy1 = _bounds(icons)
+    half = ix1 if part(key)['category'] == 'bolt' else max(-ix0, ix1)   # layout box, see _compose
+    icons = tuple(_disjoint(_translate(p, half, 0) for p in icons))
+    text = (text or '').strip()
+    glyphs = text_polygons(text) if text else []
+    if not glyphs:
+        return icons, 2 * half, (), 0.0
+    tx0, ty0, tx1, ty1 = _bounds(glyphs)
+    s = TEXT_CAP_H / ty1
+    y_mid = (ty0 + ty1) / 2 * s
+    glyphs = [_translate(_scale(g, s, s, origin=(0, 0)), -tx0 * s, -y_mid) for g in glyphs]
+    return icons, 2 * half, tuple(_disjoint(glyphs)), (tx1 - tx0) * s
+
+
+def natural_width(key: str, text: str) -> float:
+    """Width the label needs at natural size: icons, gap, text (plate units)."""
+    _icons, icons_w, _text, text_w = label_parts(key, text)
+    return icons_w + (ICON_TEXT_GAP + text_w if text_w else 0.0)
+
+
+def _compose(key: str, text: str, site_layout: bool = True) -> list[Polygon]:
     icons = list(icon_polygons(key))
     text = (text or '').strip()
     glyphs = text_polygons(text) if text else []
@@ -324,19 +361,20 @@ def _compose(key: str, text: str) -> list[Polygon]:
     ix0, icons_w = -half, 2 * half
 
     tx0, ty0, tx1, ty1 = _bounds(glyphs)
-    s = TEXT_CAP_H / ty1                      # cap height = ink top above the baseline
-    budget = PLATE_W - 2 * EDGE_MARGIN - icons_w - ICON_TEXT_GAP
-    if (tx1 - tx0) * s > budget:
-        s = budget / (tx1 - tx0)
-    text_w = (tx1 - tx0) * s
+    sx = sy = TEXT_CAP_H / ty1                # cap height = ink top above the baseline
+    if site_layout:
+        budget = PLATE_W - 2 * EDGE_MARGIN - icons_w - ICON_TEXT_GAP
+        if (tx1 - tx0) * sx > budget:
+            sx = sy = budget / (tx1 - tx0)
+    text_w = (tx1 - tx0) * sx
     group_l = -(icons_w + ICON_TEXT_GAP + text_w) / 2
 
     out = [_translate(p, group_l - ix0, 0) for p in icons]
     x_off = group_l + icons_w + ICON_TEXT_GAP
-    y_mid = (ty0 + ty1) / 2 * s               # ink centred vertically, like the exports
+    y_mid = (ty0 + ty1) / 2 * sy              # ink centred vertically, like the exports
     for g in glyphs:
-        g = _scale(g, s, s, origin=(0, 0))
-        out.append(_translate(g, x_off - tx0 * s, -y_mid))
+        g = _scale(g, sx, sy, origin=(0, 0))
+        out.append(_translate(g, x_off - tx0 * sx, -y_mid))
     return out
 
 
@@ -397,7 +435,7 @@ def web_catalogue() -> dict:
     return {
         'source': cat['source'], 'site_version': cat['site_version'], 'downloaded': cat['downloaded'],
         'layout': {'plate_w': PLATE_W, 'plate_h': PLATE_H, 'cap_h': TEXT_CAP_H, 'gap': ICON_TEXT_GAP,
-                   'edge': EDGE_MARGIN, 'icon_h': round(_icon_box('allen__countersunk')[1], 3),
+                   'edge': EDGE_MARGIN, 'icon_h': ICON_H,
                    'font_cap_ratio': _font()['OS/2'].sCapHeight / _font()['head'].unitsPerEm},
         'drives': [{**d, 'icon': drive_icon.get(d['key'], '')} for d in cat['drives']],
         'heads': [{**h, 'icon': head_icon.get(h['key'], '')} for h in cat['heads']],

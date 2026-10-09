@@ -275,7 +275,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <div class="row"><label for="zoom">Zoom</label><output id="zoomOut">36 px</output></div>
           <input type="range" id="zoom" min="22" max="60" step="2" value="36">
         </div>
-        <div class="note">Drag a bin to move it, click it to edit. Arrow keys nudge the selection, <b>R</b> rotates it, <b>L</b> flips its label edge.<br>
+        <div class="note">Click a bin to select it, click it again to edit it; drag to move (a selection moves together). Arrow keys nudge the selection, <b>R</b> rotates it, <b>L</b> flips its label edge.<br>
           <b>Ctrl</b>/<b>⌘</b>-click adds a bin, <b>Shift</b>-click extends a range, <b>Esc</b> clears. <b>Select bins</b> keeps that mode on so a plain click toggles.</div>
       </div>
 
@@ -285,14 +285,11 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <div class="row"><label for="uSlider">Box height</label><output id="uOut">8U &middot; 56 mm</output></div>
           <input type="range" id="uSlider" min="3" max="10" step="1" value="8">
         </div>
-        <div class="ctrl">
-          <div class="row"><label>Label style</label></div>
-          <span class="seg wide" role="group" aria-label="Label style"><button id="styleInt" title="Label inlaid in the bin: one two-colour 3MF per box">Integrated</button><button id="styleRem" title="Plain bins with a snap rim, shared per size, plus separate two-colour label plates">Removable</button><button id="styleMw" title="Replica of MakerWorld model 431547: bins with a top lip, plus clip-on two-colour label trays">MakerWorld</button></span>
-        </div>
         <div class="ctrl" id="depthCtrl">
           <div class="row"><label for="depthSlider">Label width</label><output id="depthOut">10 mm</output></div>
           <input type="range" id="depthSlider" min="6" max="19" step="0.5" value="10"
-                 title="Depth of the removable label plate, measured from the wall into the box">
+                 title="Depth of the clip-on label, measured from the wall into the box">
+          <div class="note" id="labelSizeNote"></div>
         </div>
         <div class="ctrl" id="fitCtrl">
           <div class="row"><label for="fitSlider">Label fit</label><output id="fitOut">0.05 mm</output></div>
@@ -309,7 +306,7 @@ button.selmode-on{background:var(--accent);border-color:var(--accent);color:#fff
           <button class="primary" id="btnGen3mfAll">All as 3MF</button>
           <button id="btnGen3mfSel">Selected 3MF</button>
         </div>
-        <div class="note" id="genNote" style="margin-top:9px">Every 3MF is built by generate_gridfinity_chappel_bins.py: BODY with the label pocket cut + LABEL_INLAY on filament 2. The label artwork is composed offline from the stored icon exports and font.</div>
+        <div class="note" id="genNote" style="margin-top:9px">Every box is two 3MFs from generate_gridfinity_chappel_bins.py: the bin with its lip (shared by all boxes of that size) and the clip-on label, LABEL_INLAY on filament 2. The label artwork is composed offline from the stored icon exports and font.</div>
       </div>
 
       <div class="panel card">
@@ -526,10 +523,9 @@ function parseSTL(buf){
   return m;
 }
 /* ---------- constants: Gridfinity + bin geometry (mm) ---------- */
-const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2,
-      FLOOR_Z = 7.2, SHELF_T = 1.2, SHELF_D = 12, U_MM = 7,
+const GW = 25, GD = 14, PITCH = 42, XY_CLR = 0.5, WALL = 1.2, U_MM = 7,
       MAX_CELLS = GW * GD;
-const BODY_R = 3.75, LABEL_MAX_UPSCALE = 1.35;
+const LABEL_MAX_UPSCALE = 1.35;
 // Tint per head type ("family"); wood heads share their machine family, a step darker.
 // Blocks in auto-arrange follow this order.
 const FAMILY = {countersunk:"--sk", pan:"--lk", socket:"--zk", hex:"--kt", flange_pan:"--fp",
@@ -570,55 +566,64 @@ function textInk(str){                   // ink box in em units, pen at x = 0 on
   return {x0: -m.actualBoundingBoxLeft / 100, x1: m.actualBoundingBoxRight / 100,
           top: m.actualBoundingBoxAscent / 100, bot: -m.actualBoundingBoxDescent / 100};
 }
-function labelArt(b){                    // SVG markup in plate mm (y down) + its bounding box
+// The label's two blocks at natural size (generator: label_art.label_parts): the icons'
+// layout box (2 * half wide, centred on 0 in the icon path) and the text ink, at full cap
+// height, never condensed or shrunk. Only the whole label is scaled (labelScales).
+function labelArt(b){
   const L = CAT.layout, p = partInfo(b.part);
   if (!p) return null;
-  const half = p.half, iconsW = 2 * half, ih = L.icon_h;
-  const text = labelText(b);
-  const icon = dx => `<path fill-rule="evenodd" transform="translate(${dx.toFixed(3)} 0)" d="${p.icon}"/>`;
-  if (!text) return {svg: icon(0), x0: -half, x1: half, y0: -ih / 2, y1: ih / 2};
-  const ink = textInk(text);
-  if (!(ink.top > 0)) return {svg: icon(0), x0: -half, x1: half, y0: -ih / 2, y1: ih / 2};
-  let sc = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
-  const budget = L.plate_w - 2 * L.edge - iconsW - L.gap;
-  if ((ink.x1 - ink.x0) * sc > budget) sc = budget / (ink.x1 - ink.x0);
-  const tw = (ink.x1 - ink.x0) * sc;
-  const gl = -(iconsW + L.gap + tw) / 2;
-  const penX = gl + iconsW + L.gap - ink.x0 * sc;
-  const base = (ink.top + ink.bot) / 2 * sc;       // ink centred vertically
-  return {svg: icon(gl + half)
-    + `<text x="${penX.toFixed(3)}" y="${base.toFixed(3)}" font-size="${sc.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(text)}</text>`,
-    x0: gl, x1: gl + iconsW + L.gap + tw, y0: -ih / 2, y1: ih / 2};
+  const iconsW = 2 * p.half, text = labelText(b);
+  const ink = text ? textInk(text) : null;
+  if (!ink || !(ink.top > 0)) return {p, iconsW, text: "", width: iconsW};
+  const em = L.cap_h / ink.top;            // mm per em: cap height = ink top above the baseline
+  const tw = (ink.x1 - ink.x0) * em;
+  return {p, iconsW, text, ink, em, tw, width: iconsW + L.gap + tw};
 }
-// The label's face as seen from above, and the safe area the artwork is fitted into
-// (generator: integrated shelf / _plate_area / _mw_label_area). Tile coordinates in mm,
-// y down, drawer front = bottom of the tile.
+// One label size per box width across the drawer (generator: label_scales): the largest
+// scale at which every label of that width fits its box, as icon height rounded down to
+// 0.01 mm. Recomputed on every render, because any box can change it.
+let SCALES = {};
+function labelFit(b){
+  const st = labelStrip(b), a = CAT && labelArt(b);
+  const byWidth = a ? st.sw / a.width : Infinity;
+  return Math.min(st.sh / (CAT?.layout.icon_h ?? 8.12), byWidth, LABEL_MAX_UPSCALE);
+}
+function labelScales(){
+  const out = {};
+  for (const b of state.bins) out[b.w] = Math.min(out[b.w] ?? Infinity, labelFit(b));
+  const ih = CAT?.layout.icon_h ?? 8.12;
+  for (const w in out) out[w] = Math.floor(out[w] * ih * 100 + 1e-6) / 100 / ih;
+  return out;
+}
+
+// The clip-on label's face as seen from above, and the safe area the artwork is fitted into
+// (generator: _mw_label_area). Tile coordinates in mm, y down, drawer front = bottom of the tile.
 function labelStrip(b){
-  const W = PITCH * b.w, D = PITCH * b.d, o = XY_CLR / 2, ox = W - 2 * o, ix = ox - 2 * WALL;
-  let x, w, from, h, mid, sw, sh;
-  if (state.style === "integrated"){
-    x = o; w = ox; from = o; h = WALL + SHELF_D; mid = o + WALL + SHELF_D / 2;
-    sw = Math.max(8, ox - 2 * (BODY_R + 2.5)); sh = SHELF_D - 3;
-  } else if (state.style === "removable"){
-    const depth = state.labelDepth, c = 0.15;
-    x = o + WALL + c; w = ix - 2 * c; from = o + WALL; h = depth; mid = o + WALL + (c + depth) / 2;
-    sw = ix - 2 * c - 6; sh = depth - c - 3.6;
-  } else {
-    const depth = state.labelDepth, c = Math.max(0, state.labelFit);
-    x = o + WALL; w = ix; from = o + WALL; h = depth; mid = o + WALL + (c + depth) / 2;
-    sw = ix - 2 * c - 3; sh = depth - c - 3;
-  }
+  const W = PITCH * b.w, D = PITCH * b.d, o = XY_CLR / 2, ix = W - 2 * o - 2 * WALL;
+  const depth = state.labelDepth, c = Math.max(0, state.labelFit);
+  const x = o + WALL, w = ix, from = o + WALL, h = depth, mid = o + WALL + (c + depth) / 2;
+  const sw = ix - 2 * c - 3, sh = depth - c - 3;
   const front = b.label !== "top";
   return {W, D, x, w, h, y: front ? D - from - h : from, cy: front ? D - mid : mid, sw, sh};
 }
+// Icons at the left edge of the safe area (the same place on every label of a box width),
+// text centred in the space right of them, all at the common size of the box width
+// (generator: label_artwork). Left as read from the drawer front, also on back labels.
 function labelMarkup(b, st){
   if (!CAT) return "";
   const a = labelArt(b);
   if (!a) return "";
-  const gw = a.x1 - a.x0, gh = a.y1 - a.y0;
-  const sc = Math.min(st.sw / gw, st.sh / gh, LABEL_MAX_UPSCALE);
-  return `<g fill="var(--lab-ink)" transform="translate(${(st.W / 2).toFixed(3)} ${st.cy.toFixed(3)}) scale(${sc.toFixed(4)}) `
-    + `translate(${(-(a.x0 + a.x1) / 2).toFixed(3)} ${(-(a.y0 + a.y1) / 2).toFixed(3)})">${a.svg}</g>`;
+  const sc = Math.min(SCALES[b.w] ?? Infinity, labelFit(b)), f = v => v.toFixed(3);
+  const left = st.W / 2 - st.sw / 2;
+  let out = `<path fill-rule="evenodd" transform="translate(${f(left + a.p.half * sc)} ${f(st.cy)}) scale(${sc.toFixed(4)})" d="${a.p.icon}"/>`;
+  if (a.text){
+    const freeL = left + (a.iconsW + CAT.layout.gap) * sc, freeR = st.W / 2 + st.sw / 2;
+    const inkL = (freeL + freeR) / 2 - a.tw * sc / 2;
+    const fs = a.em * sc, penX = inkL - a.ink.x0 * fs;
+    const baseY = st.cy + (a.ink.top + a.ink.bot) / 2 * fs;     // ink centred on the icon line
+    out += `<text x="${f(penX)}" y="${f(baseY)}" font-size="${fs.toFixed(4)}" font-family='${LABEL_FONT}'>${esc(a.text)}</text>`;
+  }
+  return `<g fill="var(--lab-ink)">${out}</g>`;
 }
 // The tile is the cell span minus 1 px each side, minus a 1 px border: its drawing area starts
 // 2 px into the span. Showing exactly those millimetres keeps one scale (cell px per 42 mm) on
@@ -638,7 +643,7 @@ const PICK_VB = {drive: "-5 -5 10 10", head: "-6.5 -5 13 10", nut: "-9.5 -5 19 1
 
 function interior(w, d){ return [PITCH*w - XY_CLR - 2*WALL, PITCH*d - XY_CLR - 2*WALL]; }
 const state = {
-  u: 8, cell: 36, style: "integrated", labelDepth: 10, labelFit: 0.05, detent: false,
+  u: 8, cell: 36, labelDepth: 10, labelFit: 0.05, detent: false,
   bins: BINS.map(b => ({label: "bot", text: null, ...b})),
   // sel holds positions, not one position — multi-select is the normal case now.
   // anchor is the last bin touched, so Shift-click knows where a range starts.
@@ -687,7 +692,7 @@ function paint(b, el){
   el.style.paddingTop = b.label === "top" ? clear + "px" : "";
   el.style.paddingBottom = b.label === "top" ? "" : clear + "px";
   // redraw the top view only when something it shows changed
-  const key = [b.part, labelText(b), b.w, b.d, b.label, state.style, state.labelDepth, state.labelFit, fontReady, !!CAT, state.cell].join("|");
+  const key = [b.part, labelText(b), b.w, b.d, b.label, state.labelDepth, state.labelFit, fontReady, !!CAT, state.cell, SCALES[b.w]].join("|");
   if (el._key !== key){
     el._key = key;
     const p = partInfo(b.part);
@@ -695,6 +700,7 @@ function paint(b, el){
   }
 }
 function render(){
+  SCALES = labelScales();
   const inGrid = [], out = [];
   for (const b of state.bins) (placed(b) ? inGrid : out).push(b);
   for (const b of inGrid){
@@ -722,13 +728,12 @@ function updateStatus(){
   $("cellsUsed").textContent = used;
   $("cellsFree").textContent = MAX_CELLS - used;
   $("nSel").textContent = state.sel.size;
-  $("styleInt").classList.toggle("on", state.style === "integrated");
-  $("styleRem").classList.toggle("on", state.style === "removable");
-  $("styleMw").classList.toggle("on", state.style === "makerworld");
-  $("depthCtrl").classList.toggle("hide", state.style === "integrated");
   $("depthSlider").value = state.labelDepth;
   $("depthOut").textContent = `${state.labelDepth} mm`;
-  $("fitCtrl").classList.toggle("hide", state.style !== "makerworld");
+  // the resulting common label size per box width (all labels of a width are identical)
+  const ih = CAT?.layout.icon_h ?? 8.12, ratio = (CAT?.layout.cap_h ?? 5.7) / ih;
+  $("labelSizeNote").textContent = Object.keys(SCALES).sort((a, z) => z - a).map(w =>
+    `${w}-wide: icons ${(SCALES[w] * ih).toFixed(2)} mm, text ${(SCALES[w] * ih * ratio).toFixed(1)} mm`).join(" · ");
   $("fitSlider").value = state.labelFit;
   $("detentBox").checked = state.detent;
   $("fitOut").textContent = `${state.labelFit.toFixed(2)} mm` + (state.labelFit < 0 ? " (press fit)" : "");
@@ -742,7 +747,7 @@ function updateStatus(){
 }
 
 /* ---------- drag & drop ---------- */
-let drag = null, ghost = null;
+let drag = null, ghosts = [];
 function cellFromPoint(clientX, clientY, b){
   const r = grid.getBoundingClientRect();
   const cx = (clientX - r.left) / state.cell, cy = (clientY - r.top) / state.cell;
@@ -799,7 +804,9 @@ function onPointerDown(e){
     render();
     return;
   }
-  if (!state.sel.has(pos)){ state.sel.clear(); state.sel.add(pos); }
+  // First click selects, a click on the already selected box opens its menu.
+  const wasSelected = state.sel.has(pos);
+  if (!wasSelected){ state.sel.clear(); state.sel.add(pos); }
   state.anchor = pos;
   // The default action of the press is to start a text selection that grows with the drag.
   // Cancel it; that also cancels focusing the grid, so focus it by hand for the arrow keys.
@@ -808,20 +815,27 @@ function onPointerDown(e){
   grid.focus({preventScroll: true});
   document.body.classList.add("drag-active");
   e.currentTarget.setPointerCapture(e.pointerId);
-  drag = {b, el: e.currentTarget, sx: e.clientX, sy: e.clientY, moved: false, ok: false, tx: 0, ty: 0};
+  // Pressing a box that is part of a multi-selection drags the whole selection (the boxes in
+  // the drawer; a box from the tray below has no position to move relative to, so it goes alone).
+  const group = wasSelected && placed(b) && state.sel.size > 1 ? selectionList().filter(placed) : [b];
+  drag = {b, group, sx: e.clientX, sy: e.clientY, moved: false, ok: false, targets: null, wasSelected};
   render();
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp, {once:true});
   window.addEventListener("pointercancel", onPointerCancel, {once:true});
 }
 // the browser took the pointer away (touch scroll, alt-tab): drop the drag, move nothing
+function endDragVisuals(d){
+  for (const o of d.group) nodes.get(o.pos)?.classList.remove("dragging");
+  for (const g of ghosts) g.remove();
+  ghosts = [];
+}
 function onPointerCancel(){
   window.removeEventListener("pointermove", onPointerMove);
   window.removeEventListener("pointerup", onPointerUp);
   document.body.classList.remove("drag-active");
   if (!drag) return;
-  drag.el.classList.remove("dragging");
-  ghost?.remove(); ghost = null;
+  endDragVisuals(drag);
   drag = null;
   render();
 }
@@ -830,17 +844,28 @@ function onPointerMove(e){
   const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
   if (!drag.moved && Math.hypot(dx, dy) < 4) return;
   drag.moved = true;
-  drag.el.classList.add("dragging");
-  drag.el.style.transform = `translate(${dx}px,${dy}px)`;
+  for (const o of drag.group){
+    const el = nodes.get(o.pos);
+    el.classList.add("dragging");
+    el.style.transform = `translate(${dx}px,${dy}px)`;
+  }
+  // The pressed box snaps to the cell under the pointer; the others keep their offsets to it.
   const [x, y] = cellFromPoint(e.clientX, e.clientY, drag.b);
-  drag.tx = x; drag.ty = y;
-  drag.ok = !collides(drag.b, x, y);
-  if (!ghost){ ghost = document.createElement("div"); ghost.className = "drop-ghost"; grid.appendChild(ghost); }
-  ghost.classList.toggle("bad", !drag.ok);
-  ghost.style.width  = drag.b.w * state.cell - 2 + "px";
-  ghost.style.height = drag.b.d * state.cell - 2 + "px";
-  ghost.style.left   = Math.max(-state.cell, Math.min(GW*state.cell, x*state.cell)) + 1 + "px";
-  ghost.style.top    = (GD - (y + drag.b.d)) * state.cell + 1 + "px";
+  const one = drag.group.length === 1;
+  drag.targets = drag.group.map(o => one ? [x, y] : [o.x + x - drag.b.x, o.y + y - drag.b.y]);
+  const moving = new Set(drag.group);
+  drag.ok = drag.group.every((o, i) => !collides(o, ...drag.targets[i], moving));
+  while (ghosts.length < drag.group.length){
+    const g = document.createElement("div"); g.className = "drop-ghost"; grid.appendChild(g); ghosts.push(g);
+  }
+  drag.group.forEach((o, i) => {
+    const [tx, ty] = drag.targets[i], g = ghosts[i];
+    g.classList.toggle("bad", !drag.ok);
+    g.style.width  = o.w * state.cell - 2 + "px";
+    g.style.height = o.d * state.cell - 2 + "px";
+    g.style.left   = Math.max(-state.cell, Math.min(GW*state.cell, tx*state.cell)) + 1 + "px";
+    g.style.top    = (GD - (ty + o.d)) * state.cell + 1 + "px";
+  });
 }
 function onPointerUp(e){
   window.removeEventListener("pointermove", onPointerMove);
@@ -848,13 +873,13 @@ function onPointerUp(e){
   document.body.classList.remove("drag-active");
   if (!drag) return;
   const d = drag; drag = null;
-  d.el.classList.remove("dragging");
-  ghost?.remove(); ghost = null;
-  if (!d.moved){ openModal(d.b); render(); return; }
+  endDragVisuals(d);
+  if (!d.moved){ if (d.wasSelected) openModal(d.b); render(); return; }
   const r = grid.getBoundingClientRect();
   const inside = e.clientX > r.left - 40 && e.clientX < r.right + 40 && e.clientY > r.top - 40 && e.clientY < r.bottom + 40;
-  if (!inside){ d.b.x = d.b.y = null; }
-  else if (d.ok){ d.b.x = d.tx; d.b.y = d.ty; }
+  // dropped outside the drawer: out of it (into the tray); inside: all or nothing
+  if (!inside){ for (const o of d.group) o.x = o.y = null; }
+  else if (d.ok && d.targets) d.group.forEach((o, i) => { [o.x, o.y] = d.targets[i]; });
   render();
 }
 grid.addEventListener("keydown", e => {
@@ -1027,21 +1052,9 @@ function setAllLabels(side){
   setGenNote(`Label edge set to ${side} for all ${state.bins.length} boxes.`);
 }
 $("allTop").onclick = () => setAllLabels("top");
-function setStyle(style){
-  state.style = style;
-  render(); if (modal.open) syncModal();
-  setGenNote({
-    integrated: "Integrated labels: one two-colour 3MF per box, label inlaid in the bin.",
-    removable: "Removable labels: each bin is built once per size, label edge and width (BIN_2x1_8U_D10_x83 = used 83 times), plus one label plate per box.",
-    makerworld: "MakerWorld labels: lipped bins built once per size (BIN_2x1_8U_MW_x83 = used 83 times), plus one clip-on label tray per box. The lip runs round all four walls, so a bin can take a new label later.",
-  }[style]);
-}
-$("styleInt").onclick = () => setStyle("integrated");
 $("depthSlider").oninput = e => { state.labelDepth = +e.target.value; render(); };
 $("detentBox").onchange = e => { state.detent = e.target.checked; render(); };
 $("fitSlider").oninput = e => { state.labelFit = Math.round(+e.target.value * 100) / 100; render(); };
-$("styleRem").onclick = () => setStyle("removable");
-$("styleMw").onclick = () => setStyle("makerworld");
 $("allBot").onclick = () => setAllLabels("bot");
 $("wPlus").onclick  = () => resize(modalBin, modalBin.w+1, modalBin.d);
 $("wMinus").onclick = () => resize(modalBin, modalBin.w-1, modalBin.d);
@@ -1106,7 +1119,7 @@ $("btnAuto").onclick = autoArrange;
    116-box drawer (BINS) stands in. */
 let sharedDefault = null, defaultState = "unknown";     // "ok" | "none" | "down"
 function builtInLayout(){
-  return {v: 3, u: 8, style: "integrated", labelDepth: 10, labelFit: 0.05, detent: false,
+  return {v: 3, u: 8, labelDepth: 10, labelFit: 0.05, detent: false,
           bins: BINS.map(b => ({label: "bot", text: null, ...b}))};
 }
 async function fetchDefault(){
@@ -1161,7 +1174,7 @@ function binData(b){
           w: b.w, d: b.d, x: b.x ?? null, y: b.y ?? null, label: b.label};
 }
 function snapshot(){
-  return {v: 3, u: state.u, style: state.style, labelDepth: state.labelDepth, labelFit: state.labelFit,
+  return {v: 3, u: state.u, labelDepth: state.labelDepth, labelFit: state.labelFit,
           detent: state.detent, bins: state.bins.map(binData)};
 }
 // a stored or imported box, checked; null if it cannot be used
@@ -1180,7 +1193,7 @@ function cleanBin(s, pos){
 function restore(snap){
   if (!snap || !Array.isArray(snap.bins)) return;
   state.u = snap.u ?? state.u;
-  if (snap.style) state.style = ["removable", "makerworld"].includes(snap.style) ? snap.style : "integrated";
+  // snap.style (integrated / removable / makerworld) is ignored: one label style since 2026-09-30
   if (Number.isFinite(snap.labelFit)) state.labelFit = Math.min(0.3, Math.max(-0.3, snap.labelFit));
   if (typeof snap.detent === "boolean") state.detent = snap.detent;
   if (Number.isFinite(snap.labelDepth)) state.labelDepth = Math.min(19, Math.max(6, snap.labelDepth));
@@ -1395,15 +1408,14 @@ function selected(){
   if (!list.length) setGenNote("No bins selected — click a box in the drawer, or use “Select bins”.");
   return list;
 }
-// a box with a separate label is always two files (bin + label), so it downloads as a zip
-function singleName(b){
-  return state.style === "integrated" ? baseName(b) + ".3mf" : `${baseName(b)}_${state.style}.zip`;
-}
-function batchName(what){
-  return `drawer_3mf_${what}_${state.u}U${state.style === "integrated" ? "" : "_" + state.style}.zip`;
-}
+// a box is always two files (bin + label), so it downloads as a zip
+function singleName(b){ return `${baseName(b)}.zip`; }
+function batchName(what){ return `drawer_3mf_${what}_${state.u}U.zip`; }
 const itemsOf = list => list.map(b => ({part: b.part, thread: b.thread, length: isBolt(b.part) ? b.len ?? null : null,
   text: (b.text || "").trim() || null, w: b.w, d: b.d, label: b.label}));
+// every box of the drawer, for the service's label sizes (one size per box width)
+const drawerRefs = () => state.bins.filter(b => b.thread && labelText(b)).map(b => ({part: b.part, thread: b.thread,
+  length: isBolt(b.part) ? b.len ?? null : null, text: (b.text || "").trim() || null, w: b.w}));
 function checkItems(list){
   const bad = list.find(b => !b.thread || !labelText(b));
   if (bad) throw new Error(`${partName(bad.part)}: thread is empty — set it in the box menu.`);
@@ -1424,8 +1436,8 @@ $("m3mf").onclick = guard(() => {
 });
 
 /* ---------- build service ----------
-   Every 3MF comes from generate_gridfinity_chappel_bins.py: body with the label pocket
-   cut plus the label inlay. There is deliberately no browser-built fallback — it could
+   Every 3MF comes from generate_gridfinity_chappel_bins.py: the lipped bin and the
+   clip-on label with its inlay. There is deliberately no browser-built fallback — it could
    only ever produce a bare body, and a box without its label is never a valid download. */
 let server = null;
 async function probeServer(){
@@ -1449,7 +1461,7 @@ async function probeServer(){
 const buildCache = new Map();          // key -> Uint8Array, oldest first
 const BUILD_CACHE_MAX = 256 * 1048576;
 function cacheKey(items){
-  return JSON.stringify({u: state.u, style: state.style, depth: state.labelDepth, fit: state.labelFit, detent: state.detent, items});
+  return JSON.stringify({u: state.u, depth: state.labelDepth, fit: state.labelFit, detent: state.detent, items, sizes: SCALES});
 }
 function cachePut(key, bytes){
   buildCache.delete(key);
@@ -1478,7 +1490,8 @@ async function buildBuffer(items, filename, title){
   try {
     let job = await jsonRequest("api/jobs", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({items, height_u: state.u, style: state.style, label_depth: state.labelDepth, label_fit: state.labelFit, label_detent: state.detent})
+      body: JSON.stringify({items, height_u: state.u, label_depth: state.labelDepth, label_fit: state.labelFit, label_detent: state.detent,
+                            drawer: drawerRefs()})
     });
     let failures = 0, phase = "";
     while (job.phase !== "done"){
